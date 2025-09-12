@@ -142,6 +142,11 @@ class Fuerte_Wp
 		 * Extra classes
 		 */
 		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-fuerte-wp-two-factor.php';
+		
+		/**
+		 * Auto-update manager class
+		 */
+		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-fuerte-wp-auto-update-manager.php';
 	}
 
 	/**

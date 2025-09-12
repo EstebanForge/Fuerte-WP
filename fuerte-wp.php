@@ -5,7 +5,7 @@
  * Plugin Name:       Fuerte-WP
  * Plugin URI:        https://github.com/EstebanForge/Fuerte-WP
  * Description:       Stronger WP. Limit access to critical WordPress areas, even other for admins.
- * Version:           1.5.1
+ * Version:           1.6.0
  * Author:            Esteban Cuevas
  * Author URI:        https://actitud.xyz
  * License:           GPL-2.0+
@@ -13,8 +13,8 @@
  * Text Domain:       fuerte-wp
  * Domain Path:       /languages
  * Requires at least: 6.0
- * Tested up to:      6.6
- * Requires PHP:      7.3
+ * Tested up to:      6.9
+ * Requires PHP:      8.0
  *
  * @link              https://actitud.xyz
  * @since             1.3.0
