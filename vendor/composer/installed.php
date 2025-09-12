@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
-        'name' => 'tcattd/fuerte-wp',
+        'name' => 'estebanforge/fuerte-wp',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'c44d1b6fea17b0183948e028fcfa1c9c2befbb7b',
+        'reference' => '8473c12e58e76734b8eb318ae2879e9539d4aa27',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,18 +11,18 @@
     ),
     'versions' => array(
         'htmlburger/carbon-fields' => array(
-            'pretty_version' => 'v3.6.3',
-            'version' => '3.6.3.0',
-            'reference' => 'd913a5148cb9dc61ed239719c747f4ebb513003f',
+            'pretty_version' => 'v3.6.9',
+            'version' => '3.6.9.0',
+            'reference' => 'f82e80e3e3469d6e86cc17a8950b918ad448a059',
             'type' => 'library',
             'install_path' => __DIR__ . '/../htmlburger/carbon-fields',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
-        'tcattd/fuerte-wp' => array(
+        'estebanforge/fuerte-wp' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'c44d1b6fea17b0183948e028fcfa1c9c2befbb7b',
+            'reference' => '8473c12e58e76734b8eb318ae2879e9539d4aa27',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

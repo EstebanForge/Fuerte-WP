@@ -5,7 +5,7 @@
  * Version: 1.3.7
  *
  * Author: Esteban Cuevas
- * https://github.com/TCattd/Fuerte-WP
+ * https://github.com/EstebanForge/Fuerte-WP
  */
 
 // No access outside WP

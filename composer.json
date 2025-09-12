@@ -1,9 +1,9 @@
 {
-	"name": "tcattd/fuerte-wp",
+	"name": "estebanforge/fuerte-wp",
 	"description": "Stronger WP",
 	"license": "GPL-2.0",
 	"type": "wordpress-plugin",
-	"homepage": "https://github.com/TCattd/Fuerte-WP",
+	"homepage": "https://github.com/EstebanForge/Fuerte-WP",
 	"authors": [
 		{
 			"name": "Esteban Cuevas",
@@ -11,7 +11,7 @@
 		}
 	],
 	"support": {
-		"issues": "https://github.com/TCattd/Fuerte-WP/issues"
+		"issues": "https://github.com/EstebanForge/Fuerte-WP/issues"
 	},
 	"require": {
 		"php": ">=7.3",

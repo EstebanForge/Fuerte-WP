@@ -1,7 +1,7 @@
 # Fuerte-WP
 
 <p align="center">
-	<img src="https://github.com/TCattd/Fuerte-WP/blob/master/.wp-org-assets/icon-256x256.png?raw=true" alt="Fuerte-WP Logo" />
+	<img src="https://github.com/EstebanForge/Fuerte-WP/blob/master/.wp-org-assets/icon-256x256.png?raw=true" alt="Fuerte-WP Logo" />
 </p>
 
 Stronger WP. Limit access to critical WordPress areas, even for other admins.
@@ -58,7 +58,7 @@ Fuerte-WP allows you to configure it "harder". This way, Fuerte-WP options insid
 
 To use the harder configuration, follow this steps:
 
-- Download a copy of [```config-sample/wp-config-fuerte.php```](https://github.com/TCattd/Fuerte-WP/blob/master/config-sample/wp-config-fuerte.php) file, and set it up with your desired settings. Edit and tweak the configuration array as needed.
+- Download a copy of [```config-sample/wp-config-fuerte.php```](https://github.com/EstebanForge/Fuerte-WP/blob/master/config-sample/wp-config-fuerte.php) file, and set it up with your desired settings. Edit and tweak the configuration array as needed.
 
 - Upload your tweaked ```wp-config-fuerte.php``` file to your WordPress's root directory. This usually is where your wp-config.php file resides.
 
@@ -68,11 +68,11 @@ To use the harder configuration, follow this steps:
 
 To check if your ```wp-config-fuerte.php``` file need an update, follow this steps:
 
-Check the default [```config-sample/wp-config-fuerte.php```](https://github.com/TCattd/Fuerte-WP/blob/master/config-sample/wp-config-fuerte.php) file. The header of the sample config will have the version when it was last modified.
+Check the default [```config-sample/wp-config-fuerte.php```](https://github.com/EstebanForge/Fuerte-WP/blob/master/config-sample/wp-config-fuerte.php) file. The header of the sample config will have the version when it was last modified.
 
 Then check out your own ```wp-config-fuerte.php``` file. If yours has a lower version number, then you need to update your settings array.
 
-Compare your config with the [default wp-config-fuerte.php file](https://github.com/TCattd/Fuerte-WP/blob/master/config-sample/wp-config-fuerte.php) and add the new/missing settings to your file. You can use [Meld](https://meldmerge.org), [WinMerge](https://winmerge.org), [Beyond Compare](https://www.scootersoftware.com), [Kaleidoscope](https://kaleidoscope.app), [Araxis Merge](https://www.araxis.com/merge/), [Diffchecker](https://www.diffchecker.com) or any similar software diff to help you here.
+Compare your config with the [default wp-config-fuerte.php file](https://github.com/EstebanForge/Fuerte-WP/blob/master/config-sample/wp-config-fuerte.php) and add the new/missing settings to your file. You can use [Meld](https://meldmerge.org), [WinMerge](https://winmerge.org), [Beyond Compare](https://www.scootersoftware.com), [Kaleidoscope](https://kaleidoscope.app), [Araxis Merge](https://www.araxis.com/merge/), [Diffchecker](https://www.diffchecker.com) or any similar software diff to help you here.
 
 Upload your updated ```wp-config-fuerte.php``` to your WordPress's root directory and replace the old one.
 
@@ -80,16 +80,16 @@ Don't worry. New Fuerte-WP features that need new configuration values will not 
 
 ## FAQ
 
-Check the [full FAQ here](https://github.com/TCattd/Fuerte-WP/blob/master/FAQ.md).
+Check the [full FAQ here](https://github.com/EstebanForge/Fuerte-WP/blob/master/FAQ.md).
 
 ## Suggestions, Support
 
-Please, open [a discussion](https://github.com/TCattd/Fuerte-WP/discussions).
+Please, open [a discussion](https://github.com/EstebanForge/Fuerte-WP/discussions).
 
 ## Bugs and Error reporting
 
-Please, open [an issue](https://github.com/TCattd/Fuerte-WP/issues).
+Please, open [an issue](https://github.com/EstebanForge/Fuerte-WP/issues).
 
 ## Changelog
 
-[Available here](https://github.com/TCattd/Fuerte-WP/blob/master/CHANGELOG.md).
+[Available here](https://github.com/EstebanForge/Fuerte-WP/blob/master/CHANGELOG.md).
