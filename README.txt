@@ -26,7 +26,7 @@ Some features included are:
 - Remove (and restrict) items from WordPress menus, for non super users.
 - Disable Plugins installation (via WP's repo or upload). Also disable plugins deletion.
 
-Check the [full feature set at here](https://github.com/TCattd/Fuerte-WP).
+Check the [full feature set at here](https://github.com/EstebanForge/Fuerte-WP).
 
 == Installation ==
 1. Install Fuerte-WP from WordPress repository. Plugins > Add New > Search for: Fuerte-WP. Activate it.
@@ -35,13 +35,13 @@ Check the [full feature set at here](https://github.com/TCattd/Fuerte-WP).
 
 == Frequently Asked Questions ==
 = Where is the FAQ? =
-You can [read the full FAQ at GitHub](https://github.com/TCattd/Fuerte-WP/blob/master/FAQ.md).
+You can [read the full FAQ at GitHub](https://github.com/EstebanForge/Fuerte-WP/blob/master/FAQ.md).
 
 = Suggestions, Support? =
-Please, open [a discussion](https://github.com/TCattd/Fuerte-WP/discussions).
+Please, open [a discussion](https://github.com/EstebanForge/Fuerte-WP/discussions).
 
 = Found a Bug or Error? =
-Please, open [an issue](https://github.com/TCattd/Fuerte-WP/issues).
+Please, open [an issue](https://github.com/EstebanForge/Fuerte-WP/issues).
 
 == Screenshots ==
 1. Main options page.
@@ -50,4 +50,4 @@ Please, open [an issue](https://github.com/TCattd/Fuerte-WP/issues).
 4. Advanced restrictions.
 
 == Changelog ==
-[Check the changelog at GitHub](https://github.com/TCattd/Fuerte-WP/blob/master/CHANGELOG.md).
+[Check the changelog at GitHub](https://github.com/EstebanForge/Fuerte-WP/blob/master/CHANGELOG.md).

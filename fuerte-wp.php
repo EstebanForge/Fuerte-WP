@@ -3,7 +3,7 @@
 /**
  * @wordpress-plugin
  * Plugin Name:       Fuerte-WP
- * Plugin URI:        https://github.com/TCattd/Fuerte-WP
+ * Plugin URI:        https://github.com/EstebanForge/Fuerte-WP
  * Description:       Stronger WP. Limit access to critical WordPress areas, even other for admins.
  * Version:           1.5.1
  * Author:            Esteban Cuevas
