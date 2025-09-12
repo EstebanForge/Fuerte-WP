@@ -59,6 +59,9 @@ class Fuerte_Wp_Enforcer
 	 */
 	public function run()
 	{
+		// Initialize auto-update manager
+		$this->auto_update_manager = Fuerte_Wp_Auto_Update_Manager::get_instance();
+		
 		$this->enforcer();
 	}
 
@@ -152,6 +155,7 @@ class Fuerte_Wp_Enforcer
 			$autoupdate_plugins        = carbon_get_theme_option('fuertewp_autoupdate_plugins') == 'yes';
 			$autoupdate_themes         = carbon_get_theme_option('fuertewp_autoupdate_themes') == 'yes';
 			$autoupdate_translations   = carbon_get_theme_option('fuertewp_autoupdate_translations') == 'yes';
+			$autoupdate_frequency     = carbon_get_theme_option('fuertewp_autoupdate_frequency');
 
 			// tweaks
 			$use_site_logo_login       = carbon_get_theme_option('fuertewp_tweaks_use_site_logo_login') == 'yes';
@@ -220,6 +224,7 @@ class Fuerte_Wp_Enforcer
 					'autoupdate_plugins'            => $autoupdate_plugins,
 					'autoupdate_themes'             => $autoupdate_themes,
 					'autoupdate_translations'       => $autoupdate_translations,
+					'autoupdate_frequency'          => $autoupdate_frequency,
 				],
 				'tweaks'     => [
 					'use_site_logo_login'           => $use_site_logo_login,
@@ -287,44 +292,9 @@ class Fuerte_Wp_Enforcer
 		}
 
 		/**
-		 * Themes & Plugins auto updates
+		 * Themes & Plugins auto updates - managed via cronjob
 		 */
-		$some_updates_enabled = false;
-
-		if (isset($fuertewp['general']['autoupdate_core']) && true === $fuertewp['general']['autoupdate_core']) {
-			add_filter('auto_update_core', '__return_true', PHP_INT_MAX);
-			add_filter('allow_minor_auto_core_updates', '__return_true', PHP_INT_MAX);
-			add_filter('allow_major_auto_core_updates', '__return_true', PHP_INT_MAX);
-
-			$this->register_autoupdate_cron();
-			$some_updates_enabled = true;
-		}
-
-		if (isset($fuertewp['general']['autoupdate_plugins']) && true === $fuertewp['general']['autoupdate_plugins']) {
-			add_filter('auto_update_plugin', '__return_true', PHP_INT_MAX);
-
-			$this->register_autoupdate_cron();
-			$some_updates_enabled = true;
-		}
-
-		if (isset($fuertewp['general']['autoupdate_themes']) && true === $fuertewp['general']['autoupdate_themes']) {
-			add_filter('auto_update_theme', '__return_true', PHP_INT_MAX);
-
-			$this->register_autoupdate_cron();
-			$some_updates_enabled = true;
-		}
-
-		if (isset($fuertewp['general']['autoupdate_translations']) && true === $fuertewp['general']['autoupdate_translations']) {
-			add_filter('autoupdate_translations', '__return_true', PHP_INT_MAX);
-
-			$this->register_autoupdate_cron();
-			$some_updates_enabled = true;
-		}
-
-		if ($some_updates_enabled === false) {
-			// No updates enabled, remove the cron
-			$this->remove_autoupdate_cron();
-		}
+		$this->auto_update_manager->manage_updates($fuertewp);
 
 		/**
 		 * htaccess security rules
@@ -903,44 +873,7 @@ class Fuerte_Wp_Enforcer
 		}
 	}
 
-	/**
-	 * Register autoupdate
-	 * Forces WordPress, via scheduled task, to perform the update routine
-	 * Every 6 hours by default
-	 *
-	 * @return void
-	 */
-	protected function register_autoupdate_cron()
-	{
-		// Check if event isn't already scheduled
-		if (!wp_next_scheduled('trigger_updates')) {
-			wp_schedule_event(time(), 'six_hours', 'trigger_updates');
-		}
-	}
-
-	/**
-	 * Remove autoupdate cron
-	 *
-	 * @return void
-	 */
-	protected function remove_autoupdate_cron()
-	{
-		wp_clear_scheduled_hook('trigger_updates');
-	}
-
-	/**
-	 * Do the updates
-	 *
-	 * @return void
-	 */
-	protected function trigger_updates()
-	{
-		// Log
-		write_log('trigger_updates ran at ' . date('Y-m-d H:i:s'));
-
-		wp_maybe_auto_update();
-	}
-
+	
 	// Work in Progress...
 	static function recommended_plugins()
 	{

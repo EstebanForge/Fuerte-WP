@@ -14,8 +14,8 @@
 		"issues": "https://github.com/EstebanForge/Fuerte-WP/issues"
 	},
 	"require": {
-		"php": ">=7.3",
-		"htmlburger/carbon-fields": "^3.6"
+		"php": ">=8.0",
+		"htmlburger/carbon-fields": "^3"
 	},
 	"scripts": {
 		"post-install-cmd": [

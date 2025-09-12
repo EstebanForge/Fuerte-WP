@@ -192,6 +192,16 @@ class Fuerte_Wp_Admin
 					->set_option_value('yes')
 					->set_help_text(__('Auto-update Translations to their latest stable version.', 'fuerte-wp')),
 
+				Field::make('select', 'fuertewp_autoupdate_frequency', __('Update check frequency', 'fuerte-wp'))
+					->add_options([
+						'six_hours'   => __('Every 6 hours', 'fuerte-wp'),
+						'twelve_hours' => __('Every 12 hours', 'fuerte-wp'),
+						'daily'        => __('Every 24 hours', 'fuerte-wp'),
+						'twodays'      => __('Every 48 hours', 'fuerte-wp'),
+					])
+					->set_default_value('twelve_hours')
+					->set_help_text(__('How often to check for and apply updates.', 'fuerte-wp')),
+
 				Field::make('separator', 'fuertewp_separator_tweaks', __('Tweaks', 'fuerte-wp')),
 
 				Field::make('checkbox', 'fuertewp_tweaks_use_site_logo_login', __('Use site logo at login.', 'fuerte-wp'))

@@ -46,6 +46,7 @@ $fuertewp = [
 		'autoupdate_plugins'            => true, // Auto update plugins.
 		'autoupdate_themes'             => true, // Auto update themes.
 		'autoupdate_translations'       => true, // Auto update translations.
+		'autoupdate_frequency'          => 'twelve_hours', // Update check frequency: six_hours, twelve_hours, daily, twodays.
 	],
 	/*
 	Tweaks
