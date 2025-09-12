@@ -3,7 +3,7 @@
 # 1.6.0 / 2025-09-12
 - Refactored auto-update system into dedicated `Fuerte_Wp_Auto_Update_Manager` class for better code organization and maintainability.
 - Updated Carbon Fields dependency to the latest version for better PHP 8.x+ compatibility.
-- Bug fixes.
+- Bug fixes and performance improvements.
 
 # 1.5.1 / 2024-07-24
 - Improved auto-updates. Added a new scheduled task to force WordPress to perform the update routine every 6 hours, only when some auto-updates are enabled.

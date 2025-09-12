@@ -42,7 +42,7 @@ class Fuerte_Wp_Auto_Update_Manager
 	public function __construct()
 	{
 		// Hook into WordPress
-		add_action('init', array($this, 'init'));
+		add_action('init', [$this, 'init']);
 	}
 
 	/**
@@ -51,7 +51,7 @@ class Fuerte_Wp_Auto_Update_Manager
 	public function init()
 	{
 		// Add action hook for the cron event
-		add_action('fuertewp_trigger_updates', array($this, 'trigger_updates'));
+		add_action('fuertewp_trigger_updates', [$this, 'trigger_updates']);
 	}
 
 	/**

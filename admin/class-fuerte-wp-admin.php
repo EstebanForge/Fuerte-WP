@@ -65,6 +65,11 @@ class Fuerte_Wp_Admin
 	 */
 	public function enqueue_styles()
 	{
+		// Only load on Fuerte-WP admin pages for performance
+		$screen = get_current_screen();
+		if (!$screen || !strpos($screen->id, 'fuerte-wp')) {
+			return;
+		}
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -78,7 +83,7 @@ class Fuerte_Wp_Admin
 		 * class.
 		 */
 
-		//wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/fuerte-wp-admin.css', array(), $this->version, 'all' );
+		//wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/fuerte-wp-admin.css', [], $this->version, 'all' );
 
 	}
 
@@ -89,6 +94,11 @@ class Fuerte_Wp_Admin
 	 */
 	public function enqueue_scripts()
 	{
+		// Only load on Fuerte-WP admin pages for performance
+		$screen = get_current_screen();
+		if (!$screen || !strpos($screen->id, 'fuerte-wp')) {
+			return;
+		}
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -102,7 +112,7 @@ class Fuerte_Wp_Admin
 		 * class.
 		 */
 
-		//wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/fuerte-wp-admin.js', array( 'jquery' ), $this->version, false );
+		//wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/fuerte-wp-admin.js', ['jquery'], $this->version, false );
 
 	}
 
@@ -114,6 +124,11 @@ class Fuerte_Wp_Admin
 		 * No admin options if main config file exists physically
 		 */
 		if (file_exists(ABSPATH . 'wp-config-fuerte.php') && is_array($fuertewp) && !empty($fuertewp)) {
+			return;
+		}
+
+		// Early exit if not a super admin
+		if (!current_user_can('manage_options')) {
 			return;
 		}
 
