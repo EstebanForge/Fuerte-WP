@@ -122,14 +122,19 @@ class Fuerte_Wp
 
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
+		 * Load conditionally to improve performance
 		 */
-		require_once plugin_dir_path(dirname(__FILE__)) . 'admin/class-fuerte-wp-admin.php';
+		if (is_admin() && current_user_can('manage_options')) {
+			require_once plugin_dir_path(dirname(__FILE__)) . 'admin/class-fuerte-wp-admin.php';
+		}
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
-		 * side of the site.
+		 * side of the site. Load conditionally to improve performance
 		 */
-		require_once plugin_dir_path(dirname(__FILE__)) . 'public/class-fuerte-wp-public.php';
+		if (!is_admin()) {
+			require_once plugin_dir_path(dirname(__FILE__)) . 'public/class-fuerte-wp-public.php';
+		}
 
 		$this->loader = new Fuerte_Wp_Loader();
 
@@ -185,16 +190,19 @@ class Fuerte_Wp
 	 */
 	private function define_admin_hooks()
 	{
-		$plugin_admin = new Fuerte_Wp_Admin($this->get_plugin_name(), $this->get_version());
+		// Only load admin functionality when needed
+		if (is_admin() && current_user_can('manage_options') && class_exists('Fuerte_Wp_Admin')) {
+			$plugin_admin = new Fuerte_Wp_Admin($this->get_plugin_name(), $this->get_version());
 
-		$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_styles');
-		$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts');
+			$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_styles');
+			$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts');
 
-		$this->loader->add_action('carbon_fields_register_fields', $plugin_admin, 'fuertewp_plugin_options');
+			$this->loader->add_action('carbon_fields_register_fields', $plugin_admin, 'fuertewp_plugin_options');
 
-		$this->loader->add_action('carbon_fields_theme_options_container_saved', $plugin_admin, 'fuertewp_theme_options_saved', 10, 2);
+			$this->loader->add_action('carbon_fields_theme_options_container_saved', $plugin_admin, 'fuertewp_theme_options_saved', 10, 2);
 
-		$this->loader->add_action('plugin_action_links_' . FUERTEWP_PLUGIN_BASE, $plugin_admin, 'add_action_links');
+			$this->loader->add_action('plugin_action_links_' . FUERTEWP_PLUGIN_BASE, $plugin_admin, 'add_action_links');
+		}
 	}
 
 	/**
@@ -206,10 +214,13 @@ class Fuerte_Wp
 	 */
 	private function define_public_hooks()
 	{
-		$plugin_public = new Fuerte_Wp_Public($this->get_plugin_name(), $this->get_version());
+		// Only load public functionality when needed
+		if (!is_admin() && class_exists('Fuerte_Wp_Public')) {
+			$plugin_public = new Fuerte_Wp_Public($this->get_plugin_name(), $this->get_version());
 
-		$this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
-		$this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
+			$this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
+			$this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
+		}
 	}
 
 	/**
