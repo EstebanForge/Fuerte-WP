@@ -1,6 +1,6 @@
 {
 	"name": "estebanforge/fuerte-wp",
-	"description": "Stronger WP",
+	"description": "Stronger & Safer WordPress",
 	"license": "GPL-2.0",
 	"type": "wordpress-plugin",
 	"homepage": "https://github.com/EstebanForge/Fuerte-WP",
@@ -23,6 +23,9 @@
 		],
 		"post-update-cmd": [
 			"composer dump-autoload"
+		],
+		"cs:fix": [
+			"php-cs-fixer fix"
 		]
 	},
 	"extra": {

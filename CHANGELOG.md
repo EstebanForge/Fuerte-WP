@@ -1,6 +1,6 @@
 # Changelog
 
-# 1.6.0 / 2025-09-12
+# 1.6.0 / 2025-09-20
 - Refactored auto-update system into dedicated `Fuerte_Wp_Auto_Update_Manager` class for better code organization and maintainability.
 - Updated Carbon Fields dependency to the latest version for better PHP 8.x+ compatibility.
 - Bug fixes and performance improvements.

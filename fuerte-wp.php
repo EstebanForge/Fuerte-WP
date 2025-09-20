@@ -32,7 +32,7 @@ if (!defined("WPINC")) {
  * Rename this for your plugin and update it as you release new versions.
  */
 define("FUERTEWP_PLUGIN_BASE", plugin_basename(__FILE__));
-define("FUERTEWP_VERSION", "1.5.1");
+define("FUERTEWP_VERSION", "1.6.0");
 define("FUERTEWP_PATH", realpath(plugin_dir_path(__FILE__)) . "/");
 define("FUERTEWP_URL", trailingslashit(plugin_dir_url(__FILE__)));
 define("FUERTEWP_LATE_PRIORITY", 9999);
