@@ -14,7 +14,7 @@
  * Domain Path:       /languages
  * Requires at least: 6.0
  * Tested up to:      6.9
- * Requires PHP:      8.0
+ * Requires PHP:      8.1
  *
  * @link              https://actitud.xyz
  * @since             1.3.0
