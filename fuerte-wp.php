@@ -22,8 +22,8 @@
  */
 
 // If this file is called directly, abort.
-if (!defined('WPINC')) {
-	die;
+if (!defined("WPINC")) {
+	die();
 }
 
 /**
@@ -31,22 +31,23 @@ if (!defined('WPINC')) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define('FUERTEWP_PLUGIN_BASE', plugin_basename(__FILE__));
-define('FUERTEWP_VERSION', '1.5.1');
-define('FUERTEWP_PATH', realpath(plugin_dir_path(__FILE__)) . '/');
-define('FUERTEWP_URL',  trailingslashit(plugin_dir_url(__FILE__)),);
+define("FUERTEWP_PLUGIN_BASE", plugin_basename(__FILE__));
+define("FUERTEWP_VERSION", "1.5.1");
+define("FUERTEWP_PATH", realpath(plugin_dir_path(__FILE__)) . "/");
+define("FUERTEWP_URL", trailingslashit(plugin_dir_url(__FILE__)));
+define("FUERTEWP_LATE_PRIORITY", 9999);
 
 /**
  * Load Fuerte-WP config file if exist
  */
-if (file_exists(ABSPATH . 'wp-config-fuerte.php')) {
-	require_once ABSPATH . 'wp-config-fuerte.php';
+if (file_exists(ABSPATH . "wp-config-fuerte.php")) {
+	require_once ABSPATH . "wp-config-fuerte.php";
 }
 
 /**
  * Exit if FUERTEWP_DISABLE is defined (in wp-config.php or wp-config-fuerte.php)
  */
-if (defined('FUERTEWP_DISABLE') && true === FUERTEWP_DISABLE) {
+if (defined("FUERTEWP_DISABLE") && true === FUERTEWP_DISABLE) {
 	return false;
 }
 
@@ -55,28 +56,31 @@ if (defined('FUERTEWP_DISABLE') && true === FUERTEWP_DISABLE) {
  */
 function fuertewp_includes_autoload()
 {
-	if (file_exists(FUERTEWP_PATH . 'includes/helpers.php')) {
-		require_once FUERTEWP_PATH . 'includes/helpers.php';
+	if (file_exists(FUERTEWP_PATH . "includes/helpers.php")) {
+		require_once FUERTEWP_PATH . "includes/helpers.php";
 	}
 
 	// Elementor has JS issues with Carbon-Fields being loaded while in his editor.
-	if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'elementor') {
+	if (isset($_REQUEST["action"]) && $_REQUEST["action"] == "elementor") {
 		return;
 	}
 
-	if (file_exists(FUERTEWP_PATH . 'vendor/autoload.php')) {
-		require_once FUERTEWP_PATH . 'vendor/autoload.php';
+	if (file_exists(FUERTEWP_PATH . "vendor/autoload.php")) {
+		require_once FUERTEWP_PATH . "vendor/autoload.php";
 
 		// https://github.com/htmlburger/carbon-fields/issues/805#issuecomment-680959592
 		// https://docs.carbonfields.net/learn/advanced-topics/compacting-input-vars.html
-		define('Carbon_Fields\URL', FUERTEWP_URL . 'vendor/htmlburger/carbon-fields/');
-		define('Carbon_Fields\\COMPACT_INPUT', true);
-		define('Carbon_Field\\COMPACT_INPUT_KEY', 'fuertewp_carbonfields');
+		define(
+			"Carbon_Fields\URL",
+			FUERTEWP_URL . "vendor/htmlburger/carbon-fields/",
+		);
+		define("Carbon_Fields\\COMPACT_INPUT", true);
+		define("Carbon_Field\\COMPACT_INPUT_KEY", "fuertewp_carbonfields");
 
 		Carbon_Fields\Carbon_Fields::boot();
 	}
 }
-add_action('after_setup_theme', 'fuertewp_includes_autoload', 7);
+add_action("after_setup_theme", "fuertewp_includes_autoload", 100);
 //add_action( 'plugins_loaded', 'fuertewp_includes_autoload' );
 
 /**
@@ -85,7 +89,8 @@ add_action('after_setup_theme', 'fuertewp_includes_autoload', 7);
  */
 function activate_fuerte_wp()
 {
-	require_once plugin_dir_path(__FILE__) . 'includes/class-fuerte-wp-activator.php';
+	require_once plugin_dir_path(__FILE__) .
+		"includes/class-fuerte-wp-activator.php";
 	Fuerte_Wp_Activator::activate();
 }
 
@@ -95,19 +100,21 @@ function activate_fuerte_wp()
  */
 function deactivate_fuerte_wp()
 {
-	require_once plugin_dir_path(__FILE__) . 'includes/class-fuerte-wp-deactivator.php';
+	require_once plugin_dir_path(__FILE__) .
+		"includes/class-fuerte-wp-deactivator.php";
 	Fuerte_Wp_Deactivator::deactivate();
 }
 
-register_activation_hook(__FILE__, 'activate_fuerte_wp');
-register_deactivation_hook(__FILE__, 'deactivate_fuerte_wp');
+register_activation_hook(__FILE__, "activate_fuerte_wp");
+register_deactivation_hook(__FILE__, "deactivate_fuerte_wp");
 
 /**
  * Code that runs on plugins uninstallation
  */
 function uninstall_fuerte_wp()
 {
-	require_once plugin_dir_path(__FILE__) . 'includes/class-fuerte-wp-uninstaller.php';
+	require_once plugin_dir_path(__FILE__) .
+		"includes/class-fuerte-wp-uninstaller.php";
 	Fuerte_Wp_Uninstaller::uninstall();
 }
 
@@ -115,7 +122,7 @@ function uninstall_fuerte_wp()
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
-require plugin_dir_path(__FILE__) . 'includes/class-fuerte-wp.php';
+require plugin_dir_path(__FILE__) . "includes/class-fuerte-wp.php";
 
 /**
  * Begins execution of the plugin.

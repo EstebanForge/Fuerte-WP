@@ -165,21 +165,21 @@ class Fuerte_Wp_Auto_Update_Manager
 
 		// Set up filters globally for the update process
 		if (isset($fuertewp['general']['autoupdate_core']) && true === $fuertewp['general']['autoupdate_core']) {
-			add_filter('auto_update_core', '__return_true', PHP_INT_MAX);
-			add_filter('allow_minor_auto_core_updates', '__return_true', PHP_INT_MAX);
-			add_filter('allow_major_auto_core_updates', '__return_true', PHP_INT_MAX);
+			add_filter('auto_update_core', '__return_true', FUERTEWP_LATE_PRIORITY);
+			add_filter('allow_minor_auto_core_updates', '__return_true', FUERTEWP_LATE_PRIORITY);
+			add_filter('allow_major_auto_core_updates', '__return_true', FUERTEWP_LATE_PRIORITY);
 		}
 
 		if (isset($fuertewp['general']['autoupdate_plugins']) && true === $fuertewp['general']['autoupdate_plugins']) {
-			add_filter('auto_update_plugin', '__return_true', PHP_INT_MAX);
+			add_filter('auto_update_plugin', '__return_true', FUERTEWP_LATE_PRIORITY);
 		}
 
 		if (isset($fuertewp['general']['autoupdate_themes']) && true === $fuertewp['general']['autoupdate_themes']) {
-			add_filter('auto_update_theme', '__return_true', PHP_INT_MAX);
+			add_filter('auto_update_theme', '__return_true', FUERTEWP_LATE_PRIORITY);
 		}
 
 		if (isset($fuertewp['general']['autoupdate_translations']) && true === $fuertewp['general']['autoupdate_translations']) {
-			add_filter('autoupdate_translations', '__return_true', PHP_INT_MAX);
+			add_filter('autoupdate_translations', '__return_true', FUERTEWP_LATE_PRIORITY);
 		}
 
 		// Trigger WordPress auto-update process

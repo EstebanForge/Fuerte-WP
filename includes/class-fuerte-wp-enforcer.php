@@ -31,6 +31,11 @@ class Fuerte_Wp_Enforcer
 	public $fuertewp;
 	public $current_user;
 	public $config;
+	/**
+	 * Auto-update manager instance
+	 * @var Fuerte_Wp_Auto_Update_Manager|null
+	 */
+	public $auto_update_manager = null;
 
 	/**
 	 * Constructor
@@ -61,7 +66,7 @@ class Fuerte_Wp_Enforcer
 	{
 		// Initialize auto-update manager
 		$this->auto_update_manager = Fuerte_Wp_Auto_Update_Manager::get_instance();
-		
+
 		$this->enforcer();
 	}
 
@@ -72,12 +77,12 @@ class Fuerte_Wp_Enforcer
 	{
 		$cache_key = 'fuertewp_' . $section . '_' . FUERTEWP_VERSION;
 		$value = wp_cache_get($cache_key, 'fuertewp');
-		
+
 		if (false === $value) {
 			$value = call_user_func($callback);
 			wp_cache_set($cache_key, $value, 'fuertewp', $expire);
 		}
-		
+
 		return $value;
 	}
 
@@ -89,7 +94,7 @@ class Fuerte_Wp_Enforcer
 		if (empty($raw_data)) {
 			return [];
 		}
-		
+
 		return array_map('trim', explode(PHP_EOL, $raw_data));
 	}
 
@@ -99,7 +104,7 @@ class Fuerte_Wp_Enforcer
 	private function get_config_options_batch()
 	{
 		global $wpdb;
-		
+
 		// Define all option names we need to retrieve
 		$option_names = [
 			'fuertewp_status',
@@ -145,24 +150,24 @@ class Fuerte_Wp_Enforcer
 			'fuertewp_removed_submenus',
 			'fuertewp_removed_adminbar_menus'
 		];
-		
+
 		// Create placeholders for prepared statement
 		$placeholders = implode(',', array_fill(0, count($option_names), '%s'));
-		
+
 		// Batch query to get all options at once
 		$query = $wpdb->prepare(
 			"SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name IN ($placeholders)",
 			$option_names
 		);
-		
+
 		$results = $wpdb->get_results($query, ARRAY_A);
-		
+
 		// Convert to associative array for easy access
 		$options = [];
 		foreach ($results as $row) {
 			$options[$row['option_name']] = $row['option_value'];
 		}
-		
+
 		return $options;
 	}
 
@@ -191,53 +196,66 @@ class Fuerte_Wp_Enforcer
 				$defaults = $fuertewp;
 				$fuertewp = $fuertewp_pre;
 
-				// status
-				carbon_set_theme_option('fuertewp_status', 'enabled');
+				// Only set Carbon Fields options if functions are available
+				if (function_exists('carbon_set_theme_option')) {
+					$seed_defaults = function () use ($current_user, $defaults, &$fuertewp_pre) {
+						// status
+						carbon_set_theme_option('fuertewp_status', 'enabled');
 
-				// super_users
-				carbon_set_theme_option('fuertewp_super_users', $current_user->user_email);
+						// super_users
+						carbon_set_theme_option('fuertewp_super_users', $current_user->user_email);
 
-				// general
-				foreach ($defaults['general'] as $key => $value) {
-					carbon_set_theme_option('fuertewp_' . $key, $value);
+						// general
+						foreach ($defaults['general'] as $key => $value) {
+							carbon_set_theme_option('fuertewp_' . $key, $value);
+						}
+
+						// tweaks
+						foreach ($defaults['tweaks'] as $key => $value) {
+							carbon_set_theme_option('fuertewp_tweaks_' . $key, $value);
+						}
+
+						// emails
+						foreach ($defaults['emails'] as $key => $value) {
+							carbon_set_theme_option('fuertewp_emails_' . $key, $value);
+						}
+
+						// restrictions
+						foreach ($defaults['restrictions'] as $key => $value) {
+							carbon_set_theme_option('fuertewp_restrictions_' . $key, $value);
+						}
+
+						// restricted_scripts
+						$value = implode(PHP_EOL, $defaults['restricted_scripts']);
+						carbon_set_theme_option('fuertewp_restricted_scripts', $value);
+
+						// restricted_pages
+						$value = implode(PHP_EOL, $defaults['restricted_pages']);
+						carbon_set_theme_option('fuertewp_restricted_pages', $value);
+
+						// removed_menus
+						$value = implode(PHP_EOL, $defaults['removed_menus']);
+						carbon_set_theme_option('fuertewp_removed_menus', $value);
+
+						// removed_submenus
+						$value = implode(PHP_EOL, $defaults['removed_submenus']);
+						carbon_set_theme_option('fuertewp_removed_submenus', $value);
+
+						// removed_adminbar_menus
+						$value = implode(PHP_EOL, $defaults['removed_adminbar_menus']);
+						carbon_set_theme_option('fuertewp_removed_adminbar_menus', $value);
+
+						unset($fuertewp_pre, $value);
+					};
+
+					if (did_action('carbon_fields_fields_registered')) {
+						$seed_defaults();
+					} else {
+						add_action('carbon_fields_fields_registered', $seed_defaults, 1);
+					}
 				}
 
-				// tweaks
-				foreach ($defaults['tweaks'] as $key => $value) {
-					carbon_set_theme_option('fuertewp_tweaks_' . $key, $value);
-				}
-
-				// emails
-				foreach ($defaults['emails'] as $key => $value) {
-					carbon_set_theme_option('fuertewp_emails_' . $key, $value);
-				}
-
-				// restrictions
-				foreach ($defaults['restrictions'] as $key => $value) {
-					carbon_set_theme_option('fuertewp_restrictions_' . $key, $value);
-				}
-
-				// restricted_scripts
-				$value = implode(PHP_EOL, $defaults['restricted_scripts']);
-				carbon_set_theme_option('fuertewp_restricted_scripts', $value);
-
-				// restricted_pages
-				$value = implode(PHP_EOL, $defaults['restricted_pages']);
-				carbon_set_theme_option('fuertewp_restricted_pages', $value);
-
-				// removed_menus
-				$value = implode(PHP_EOL, $defaults['removed_menus']);
-				carbon_set_theme_option('fuertewp_removed_menus', $value);
-
-				// removed_submenus
-				$value = implode(PHP_EOL, $defaults['removed_submenus']);
-				carbon_set_theme_option('fuertewp_removed_submenus', $value);
-
-				// removed_adminbar_menus
-				$value = implode(PHP_EOL, $defaults['removed_adminbar_menus']);
-				carbon_set_theme_option('fuertewp_removed_adminbar_menus', $value);
-
-				unset($defaults, $fuertewp_pre, $value);
+				unset($defaults, $fuertewp_pre);
 			}
 		}
 
@@ -246,7 +264,7 @@ class Fuerte_Wp_Enforcer
 		if (false === ($fuertewp = get_transient('fuertewp_cache_config_' . $version_to_string))) {
 			// Use batch query to get all options at once
 			$options = $this->get_config_options_batch();
-			
+
 			// Extract values from batch results with fallbacks
 			$status                    = isset($options['fuertewp_status']) ? $options['fuertewp_status'] : null;
 
@@ -381,13 +399,13 @@ class Fuerte_Wp_Enforcer
 	{
 		// Only register email-related hooks if email features are enabled
 		$this->register_email_hooks($fuertewp);
-		
+
 		// Only register security-related hooks if security features are enabled
 		$this->register_security_hooks($fuertewp);
-		
+
 		// Only register UI-related hooks if UI features are enabled
 		$this->register_ui_hooks($fuertewp);
-		
+
 		// Only register restriction-related hooks if restrictions are enabled
 		$this->register_restriction_hooks($fuertewp);
 	}
@@ -398,12 +416,12 @@ class Fuerte_Wp_Enforcer
 	private function register_email_hooks($fuertewp)
 	{
 		// Always register recovery email hook (core functionality)
-		add_filter('recovery_mode_email', [__CLASS__, 'recovery_email_address'], PHP_INT_MAX);
+		add_filter('recovery_mode_email', [__CLASS__, 'recovery_email_address'], FUERTEWP_LATE_PRIORITY);
 
 		// Only register sender email hooks if enabled
 		if (isset($fuertewp['general']['sender_email_enable']) && true === $fuertewp['general']['sender_email_enable']) {
-			add_filter('wp_mail_from', [__CLASS__, 'sender_email_address'], PHP_INT_MAX);
-			add_filter('wp_mail_from_name', [__CLASS__, 'sender_email_address'], PHP_INT_MAX);
+			add_filter('wp_mail_from', [__CLASS__, 'sender_email_address'], FUERTEWP_LATE_PRIORITY);
+			add_filter('wp_mail_from_name', [__CLASS__, 'sender_email_address'], FUERTEWP_LATE_PRIORITY);
 		}
 
 		// Only register email notification hooks if any email features are disabled
@@ -427,49 +445,49 @@ class Fuerte_Wp_Enforcer
 	{
 		// Comment notifications
 		if (isset($fuertewp['emails']['comment_awaiting_moderation']) && false === $fuertewp['emails']['comment_awaiting_moderation']) {
-			add_filter('notify_moderator', '__return_false', PHP_INT_MAX);
+			add_filter('notify_moderator', '__return_false', FUERTEWP_LATE_PRIORITY);
 		}
 
 		if (isset($fuertewp['emails']['comment_has_been_published']) && false === $fuertewp['emails']['comment_has_been_published']) {
-			add_filter('notify_post_author', '__return_false', PHP_INT_MAX);
+			add_filter('notify_post_author', '__return_false', FUERTEWP_LATE_PRIORITY);
 		}
 
 		// User management notifications
 		if (isset($fuertewp['emails']['user_reset_their_password']) && false === $fuertewp['emails']['user_reset_their_password']) {
-			remove_action('after_password_reset', 'wp_password_change_notification', PHP_INT_MAX);
+			remove_action('after_password_reset', 'wp_password_change_notification', FUERTEWP_LATE_PRIORITY);
 		}
 
 		if (isset($fuertewp['emails']['user_confirm_personal_data_export_request']) && false === $fuertewp['emails']['user_confirm_personal_data_export_request']) {
-			remove_action('user_request_action_confirmed', '_wp_privacy_send_request_confirmation_notification', PHP_INT_MAX);
+			remove_action('user_request_action_confirmed', '_wp_privacy_send_request_confirmation_notification', FUERTEWP_LATE_PRIORITY);
 		}
 
 		if (isset($fuertewp['emails']['new_user_created']) && false === $fuertewp['emails']['new_user_created']) {
-			remove_action('register_new_user', 'wp_send_new_user_notifications', PHP_INT_MAX);
-			remove_action('edit_user_created_user', 'wp_send_new_user_notifications', PHP_INT_MAX);
-			remove_action('network_site_new_created_user', 'wp_send_new_user_notifications', PHP_INT_MAX);
-			remove_action('network_site_users_created_user', 'wp_send_new_user_notifications', PHP_INT_MAX);
-			remove_action('network_user_new_created_user', 'wp_send_new_user_notifications', PHP_INT_MAX);
+			remove_action('register_new_user', 'wp_send_new_user_notifications', FUERTEWP_LATE_PRIORITY);
+			remove_action('edit_user_created_user', 'wp_send_new_user_notifications', FUERTEWP_LATE_PRIORITY);
+			remove_action('network_site_new_created_user', 'wp_send_new_user_notifications', FUERTEWP_LATE_PRIORITY);
+			remove_action('network_site_users_created_user', 'wp_send_new_user_notifications', FUERTEWP_LATE_PRIORITY);
+			remove_action('network_user_new_created_user', 'wp_send_new_user_notifications', FUERTEWP_LATE_PRIORITY);
 		}
 
 		// Update notifications
 		if (isset($fuertewp['emails']['automatic_updates']) && false === $fuertewp['emails']['automatic_updates']) {
-			add_filter('auto_core_update_send_email', '__return_false', PHP_INT_MAX);
-			add_filter('send_core_update_notification_email', '__return_false', PHP_INT_MAX);
+			add_filter('auto_core_update_send_email', '__return_false', FUERTEWP_LATE_PRIORITY);
+			add_filter('send_core_update_notification_email', '__return_false', FUERTEWP_LATE_PRIORITY);
 			add_filter('auto_plugin_update_send_email', '__return_false');
 			add_filter('auto_theme_update_send_email', '__return_false');
 		}
 
 		// Network notifications
 		if (isset($fuertewp['emails']['network_new_site_created']) && false === $fuertewp['emails']['network_new_site_created']) {
-			add_filter('send_new_site_email', '__return_false', PHP_INT_MAX);
+			add_filter('send_new_site_email', '__return_false', FUERTEWP_LATE_PRIORITY);
 		}
 
 		if (isset($fuertewp['emails']['network_new_user_site_registered']) && false === $fuertewp['emails']['network_new_user_site_registered']) {
-			add_filter('wpmu_signup_blog_notification', '__return_false', PHP_INT_MAX);
+			add_filter('wpmu_signup_blog_notification', '__return_false', FUERTEWP_LATE_PRIORITY);
 		}
 
 		if (isset($fuertewp['emails']['network_new_site_activated']) && false === $fuertewp['emails']['network_new_site_activated']) {
-			remove_action('wp_initialize_site', 'newblog_notify_siteadmin', PHP_INT_MAX);
+			remove_action('wp_initialize_site', 'newblog_notify_siteadmin', FUERTEWP_LATE_PRIORITY);
 		}
 
 		// Error handler
@@ -485,17 +503,17 @@ class Fuerte_Wp_Enforcer
 	{
 		// XML-RPC restrictions
 		if (isset($fuertewp['restrictions']['disable_xmlrpc']) && true === $fuertewp['restrictions']['disable_xmlrpc']) {
-			add_filter('xmlrpc_enabled', '__return_false', PHP_INT_MAX);
+			add_filter('xmlrpc_enabled', '__return_false', FUERTEWP_LATE_PRIORITY);
 			add_filter('xmlrpc_methods', function () {
 				return [];
-			}, PHP_INT_MAX);
-			
+			}, FUERTEWP_LATE_PRIORITY);
+
 			add_action('init', function () {
 				if (defined('XMLRPC_REQUEST') && XMLRPC_REQUEST) {
 					header('HTTP/1.1 403 Forbidden');
 					die('403 Forbidden - XML-RPC functionality is disabled on this site.');
 				}
-			}, PHP_INT_MAX);
+			}, FUERTEWP_LATE_PRIORITY);
 		}
 
 		// REST API restrictions
@@ -510,13 +528,13 @@ class Fuerte_Wp_Enforcer
 	private function register_ui_hooks($fuertewp)
 	{
 		// Custom UI tweaks (CSS, JS, login logo)
-		add_filter('admin_footer', [__CLASS__, 'custom_javascript'], PHP_INT_MAX);
-		add_filter('login_head', [__CLASS__, 'custom_javascript'], PHP_INT_MAX);
-		add_filter('admin_head', [__CLASS__, 'custom_css'], PHP_INT_MAX);
-		add_filter('login_head', [__CLASS__, 'custom_css'], PHP_INT_MAX);
-		add_action('login_enqueue_scripts', [__CLASS__, 'custom_login_logo'], PHP_INT_MAX);
-		add_action('login_headerurl', [__CLASS__, 'custom_login_url'], PHP_INT_MAX);
-		add_action('login_headertitle', [__CLASS__, 'custom_login_title'], PHP_INT_MAX);
+		add_filter('admin_footer', [__CLASS__, 'custom_javascript'], FUERTEWP_LATE_PRIORITY);
+		add_filter('login_head', [__CLASS__, 'custom_javascript'], FUERTEWP_LATE_PRIORITY);
+		add_filter('admin_head', [__CLASS__, 'custom_css'], FUERTEWP_LATE_PRIORITY);
+		add_filter('login_head', [__CLASS__, 'custom_css'], FUERTEWP_LATE_PRIORITY);
+		add_action('login_enqueue_scripts', [__CLASS__, 'custom_login_logo'], FUERTEWP_LATE_PRIORITY);
+		add_action('login_headerurl', [__CLASS__, 'custom_login_url'], FUERTEWP_LATE_PRIORITY);
+		add_action('login_headertitle', [__CLASS__, 'custom_login_title'], FUERTEWP_LATE_PRIORITY);
 	}
 
 	/**
@@ -527,22 +545,22 @@ class Fuerte_Wp_Enforcer
 		// Admin-specific restrictions
 		if (is_admin()) {
 			// Menu and admin bar restrictions
-			add_filter('admin_menu', [__CLASS__, 'remove_menus'], PHP_INT_MAX);
-			add_filter('admin_bar_menu', [__CLASS__, 'remove_adminbar_menus'], PHP_INT_MAX);
+			add_filter('admin_menu', [__CLASS__, 'remove_menus'], FUERTEWP_LATE_PRIORITY);
+			add_filter('admin_bar_menu', [__CLASS__, 'remove_adminbar_menus'], FUERTEWP_LATE_PRIORITY);
 
 			// User role restrictions
 			if (isset($fuertewp['restrictions']['disable_admin_create_edit']) && true === $fuertewp['restrictions']['disable_admin_create_edit']) {
-				add_filter('editable_roles', [__CLASS__, 'create_edit_role_check'], PHP_INT_MAX);
+				add_filter('editable_roles', [__CLASS__, 'create_edit_role_check'], FUERTEWP_LATE_PRIORITY);
 			}
 
 			// Application passwords
 			if (isset($fuertewp['rest_api']['disable_app_passwords']) && true === $fuertewp['rest_api']['disable_app_passwords']) {
-				add_filter('wp_is_application_passwords_available', '__return_false', PHP_INT_MAX);
+				add_filter('wp_is_application_passwords_available', '__return_false', FUERTEWP_LATE_PRIORITY);
 			}
 
 			// ACF restrictions
 			if (isset($fuertewp['restrictions']['restrict_acf']) && true === $fuertewp['restrictions']['restrict_acf']) {
-				add_filter('acf/settings/show_admin', '__return_false', PHP_INT_MAX);
+				add_filter('acf/settings/show_admin', '__return_false', FUERTEWP_LATE_PRIORITY);
 			}
 		}
 
@@ -551,7 +569,7 @@ class Fuerte_Wp_Enforcer
 			if (is_array($fuertewp['restrictions']['disable_admin_bar_roles'])) {
 				foreach ($fuertewp['restrictions']['disable_admin_bar_roles'] as $role) {
 					if (true === $this->has_role($role)) {
-						add_filter('show_admin_bar', '__return_false', PHP_INT_MAX);
+						add_filter('show_admin_bar', '__return_false', FUERTEWP_LATE_PRIORITY);
 						break; // Only need to add this once
 					}
 				}
@@ -609,12 +627,12 @@ class Fuerte_Wp_Enforcer
 		// Check if current user should be affected by Fuerte-WP
 		$is_super_user = in_array(strtolower($current_user->user_email), $fuertewp['super_users']);
 		$is_forced = defined('FUERTEWP_FORCE') && true === FUERTEWP_FORCE;
-		
+
 		// Early exit for super users (unless forced)
 		if ($is_super_user && !$is_forced) {
 			return;
 		}
-		
+
 		if ($is_forced || !$is_super_user) {
 			// Register hooks conditionally based on configuration
 			$this->register_conditional_hooks($fuertewp);
@@ -733,7 +751,7 @@ class Fuerte_Wp_Enforcer
 
 					add_action('admin_menu', function () {
 						remove_submenu_page('options-general.php', 'options-permalink.php');
-					}, PHP_INT_MAX);
+					}, FUERTEWP_LATE_PRIORITY);
 				}
 			} // is_admin()
 		} // user affected by Fuerte-WP
@@ -749,7 +767,7 @@ class Fuerte_Wp_Enforcer
 		// Remove Fuerte-WP from admin menu
 		add_action('admin_menu', function () {
 			remove_submenu_page('options-general.php', 'crb_carbon_fields_container_fuerte-wp.php');
-		}, PHP_INT_MAX);
+		}, FUERTEWP_LATE_PRIORITY);
 
 		// Prevent direct deactivation
 		if (
@@ -774,7 +792,7 @@ class Fuerte_Wp_Enforcer
 			}
 
 			return $actions;
-		}, PHP_INT_MAX, 2);
+		}, FUERTEWP_LATE_PRIORITY, 2);
 	}
 
 	/**
@@ -1013,7 +1031,7 @@ class Fuerte_Wp_Enforcer
 		}
 	}
 
-	
+
 	// Work in Progress...
 	static function recommended_plugins()
 	{
