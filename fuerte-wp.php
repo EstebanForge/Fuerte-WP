@@ -5,7 +5,7 @@
  * Plugin Name:       Fuerte-WP
  * Plugin URI:        https://github.com/EstebanForge/Fuerte-WP
  * Description:       Stronger WP. Limit access to critical WordPress areas, even other for admins.
- * Version:           1.6.1
+ * Version:           1.7.0
  * Author:            Esteban Cuevas
  * Author URI:        https://actitud.xyz
  * License:           GPL-2.0+
@@ -32,7 +32,7 @@ if (!defined("WPINC")) {
  * Rename this for your plugin and update it as you release new versions.
  */
 define("FUERTEWP_PLUGIN_BASE", plugin_basename(__FILE__));
-define("FUERTEWP_VERSION", "1.6.0");
+define("FUERTEWP_VERSION", "1.7.0");
 define("FUERTEWP_PATH", realpath(plugin_dir_path(__FILE__)) . "/");
 define("FUERTEWP_URL", trailingslashit(plugin_dir_url(__FILE__)));
 define("FUERTEWP_LATE_PRIORITY", 9999);
@@ -67,21 +67,36 @@ function fuertewp_includes_autoload()
 
 	if (file_exists(FUERTEWP_PATH . "vendor/autoload.php")) {
 		require_once FUERTEWP_PATH . "vendor/autoload.php";
-
-		// https://github.com/htmlburger/carbon-fields/issues/805#issuecomment-680959592
-		// https://docs.carbonfields.net/learn/advanced-topics/compacting-input-vars.html
-		define(
-			"Carbon_Fields\URL",
-			FUERTEWP_URL . "vendor/htmlburger/carbon-fields/",
-		);
-		define("Carbon_Fields\\COMPACT_INPUT", true);
-		define("Carbon_Field\\COMPACT_INPUT_KEY", "fuertewp_carbonfields");
-
-		Carbon_Fields\Carbon_Fields::boot();
 	}
 }
 add_action("after_setup_theme", "fuertewp_includes_autoload", 100);
-//add_action( 'plugins_loaded', 'fuertewp_includes_autoload' );
+
+/**
+ * Load Carbon Fields early on plugins_loaded hook.
+ * This must happen before any Carbon Fields containers are registered.
+ *
+ * @since 1.7.0
+ */
+function fuertewp_load_carbon_fields()
+{
+    if (file_exists(FUERTEWP_PATH . "vendor/autoload.php")) {
+        // Carbon Fields configuration
+        // https://github.com/htmlburger/carbon-fields/issues/805#issuecomment-680959592
+        // https://docs.carbonfields.net/learn/advanced-topics/compacting-input-vars.html
+        define(
+            "Carbon_Fields\\URL",
+            FUERTEWP_URL . "vendor/htmlburger/carbon-fields/",
+        );
+        define("Carbon_Fields\\COMPACT_INPUT", true);
+        define("Carbon_Fields\\COMPACT_INPUT_KEY", "fuertewp_carbonfields");
+
+        require_once FUERTEWP_PATH . "vendor/autoload.php";
+
+        // Initialize Carbon Fields
+        \Carbon_Fields\Carbon_Fields::boot();
+    }
+}
+add_action('plugins_loaded', 'fuertewp_load_carbon_fields', 0);
 
 /**
  * The code that runs during plugin activation.
@@ -107,6 +122,59 @@ function deactivate_fuerte_wp()
 
 register_activation_hook(__FILE__, "activate_fuerte_wp");
 register_deactivation_hook(__FILE__, "deactivate_fuerte_wp");
+
+/**
+ * Check database version on plugin load and create/update tables if needed.
+ * This ensures tables are created even when plugin is updated.
+ *
+ * @since 1.7.0
+ */
+function fuertewp_check_login_db_version()
+{
+    require_once plugin_dir_path(__FILE__) . "includes/class-fuerte-wp-activator.php";
+
+    $installed_version = get_option('fuertewp_login_db_version', '0.0.0');
+
+    if (version_compare($installed_version, Fuerte_Wp_Activator::DB_VERSION, '<')) {
+        Fuerte_Wp_Activator::create_login_security_tables();
+        Fuerte_Wp_Activator::schedule_cron_jobs();
+        Fuerte_Wp_Activator::setup_initial_super_user();
+    }
+}
+add_action('plugins_loaded', 'fuertewp_check_login_db_version');
+
+/**
+ * Ensure at least one super user is configured during admin_init.
+ * This provides a fallback if plugins_loaded didn't work (user not logged in yet).
+ *
+ * @since 1.7.0
+ */
+function fuertewp_ensure_super_user()
+{
+    if (!is_admin()) {
+        return;
+    }
+
+    // Check if Carbon Fields functions are available
+    if (!function_exists('carbon_get_theme_option')) {
+        return;
+    }
+
+    // Check if super_users option exists and is not empty
+    $super_users = carbon_get_theme_option('fuertewp_super_users');
+
+    if (empty($super_users) || !is_array($super_users)) {
+        $current_user = wp_get_current_user();
+
+        if ($current_user && $current_user->ID > 0 && current_user_can('manage_options')) {
+            // Add current user as super user
+            carbon_set_theme_option('fuertewp_super_users', [$current_user->user_email]);
+
+            error_log('Fuerte-WP: Auto-added ' . $current_user->user_email . ' as super user (fallback)');
+        }
+    }
+}
+add_action('admin_init', 'fuertewp_ensure_super_user');
 
 /**
  * Code that runs on plugins uninstallation
