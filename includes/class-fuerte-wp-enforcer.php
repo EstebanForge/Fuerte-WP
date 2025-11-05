@@ -65,9 +65,350 @@ class Fuerte_Wp_Enforcer
         // Initialize auto-update manager
         $this->auto_update_manager = Fuerte_Wp_Auto_Update_Manager::get_instance();
 
+        // Initialize login security manager
+        $this->init_login_security();
+
         $this->enforcer();
     }
 
+    /**
+     * Initialize login security features.
+     *
+     * @since 1.7.0
+     */
+    private function init_login_security()
+    {
+        // Register cron cleanup hook
+        add_action('fuertewp_cleanup_login_logs', [$this, 'cleanup_login_logs']);
+
+        // Initialize login manager
+        $login_manager = new Fuerte_Wp_Login_Manager();
+        $login_manager->run();
+
+        // AJAX handlers for admin
+        if (is_admin() && current_user_can('manage_options')) {
+            add_action('wp_ajax_fuertewp_clear_login_logs', [$this, 'ajax_clear_login_logs']);
+            add_action('wp_ajax_fuertewp_reset_lockouts', [$this, 'ajax_reset_lockouts']);
+            add_action('wp_ajax_fuertewp_export_attempts', [$this, 'ajax_export_attempts']);
+            add_action('wp_ajax_fuertewp_export_ips', [$this, 'ajax_export_ips']);
+            add_action('wp_ajax_fuertewp_add_ip', [$this, 'ajax_add_ip']);
+            add_action('wp_ajax_fuertewp_remove_ip', [$this, 'ajax_remove_ip']);
+            add_action('wp_ajax_fuertewp_get_login_logs', [$this, 'ajax_get_login_logs']);
+            add_action('wp_ajax_fuertewp_unlock_ip', [$this, 'ajax_unlock_ip']);
+            add_action('wp_ajax_fuertewp_unblock_single', [$this, 'ajax_unblock_single']);
+        }
+
+        // AJAX handlers for all users (no login required)
+        add_action('wp_ajax_nopriv_fuertewp_get_remaining_attempts', [$this, 'ajax_get_remaining_attempts']);
+        add_action('wp_ajax_fuertewp_get_remaining_attempts', [$this, 'ajax_get_remaining_attempts']);
+    }
+
+    /**
+     * Clean up old login logs (cron job).
+     *
+     * @since 1.7.0
+     * @return void
+     */
+    public function cleanup_login_logs()
+    {
+        $logger = new Fuerte_Wp_Login_Logger();
+        $logger->cleanup_old_records();
+    }
+
+    /**
+     * AJAX handler to clear all login logs.
+     *
+     * @since 1.7.0
+     * @return void
+     */
+    public function ajax_clear_login_logs()
+    {
+        check_ajax_referer('fuertewp_admin_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Insufficient permissions', 'fuerte-wp'));
+        }
+
+        $logger = new Fuerte_Wp_Login_Logger();
+        $result = $logger->clear_all_attempts();
+
+        wp_send_json_success([
+            'message' => __('Login logs cleared successfully', 'fuerte-wp'),
+        ]);
+    }
+
+    /**
+     * AJAX handler to reset all lockouts.
+     *
+     * @since 1.7.0
+     * @return void
+     */
+    public function ajax_reset_lockouts()
+    {
+        check_ajax_referer('fuertewp_admin_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Insufficient permissions', 'fuerte-wp'));
+        }
+
+        $logger = new Fuerte_Wp_Login_Logger();
+        $result = $logger->reset_all_lockouts();
+
+        wp_send_json_success([
+            'message' => __('Lockouts reset successfully', 'fuerte-wp'),
+        ]);
+    }
+
+    /**
+     * AJAX handler to export login attempts.
+     *
+     * @since 1.7.0
+     * @return void
+     */
+    public function ajax_export_attempts()
+    {
+        check_ajax_referer('fuertewp_admin_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Insufficient permissions', 'fuerte-wp'));
+        }
+
+        $exporter = new Fuerte_Wp_CSV_Exporter();
+
+        // Get filters from request
+        $args = [
+            'status' => sanitize_text_field($_POST['status'] ?? ''),
+            'ip' => sanitize_text_field($_POST['ip'] ?? ''),
+            'username' => sanitize_text_field($_POST['username'] ?? ''),
+            'date_from' => sanitize_text_field($_POST['date_from'] ?? ''),
+            'date_to' => sanitize_text_field($_POST['date_to'] ?? ''),
+        ];
+
+        // Export directly (will exit)
+        $exporter->export_attempts($args);
+    }
+
+    /**
+     * AJAX handler to export IP list.
+     *
+     * @since 1.7.0
+     * @return void
+     */
+    public function ajax_export_ips()
+    {
+        check_ajax_referer('fuertewp_admin_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Insufficient permissions', 'fuerte-wp'));
+        }
+
+        $type = sanitize_text_field($_POST['type'] ?? 'whitelist');
+
+        if (!in_array($type, ['whitelist', 'blacklist'])) {
+            wp_send_json_error(__('Invalid list type', 'fuerte-wp'));
+        }
+
+        $exporter = new Fuerte_Wp_CSV_Exporter();
+
+        // Export directly (will exit)
+        $exporter->export_ip_list($type);
+    }
+
+    /**
+     * AJAX handler to add IP to list.
+     *
+     * @since 1.7.0
+     * @return void
+     */
+    public function ajax_add_ip()
+    {
+        check_ajax_referer('fuertewp_admin_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Insufficient permissions', 'fuerte-wp'));
+        }
+
+        $ip_or_range = sanitize_text_field($_POST['ip_or_range'] ?? '');
+        $type = sanitize_text_field($_POST['type'] ?? 'whitelist');
+        $note = sanitize_text_field($_POST['note'] ?? '');
+
+        if (empty($ip_or_range)) {
+            wp_send_json_error(__('IP or range is required', 'fuerte-wp'));
+        }
+
+        if (!in_array($type, ['whitelist', 'blacklist'])) {
+            wp_send_json_error(__('Invalid list type', 'fuerte-wp'));
+        }
+
+        $ip_manager = new Fuerte_Wp_IP_Manager();
+        $result = $ip_manager->add_ip_to_list($ip_or_range, $type, $note);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
+        }
+
+        wp_send_json_success([
+            'message' => __('IP added successfully', 'fuerte-wp'),
+        ]);
+    }
+
+    /**
+     * AJAX handler to remove IP from list.
+     *
+     * @since 1.7.0
+     * @return void
+     */
+    public function ajax_remove_ip()
+    {
+        check_ajax_referer('fuertewp_admin_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Insufficient permissions', 'fuerte-wp'));
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+
+        if ($id <= 0) {
+            wp_send_json_error(__('Invalid ID', 'fuerte-wp'));
+        }
+
+        $ip_manager = new Fuerte_Wp_IP_Manager();
+        $result = $ip_manager->remove_ip_from_list($id);
+
+        if (!$result) {
+            wp_send_json_error(__('Failed to remove IP', 'fuerte-wp'));
+        }
+
+        wp_send_json_success([
+            'message' => __('IP removed successfully', 'fuerte-wp'),
+        ]);
+    }
+
+    /**
+     * AJAX handler to get login logs table.
+     *
+     * @since 1.7.0
+     * @return void
+     */
+    public function ajax_get_login_logs()
+    {
+        check_ajax_referer('fuertewp_admin_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Insufficient permissions', 'fuerte-wp'));
+        }
+
+        $page = (int)($_POST['page'] ?? 1);
+        $per_page = 50;
+        $offset = ($page - 1) * $per_page;
+
+        $logger = new Fuerte_Wp_Login_Logger();
+        $attempts = $logger->get_attempts([
+            'limit' => $per_page,
+            'offset' => $offset,
+            'orderby' => 'attempt_time',
+            'order' => 'DESC',
+        ]);
+
+        $total = $logger->get_attempts_count();
+        $total_pages = ceil($total / $per_page);
+
+        // Generate HTML table
+        $html = '<table class="wp-list-table widefat fixed striped" id="fuertewp-login-logs">';
+        $html .= '<thead><tr>';
+        $html .= '<th>' . esc_html__('Date/Time', 'fuerte-wp') . '</th>';
+        $html .= '<th class="column-ip">' . esc_html__('IP Address', 'fuerte-wp') . '</th>';
+        $html .= '<th>' . esc_html__('Username', 'fuerte-wp') . '</th>';
+        $html .= '<th class="column-status">' . esc_html__('Status', 'fuerte-wp') . '</th>';
+        $html .= '<th>' . esc_html__('User Agent', 'fuerte-wp') . '</th>';
+        $html .= '<th class="column-actions">' . esc_html__('Actions', 'fuerte-wp') . '</th>';
+        $html .= '</tr></thead>';
+
+        $html .= '<tbody>';
+
+        if (empty($attempts)) {
+            $html .= '<tr><td colspan="6">' . esc_html__('No failed login attempts found.', 'fuerte-wp') . '</td></tr>';
+        } else {
+            foreach ($attempts as $attempt) {
+                $status_class = 'status-' . $attempt->status;
+                $status_display = ucfirst($attempt->status);
+
+                $html .= '<tr>';
+                $html .= '<td>' . esc_html($attempt->attempt_time) . '</td>';
+                $html .= '<td>' . esc_html($attempt->ip_address) . '</td>';
+                $html .= '<td>' . esc_html($attempt->username) . '</td>';
+                $html .= '<td class="column-status"><span class="' . $status_class . '">' . esc_html($status_display) . '</span></td>';
+                $html .= '<td><div class="user-agent-cell">' . esc_html($attempt->user_agent) . '</div></td>';
+
+                // Actions column
+                $html .= '<td>';
+                if ($attempt->status === 'blocked') {
+                    // Check if there's an active lockout for this IP/username combination
+                    $active_lockout = $logger->get_active_lockout($attempt->ip_address, $attempt->username);
+
+                    if ($active_lockout) {
+                        $html .= '<button type="button" class="button button-small button-secondary fuertewp-unblock-single" ';
+                        $html .= 'data-ip="' . esc_attr($attempt->ip_address) . '" ';
+                        $html .= 'data-username="' . esc_attr($attempt->username) . '" ';
+                        $html .= 'data-id="' . (int)$attempt->id . '">';
+                        $html .= esc_html__('Unblock', 'fuerte-wp');
+                        $html .= '</button>';
+                    }
+                }
+                $html .= '</td>';
+
+                $html .= '</tr>';
+            }
+        }
+
+        $html .= '</tbody></table>';
+
+        // Add pagination
+        if ($total_pages > 1) {
+            $html .= '<div class="fuertewp-pagination" style="margin-top: 20px;">';
+
+            $pagination_links = paginate_links([
+                'base' => '#page-%#%',
+                'format' => '',
+                'current' => $page,
+                'total' => $total_pages,
+                'prev_text' => '&laquo;',
+                'next_text' => '&raquo;',
+                'type' => 'array',
+            ]);
+
+            if (!empty($pagination_links)) {
+                foreach ($pagination_links as $link) {
+                    // Extract page number from href attribute and add data-page attribute
+                    if (preg_match('/href="#page-(\d+)"/', $link, $matches)) {
+                        $page_num = $matches[1];
+                        $link = str_replace('href="#page-' . $page_num . '"', 'href="#page-' . $page_num . '" data-page="' . $page_num . '"', $link);
+                    } else {
+                        // Handle current page (which might not have href)
+                        if (preg_match('/class="current"/', $link)) {
+                            $link = str_replace('class="current"', 'class="current" data-page="' . $page . '"', $link);
+                        }
+                        // Handle disabled links (prev/next when no more pages)
+                        if (preg_match('/class="[^"]*disabled[^"]*"/', $link)) {
+                            continue; // Skip disabled links
+                        }
+                    }
+                    $html .= $link . ' ';
+                }
+            }
+
+            $html .= '</div>';
+        }
+
+        wp_send_json_success([
+            'html' => $html,
+            'total' => $total,
+            'page' => $page,
+            'total_pages' => $total_pages,
+        ]);
+    }
+
+    
     /**
      * Get cached configuration section with granular caching.
      */
@@ -100,73 +441,68 @@ class Fuerte_Wp_Enforcer
     }
 
     /**
-     * Get configuration options using batch queries for better performance.
+     * Get configuration options using Carbon Fields API.
+     * This ensures proper integration with Carbon Fields custom datastore.
      */
     private function get_config_options_batch()
     {
-        global $wpdb;
-
-        // Define all option names we need to retrieve
-        $option_names = [
-            'fuertewp_status',
-            'fuertewp_super_users',
-            'fuertewp_access_denied_message',
-            'fuertewp_recovery_email',
-            'fuertewp_sender_email_enable',
-            'fuertewp_sender_email',
-            'fuertewp_autoupdate_core',
-            'fuertewp_autoupdate_plugins',
-            'fuertewp_autoupdate_themes',
-            'fuertewp_autoupdate_translations',
-            'fuertewp_autoupdate_frequency',
-            'fuertewp_tweaks_use_site_logo_login',
-            'fuertewp_emails_fatal_error',
-            'fuertewp_emails_automatic_updates',
-            'fuertewp_emails_comment_awaiting_moderation',
-            'fuertewp_emails_comment_has_been_published',
-            'fuertewp_emails_user_reset_their_password',
-            'fuertewp_emails_user_confirm_personal_data_export_request',
-            'fuertewp_emails_new_user_created',
-            'fuertewp_emails_network_new_site_created',
-            'fuertewp_emails_network_new_user_site_registered',
-            'fuertewp_emails_network_new_site_activated',
-            'fuertewp_restrictions_restapi_loggedin_only',
-            'fuertewp_restrictions_restapi_disable_app_passwords',
-            'fuertewp_restrictions_disable_xmlrpc',
-            'fuertewp_restrictions_htaccess_security_rules',
-            'fuertewp_restrictions_disable_admin_create_edit',
-            'fuertewp_restrictions_disable_weak_passwords',
-            'fuertewp_restrictions_force_strong_passwords',
-            'fuertewp_restrictions_disable_admin_bar_roles',
-            'fuertewp_restrictions_restrict_permalinks',
-            'fuertewp_restrictions_restrict_acf',
-            'fuertewp_restrictions_disable_theme_editor',
-            'fuertewp_restrictions_disable_plugin_editor',
-            'fuertewp_restrictions_disable_theme_install',
-            'fuertewp_restrictions_disable_plugin_install',
-            'fuertewp_restrictions_disable_customizer_css',
-            'fuertewp_restricted_scripts',
-            'fuertewp_restricted_pages',
-            'fuertewp_removed_menus',
-            'fuertewp_removed_submenus',
-            'fuertewp_removed_adminbar_menus',
-        ];
-
-        // Create placeholders for prepared statement
-        $placeholders = implode(',', array_fill(0, count($option_names), '%s'));
-
-        // Batch query to get all options at once
-        $query = $wpdb->prepare(
-            "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name IN ($placeholders)",
-            $option_names,
-        );
-
-        $results = $wpdb->get_results($query, ARRAY_A);
-
-        // Convert to associative array for easy access
+        // Use Carbon Fields API to get theme options
+        // This handles the custom datastore and underscore prefix correctly
         $options = [];
-        foreach ($results as $row) {
-            $options[$row['option_name']] = $row['option_value'];
+
+        // Only attempt to get Carbon Fields options if the function exists
+        if (function_exists('carbon_get_theme_option')) {
+            $options['fuertewp_status'] = carbon_get_theme_option('fuertewp_status');
+            $options['_fuertewp_super_users'] = carbon_get_theme_option('fuertewp_super_users');
+            $options['fuertewp_access_denied_message'] = carbon_get_theme_option('fuertewp_access_denied_message');
+            $options['fuertewp_recovery_email'] = carbon_get_theme_option('fuertewp_recovery_email');
+            $options['fuertewp_sender_email_enable'] = carbon_get_theme_option('fuertewp_sender_email_enable');
+            $options['fuertewp_sender_email'] = carbon_get_theme_option('fuertewp_sender_email');
+            $options['fuertewp_autoupdate_core'] = carbon_get_theme_option('fuertewp_autoupdate_core');
+            $options['fuertewp_autoupdate_plugins'] = carbon_get_theme_option('fuertewp_autoupdate_plugins');
+            $options['fuertewp_autoupdate_themes'] = carbon_get_theme_option('fuertewp_autoupdate_themes');
+            $options['fuertewp_autoupdate_translations'] = carbon_get_theme_option('fuertewp_autoupdate_translations');
+            $options['fuertewp_autoupdate_frequency'] = carbon_get_theme_option('fuertewp_autoupdate_frequency');
+
+            // Login Security settings
+            $options['fuertewp_login_enable'] = carbon_get_theme_option('fuertewp_login_enable');
+            $options['fuertewp_registration_enable'] = carbon_get_theme_option('fuertewp_registration_enable');
+            $options['fuertewp_login_max_attempts'] = carbon_get_theme_option('fuertewp_login_max_attempts');
+            $options['fuertewp_login_lockout_duration'] = carbon_get_theme_option('fuertewp_login_lockout_duration');
+            $options['fuertewp_login_lockout_duration_type'] = carbon_get_theme_option('fuertewp_login_lockout_duration_type');
+            $options['fuertewp_login_cron_cleanup_frequency'] = carbon_get_theme_option('fuertewp_login_cron_cleanup_frequency');
+
+            $options['fuertewp_tweaks_use_site_logo_login'] = carbon_get_theme_option('fuertewp_tweaks_use_site_logo_login');
+            $options['fuertewp_emails_fatal_error'] = carbon_get_theme_option('fuertewp_emails_fatal_error');
+            $options['fuertewp_emails_automatic_updates'] = carbon_get_theme_option('fuertewp_emails_automatic_updates');
+            $options['fuertewp_emails_comment_awaiting_moderation'] = carbon_get_theme_option('fuertewp_emails_comment_awaiting_moderation');
+            $options['fuertewp_emails_comment_has_been_published'] = carbon_get_theme_option('fuertewp_emails_comment_has_been_published');
+            $options['fuertewp_emails_user_reset_their_password'] = carbon_get_theme_option('fuertewp_emails_user_reset_their_password');
+            $options['fuertewp_emails_user_confirm_personal_data_export_request'] = carbon_get_theme_option('fuertewp_emails_user_confirm_personal_data_export_request');
+            $options['fuertewp_emails_new_user_created'] = carbon_get_theme_option('fuertewp_emails_new_user_created');
+            $options['fuertewp_emails_network_new_site_created'] = carbon_get_theme_option('fuertewp_emails_network_new_site_created');
+            $options['fuertewp_emails_network_new_user_site_registered'] = carbon_get_theme_option('fuertewp_emails_network_new_user_site_registered');
+            $options['fuertewp_emails_network_new_site_activated'] = carbon_get_theme_option('fuertewp_emails_network_new_site_activated');
+            $options['fuertewp_restrictions_restapi_loggedin_only'] = carbon_get_theme_option('fuertewp_restrictions_restapi_loggedin_only');
+            $options['fuertewp_restrictions_restapi_disable_app_passwords'] = carbon_get_theme_option('fuertewp_restrictions_restapi_disable_app_passwords');
+            $options['fuertewp_restrictions_disable_xmlrpc'] = carbon_get_theme_option('fuertewp_restrictions_disable_xmlrpc');
+            $options['fuertewp_restrictions_htaccess_security_rules'] = carbon_get_theme_option('fuertewp_restrictions_htaccess_security_rules');
+            $options['fuertewp_restrictions_disable_admin_create_edit'] = carbon_get_theme_option('fuertewp_restrictions_disable_admin_create_edit');
+            $options['fuertewp_restrictions_disable_weak_passwords'] = carbon_get_theme_option('fuertewp_restrictions_disable_weak_passwords');
+            $options['fuertewp_restrictions_force_strong_passwords'] = carbon_get_theme_option('fuertewp_restrictions_force_strong_passwords');
+            $options['fuertewp_restrictions_disable_admin_bar_roles'] = carbon_get_theme_option('fuertewp_restrictions_disable_admin_bar_roles');
+            $options['fuertewp_restrictions_restrict_permalinks'] = carbon_get_theme_option('fuertewp_restrictions_restrict_permalinks');
+            $options['fuertewp_restrictions_restrict_acf'] = carbon_get_theme_option('fuertewp_restrictions_restrict_acf');
+            $options['fuertewp_restrictions_disable_theme_editor'] = carbon_get_theme_option('fuertewp_restrictions_disable_theme_editor');
+            $options['fuertewp_restrictions_disable_plugin_editor'] = carbon_get_theme_option('fuertewp_restrictions_disable_plugin_editor');
+            $options['fuertewp_restrictions_disable_theme_install'] = carbon_get_theme_option('fuertewp_restrictions_disable_theme_install');
+            $options['fuertewp_restrictions_disable_plugin_install'] = carbon_get_theme_option('fuertewp_restrictions_disable_plugin_install');
+            $options['fuertewp_restrictions_disable_customizer_css'] = carbon_get_theme_option('fuertewp_restrictions_disable_customizer_css');
+            $options['fuertewp_restricted_scripts'] = carbon_get_theme_option('fuertewp_restricted_scripts');
+            $options['fuertewp_restricted_pages'] = carbon_get_theme_option('fuertewp_restricted_pages');
+            $options['fuertewp_removed_menus'] = carbon_get_theme_option('fuertewp_removed_menus');
+            $options['fuertewp_removed_submenus'] = carbon_get_theme_option('fuertewp_removed_submenus');
+            $options['fuertewp_removed_adminbar_menus'] = carbon_get_theme_option('fuertewp_removed_adminbar_menus');
         }
 
         return $options;
@@ -332,8 +668,13 @@ class Fuerte_Wp_Enforcer
                 ?? null;
 
             // general
-            $super_users = $options['fuertewp_super_users']
+            $super_users = $options['_fuertewp_super_users']
                 ?? null;
+
+            // Ensure super_users is always an array
+            if (!is_array($super_users)) {
+                $super_users = [];
+            }
             $access_denied_message = isset(
                 $options['fuertewp_access_denied_message'],
             )
@@ -365,6 +706,24 @@ class Fuerte_Wp_Enforcer
             )
                 ? $options['fuertewp_autoupdate_frequency']
                 : null;
+
+            // Login Security settings
+            $login_enable = isset($options['fuertewp_login_enable'])
+                && $options['fuertewp_login_enable'] == 'enabled';
+            $registration_enable = isset($options['fuertewp_registration_enable'])
+                && $options['fuertewp_registration_enable'] == 'enabled';
+            $login_max_attempts = isset($options['fuertewp_login_max_attempts'])
+                ? intval($options['fuertewp_login_max_attempts'])
+                : 5;
+            $login_lockout_duration = isset($options['fuertewp_login_lockout_duration'])
+                ? intval($options['fuertewp_login_lockout_duration'])
+                : 15;
+            $login_lockout_duration_type = isset($options['fuertewp_login_lockout_duration_type'])
+                ? $options['fuertewp_login_lockout_duration_type']
+                : 'minutes';
+            $login_cron_cleanup_frequency = isset($options['fuertewp_login_cron_cleanup_frequency'])
+                ? $options['fuertewp_login_cron_cleanup_frequency']
+                : 'daily';
 
             // tweaks
             $use_site_logo_login
@@ -551,6 +910,14 @@ class Fuerte_Wp_Enforcer
                 ],
                 'tweaks' => [
                     'use_site_logo_login' => $use_site_logo_login,
+                ],
+                'login_security' => [
+                    'login_enable' => $login_enable,
+                    'registration_enable' => $registration_enable,
+                    'max_attempts' => $login_max_attempts,
+                    'lockout_duration' => $login_lockout_duration,
+                    'lockout_duration_type' => $login_lockout_duration_type,
+                    'cron_cleanup_frequency' => $login_cron_cleanup_frequency,
                 ],
                 'rest_api' => [
                     'loggedin_only' => $restapi_loggedin_only,
@@ -897,7 +1264,7 @@ class Fuerte_Wp_Enforcer
             FUERTEWP_LATE_PRIORITY,
         );
         add_action(
-            'login_headertitle',
+            'login_headertext',
             [__CLASS__, 'custom_login_title'],
             FUERTEWP_LATE_PRIORITY,
         );
@@ -990,6 +1357,7 @@ class Fuerte_Wp_Enforcer
     protected function enforcer()
     {
         global $pagenow, $current_user;
+        global $fuertewp;
 
         $fuertewp = $this->config_setup();
 
@@ -1285,7 +1653,7 @@ class Fuerte_Wp_Enforcer
             FUERTEWP_LATE_PRIORITY,
         );
 
-        // Prevent direct deactivation
+        // Prevent direct deactivation for non-super users only
         if (
             isset($_REQUEST['action'])
             && $_REQUEST['action'] == 'deactivate'
@@ -1293,7 +1661,21 @@ class Fuerte_Wp_Enforcer
             && isset($_REQUEST['plugin'])
             && stripos($_REQUEST['plugin'], 'fuerte-wp') !== false
         ) {
-            $this->access_denied();
+            // Check if current user is a super user
+            global $fuertewp, $current_user;
+            $is_super_user = false;
+
+            if (isset($current_user) && isset($fuertewp['super_users'])) {
+                $is_super_user = in_array(
+                    strtolower($current_user->user_email),
+                    $fuertewp['super_users'],
+                );
+            }
+
+            // Only block deactivation if not a super user
+            if (!$is_super_user) {
+                $this->access_denied();
+            }
         }
 
         // Check if a non super-user is accessing our plugin options
@@ -1302,15 +1684,44 @@ class Fuerte_Wp_Enforcer
             && isset($_REQUEST['page'])
             && $_REQUEST['page'] == 'crb_carbon_fields_container_fuerte-wp.php'
         ) {
-            $this->access_denied();
+            // Check if current user is a super user
+            global $fuertewp, $current_user;
+            $is_super_user = false;
+
+            if (isset($current_user) && isset($fuertewp['super_users'])) {
+                $is_super_user = in_array(
+                    strtolower($current_user->user_email),
+                    $fuertewp['super_users'],
+                );
+            }
+
+            // Only block access if not a super user
+            if (!$is_super_user) {
+                $this->access_denied();
+            }
         }
 
-        // Hide deactivation link
+        // Hide deactivation link for non-super users only
         add_filter(
             'plugin_action_links',
             function ($actions, $plugin_file) {
+                // Only hide deactivate for non-super users
+                global $fuertewp, $current_user;
+
                 if (plugin_basename(FUERTEWP_PLUGIN_BASE) === $plugin_file) {
-                    unset($actions['deactivate']);
+                    // Check if current user is a super user
+                    $is_super_user = false;
+                    if (isset($current_user) && isset($fuertewp['super_users'])) {
+                        $is_super_user = in_array(
+                            strtolower($current_user->user_email),
+                            $fuertewp['super_users'],
+                        );
+                    }
+
+                    // Only hide deactivate if not a super user
+                    if (!$is_super_user) {
+                        unset($actions['deactivate']);
+                    }
                 }
 
                 return $actions;
@@ -1632,6 +2043,120 @@ class Fuerte_Wp_Enforcer
                 || $pagenow == 'options-general.php')
         ) {
             //add_action( 'admin_notices', 'fuertewp_recommended_plugins_notice' );
+        }
+    }
+
+    /**
+     * AJAX handler to get remaining login attempts.
+     *
+     * @since 1.7.0
+     */
+    public function ajax_get_remaining_attempts()
+    {
+        check_ajax_referer('fuertewp-get-attempts', 'security');
+
+        if (!session_id()) {
+            session_start();
+        }
+
+        $remaining = isset($_SESSION['fuertewp_login_attempts_left']) ? (int)$_SESSION['fuertewp_login_attempts_left'] : 0;
+
+        if ($remaining > 0) {
+            $message = sprintf(
+                _n('<strong>%d</strong> attempt remaining.', '<strong>%d</strong> attempts remaining.', $remaining, 'fuerte-wp'),
+                $remaining
+            );
+            wp_send_json_success($message);
+        } else {
+            wp_send_json_error();
+        }
+    }
+
+    /**
+     * AJAX handler to unlock an IP address.
+     *
+     * @since 1.7.0
+     */
+    public function ajax_unlock_ip()
+    {
+        check_ajax_referer('fuertewp-unlock-ip', 'security');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('You do not have sufficient permissions to perform this action.', 'fuerte-wp'));
+        }
+
+        $ip = isset($_POST['ip']) ? sanitize_text_field($_POST['ip']) : '';
+        if (empty($ip)) {
+            wp_send_json_error(__('IP address is required.', 'fuertewp'));
+        }
+
+        // Remove lockout from database
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'fuertewp_login_lockouts';
+        $wpdb->delete(
+            $table_name,
+            ['ip_address' => $ip],
+            ['%s']
+        );
+
+        // Log the unlock action
+        // Admin unlock logging removed for production
+
+        wp_send_json_success(__('IP address unlocked successfully.', 'fuerte-wp'));
+    }
+
+    /**
+     * AJAX handler for unblocking individual login attempts.
+     *
+     * @since 1.7.0
+     * @return void
+     */
+    public function ajax_unblock_single()
+    {
+        check_ajax_referer('fuertewp_admin_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Insufficient permissions', 'fuerte-wp'));
+        }
+
+        $ip = sanitize_text_field($_POST['ip'] ?? '');
+        $username = sanitize_text_field($_POST['username'] ?? '');
+        $attempt_id = (int)($_POST['id'] ?? 0);
+
+        if (empty($ip) || empty($attempt_id)) {
+            wp_send_json_error(__('Invalid parameters', 'fuerte-wp'));
+        }
+
+        // Remove lockout for this specific IP/username combination
+        $logger = new Fuerte_Wp_Login_Logger();
+        $lockouts = $logger->get_active_lockouts($ip, $username);
+
+        if ($lockouts) {
+            // Find and remove the relevant lockout(s)
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'fuertewp_login_lockouts';
+
+            $wpdb->delete(
+                $table_name,
+                [
+                    'ip_address' => $ip,
+                    'username' => $username,
+                ],
+                ['%s', '%s']
+            );
+
+            // Log the unlock action
+            // Admin unblock logging removed for production
+
+            wp_send_json_success([
+                'message' => sprintf(
+                    __('Unblocked IP %s for user %s', 'fuerte-wp'),
+                    esc_html($ip),
+                    esc_html($username)
+                )
+            ]);
+        } else {
+            wp_send_json_error(__('No active lockout found for this entry', 'fuerte-wp'));
         }
     }
 } // Class Fuerte_Wp_Enforcer

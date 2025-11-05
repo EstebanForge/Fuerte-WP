@@ -27,5 +27,18 @@ class Fuerte_Wp_Deactivator
      *
      * @since    1.3.0
      */
-    public static function deactivate() {}
+    public static function deactivate()
+    {
+        self::clear_cron_jobs();
+    }
+
+    /**
+     * Clear scheduled cron jobs on deactivation.
+     *
+     * @since 1.7.0
+     */
+    public static function clear_cron_jobs()
+    {
+        wp_clear_scheduled_hook('fuertewp_cleanup_login_logs');
+    }
 }

@@ -32,7 +32,7 @@ class Fuerte_Wp_Admin
      * The version of this plugin.
      *
      * @since    1.0.0
-     * @var      string       The current version of this plugin.
+     * @var      string       The version of this plugin.
      */
     private $version;
 
@@ -61,20 +61,6 @@ class Fuerte_Wp_Admin
         if (!$screen || !strpos($screen->id, 'fuerte-wp')) {
             return;
         }
-
-        /*
-         * This function is provided for demonstration purposes only.
-         *
-         * An instance of this class should be passed to the run() function
-         * defined in Fuerte_Wp_Loader as all of the hooks are defined
-         * in that particular class.
-         *
-         * The Fuerte_Wp_Loader will then create the relationship
-         * between the defined hooks and the functions defined in this
-         * class.
-         */
-
-        //wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/fuerte-wp-admin.css', [], $this->version, 'all' );
     }
 
     /**
@@ -89,29 +75,11 @@ class Fuerte_Wp_Admin
         if (!$screen || !strpos($screen->id, 'fuerte-wp')) {
             return;
         }
-
-        /*
-         * This function is provided for demonstration purposes only.
-         *
-         * An instance of this class should be passed to the run() function
-         * defined in Fuerte_Wp_Loader as all of the hooks are defined
-         * in that particular class.
-         *
-         * The Fuerte_Wp_Loader will then create the relationship
-         * between the defined hooks and the functions defined in this
-         * class.
-         */
-
-        //wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/fuerte-wp-admin.js', ['jquery'], $this->version, false );
     }
 
     public function fuertewp_plugin_options()
     {
         global $fuertewp;
-
-        error_log(
-            'Fuerte-WP: Registering Carbon Fields containers for plugin options',
-        );
 
         /*
          * No admin options if main config file exists physically
@@ -124,21 +92,8 @@ class Fuerte_Wp_Admin
             return;
         }
 
-        // Early exit if not a super admin
-        if (!current_user_can('manage_options')) {
-            return;
-        }
-
         // Get site's domain. Avoids error: Undefined array key "SERVER_NAME".
         $domain = parse_url(get_site_url(), PHP_URL_HOST);
-
-        // Carbon Fields Custom Datastore
-        //require_once FUERTEWP_PATH . 'includes/class-fuerte-wp-carbon-fields-datastore.php';
-        //$FTWPDatastore = new Serialized_Theme_Options_Datastore();
-
-        error_log(
-            'Fuerte-WP: Defining Carbon Fields containers for plugin options',
-        );
 
         Container::make('theme_options', __('Fuerte-WP', 'fuerte-wp'))
             ->set_page_parent('options-general.php')
@@ -364,12 +319,12 @@ class Fuerte_Wp_Admin
                 Field::make(
                     'html',
                     'fuertewp_emails_header',
-                    __('Note:'),
+                    __('Note:', 'fuerte-wp'),
                 )->set_html(
                     __(
                         '<p>Here you can enable or disable several WordPress built in emails. <strong>Mark</strong> the ones you want to be <strong>enabled</strong>.</p><p><a href="https://github.com/johnbillion/wp_mail" target="_blank">Check here</a> for full documentation of all automated emails WordPress sends.',
                         'fuerte-wp',
-                    ),
+                    ) . '</p>'
                 ),
 
                 Field::make(
@@ -471,11 +426,130 @@ class Fuerte_Wp_Admin
                     ->set_help_text(__('Receipt: network admin.', 'fuerte-wp')),
             ])
 
+            ->add_tab(__('Login Security', 'fuerte-wp'), [
+                Field::make(
+                    'html',
+                    'fuertewp_login_security_header',
+                    __('Login Security Information', 'fuerte-wp'),
+                )->set_html(
+                    '<p>' . __(
+                        'Enable login attempt limiting to protect your site from brute force attacks.',
+                        'fuerte-wp',
+                    ) . '</p>'
+                ),
+
+                Field::make(
+                    'checkbox',
+                    'fuertewp_login_enable',
+                    __('Enable Login Security', 'fuerte-wp'),
+                )
+                    ->set_default_value('enabled')
+                    ->set_option_value('enabled')
+                    ->set_help_text(__('Enable login attempt limiting and IP blocking.', 'fuerte-wp')),
+
+                Field::make(
+                    'checkbox',
+                    'fuertewp_registration_enable',
+                    __('Enable Registration Protection', 'fuerte-wp'),
+                )
+                    ->set_default_value('enabled')
+                    ->set_option_value('enabled')
+                    ->set_help_text(__('Enable registration attempt limiting and bot blocking. Uses same settings as login security.', 'fuerte-wp')),
+
+                Field::make(
+                    'separator',
+                    'fuertewp_login_separator_settings',
+                    __('Login Attempt Settings', 'fuerte-wp'),
+                ),
+
+                Field::make(
+                    'text',
+                    'fuertewp_login_max_attempts',
+                    __('Maximum Login Attempts', 'fuerte-wp'),
+                )
+                    ->set_default_value(5)
+                    ->set_attribute('type', 'number')
+                    ->set_attribute('min', 3)
+                    ->set_attribute('max', 10)
+                    ->set_help_text(__('Number of failed attempts before lockout (3-10).', 'fuerte-wp')),
+
+                Field::make(
+                    'text',
+                    'fuertewp_login_lockout_duration',
+                    __('Lockout Duration (minutes)', 'fuerte-wp'),
+                )
+                    ->set_default_value(60)
+                    ->set_attribute('type', 'number')
+                    ->set_attribute('min', 5)
+                    ->set_attribute('max', 1440)
+                    ->set_help_text(__('How long to lock out after max attempts (5-1440 minutes).', 'fuerte-wp')),
+
+                Field::make(
+                    'checkbox',
+                    'fuertewp_login_increasing_lockout',
+                    __('Increasing Lockout Duration', 'fuerte-wp'),
+                )
+                    ->set_default_value('')
+                    ->set_option_value('yes')
+                    ->set_help_text(__('Increase lockout duration exponentially (2x, 4x, 8x, etc.) with each lockout.', 'fuerte-wp')),
+
+                Field::make(
+                    'separator',
+                    'fuertewp_login_separator_ip',
+                    __('IP Detection', 'fuerte-wp'),
+                ),
+
+                Field::make(
+                    'text',
+                    'fuertewp_login_ip_headers',
+                    __('Custom IP Headers', 'fuerte-wp'),
+                )
+                    ->set_default_value('')
+                    ->set_help_text(
+                        __(
+                            'Comma-separated list of custom IP headers (e.g., HTTP_X_FORWARDED_FOR). Useful for Cloudflare, Sucuri, or other proxy/CDN services.',
+                            'fuerte-wp',
+                        ),
+                    ),
+
+                Field::make(
+                    'separator',
+                    'fuertewp_login_separator_gdpr',
+                    __('GDPR Compliance', 'fuerte-wp'),
+                ),
+
+                Field::make(
+                    'textarea',
+                    'fuertewp_login_gdpr_message',
+                    __('GDPR Privacy Notice', 'fuerte-wp'),
+                )
+                    ->set_default_value('')
+                    ->set_rows(3)
+                    ->set_help_text(__('Optional privacy notice displayed below the login form. Leave empty to disable.', 'fuerte-wp')),
+
+                Field::make(
+                    'separator',
+                    'fuertewp_login_separator_retention',
+                    __('Data Retention', 'fuerte-wp'),
+                ),
+
+                Field::make(
+                    'text',
+                    'fuertewp_login_data_retention',
+                    __('Data Retention (days)', 'fuerte-wp'),
+                )
+                    ->set_default_value(30)
+                    ->set_attribute('type', 'number')
+                    ->set_attribute('min', 1)
+                    ->set_attribute('max', 365)
+                    ->set_help_text(__('Number of days to keep login logs (1-365). Old records are automatically deleted.', 'fuerte-wp')),
+            ])
+
             ->add_tab(__('REST API', 'fuerte-wp'), [
                 Field::make(
                     'html',
                     'fuertewp_restapi_restrictions_header',
-                    __('Note:'),
+                    __('Note:', 'fuerte-wp'),
                 )->set_html(__('<p>REST API restrictions.</p>', 'fuerte-wp')),
 
                 Field::make(
@@ -695,12 +769,12 @@ class Fuerte_Wp_Admin
                 Field::make(
                     'html',
                     'fuertewp_advanced_restrictions_header',
-                    __('Note:'),
+                    __('Note:', 'fuerte-wp'),
                 )->set_html(
                     __(
                         '<p>Only for power users. Leave a field blank to not use those restrictions.</p>',
                         'fuerte-wp',
-                    ),
+                    )
                 ),
 
                 Field::make(
@@ -811,9 +885,171 @@ updraft_admin_node',
                             'fuerte-wp',
                         ),
                     ),
-            ]);
+            ])
 
-        error_log('Fuerte-WP: Carbon Fields containers defined successfully');
+            ->add_tab(__('IP & User Lists', 'fuerte-wp'), [
+                Field::make(
+                    'html',
+                    'fuertewp_ip_lists_header',
+                    __('IP Whitelist & Blacklist', 'fuerte-wp'),
+                )->set_html(
+                    '<p>' . __('Manage IP addresses and ranges that are allowed or blocked.', 'fuerte-wp') . '</p>' .
+                    '<p>' . __('Supports single IPs, IPv4/IPv6 addresses, and CIDR notation (e.g., 192.168.1.0/24).', 'fuerte-wp') . '</p>'
+                ),
+
+                Field::make(
+                    'textarea',
+                    'fuertewp_username_whitelist',
+                    __('Username Whitelist', 'fuerte-wp'),
+                )
+                    ->set_rows(4)
+                    ->set_help_text(__('One username per line. Only these users can log in (leave empty for no restriction).', 'fuerte-wp')),
+
+                Field::make(
+                    'separator',
+                    'fuertewp_username_separator',
+                    __('Username Blacklist', 'fuerte-wp'),
+                ),
+
+                Field::make(
+                    'checkbox',
+                    'fuertewp_block_default_users',
+                    __('Block Common Admin Usernames', 'fuerte-wp'),
+                )
+                    ->set_default_value('yes')
+                    ->set_option_value('yes')
+                    ->set_help_text(__('Automatically block common admin usernames like "admin", "administrator", "root".', 'fuerte-wp')),
+
+                Field::make(
+                    'textarea',
+                    'fuertewp_username_blacklist',
+                    __('Username Blacklist', 'fuerte-wp'),
+                )
+                    ->set_rows(4)
+                    ->set_help_text(__('One username per line. These usernames cannot register or log in.', 'fuerte-wp')),
+
+                Field::make(
+                    'separator',
+                    'fuertewp_registration_separator',
+                    __('Registration Protection', 'fuerte-wp'),
+                ),
+
+                Field::make(
+                    'checkbox',
+                    'fuertewp_registration_protect',
+                    __('Enable Registration Protection', 'fuerte-wp'),
+                )
+                    ->set_default_value('yes')
+                    ->set_option_value('yes')
+                    ->set_help_text(__('Apply username blacklist to user registrations.', 'fuerte-wp')),
+            ])
+
+            ->add_tab(__('Failed Logins', 'fuerte-wp'), [
+                Field::make(
+                    'html',
+                    'fuertewp_login_logs_viewer',
+                    __('Failed Login Attempts', 'fuerte-wp'),
+                )
+                    ->set_html($this->render_login_logs_viewer()),
+            ]);
+    }
+
+    /**
+     * Render login logs viewer HTML.
+     *
+     * @since 1.7.0
+     * @return string HTML content
+     */
+    private function render_login_logs_viewer()
+    {
+        // Enqueue admin scripts
+        wp_enqueue_script(
+            'fuertewp-login-admin',
+            FUERTEWP_URL . 'admin/js/fuerte-wp-login-admin.js',
+            ['jquery'],
+            FUERTEWP_VERSION,
+            true
+        );
+
+        wp_localize_script('fuertewp-login-admin', 'fuertewp_login_admin', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('fuertewp_admin_nonce'),
+            'i18n' => [
+                'confirm_clear' => __('Are you sure you want to clear all login logs?', 'fuerte-wp'),
+                'confirm_reset' => __('Are you sure you want to reset all lockouts?', 'fuerte-wp'),
+                'loading' => __('Loading...', 'fuerte-wp'),
+                'error' => __('An error occurred', 'fuerte-wp'),
+            ],
+        ]);
+
+        // Get stats
+        $logger = new Fuerte_Wp_Login_Logger();
+        $stats = $logger->get_lockout_stats();
+
+        // Build HTML
+        ob_start();
+        ?>
+        <div id="fuertewp-login-logs">
+            <!-- Stats Overview -->
+            <div class="fuertewp-stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
+                <div class="stat-box" style="padding: 15px; background: #fff; border: 1px solid #ccd0d4; border-radius: 4px;">
+                    <h4 style="margin: 0 0 5px 0;"><?php esc_html_e('Total Lockouts', 'fuerte-wp'); ?></h4>
+                    <p style="font-size: 24px; font-weight: bold; margin: 0;"><?php echo (int)$stats['total_lockouts']; ?></p>
+                </div>
+                <div class="stat-box" style="padding: 15px; background: #fff; border: 1px solid #ccd0d4; border-radius: 4px;">
+                    <h4 style="margin: 0 0 5px 0;"><?php esc_html_e('Active Lockouts', 'fuerte-wp'); ?></h4>
+                    <p style="font-size: 24px; font-weight: bold; margin: 0; color: #d63638;"><?php echo (int)$stats['active_lockouts']; ?></p>
+                </div>
+                <div class="stat-box" style="padding: 15px; background: #fff; border: 1px solid #ccd0d4; border-radius: 4px;">
+                    <h4 style="margin: 0 0 5px 0;"><?php esc_html_e('Failed Today', 'fuerte-wp'); ?></h4>
+                    <p style="font-size: 24px; font-weight: bold; margin: 0;"><?php echo (int)$stats['failed_today']; ?></p>
+                </div>
+                <div class="stat-box" style="padding: 15px; background: #fff; border: 1px solid #ccd0d4; border-radius: 4px;">
+                    <h4 style="margin: 0 0 5px 0;"><?php esc_html_e('Failed This Week', 'fuerte-wp'); ?></h4>
+                    <p style="font-size: 24px; font-weight: bold; margin: 0;"><?php echo (int)$stats['failed_week']; ?></p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="fuertewp-actions" style="margin-bottom: 20px; padding: 15px; background: #f6f7f7; border-radius: 4px;">
+                <button type="button" id="fuertewp-export-attempts" class="button button-primary">
+                    <?php esc_html_e('Export CSV', 'fuerte-wp'); ?>
+                </button>
+                <button type="button" id="fuertewp-clear-logs" class="button button-secondary">
+                    <?php esc_html_e('Clear Failed Attempts', 'fuerte-wp'); ?>
+                </button>
+                <button type="button" id="fuertewp-reset-lockouts" class="button button-secondary">
+                    <?php esc_html_e('Reset All Lockouts', 'fuerte-wp'); ?>
+                </button>
+            </div>
+
+            <!-- Logs Table Container -->
+            <div id="fuertewp-logs-table-container">
+                <p><?php esc_html_e('Loading failed login attempts...', 'fuerte-wp'); ?></p>
+            </div>
+        </div>
+
+        <style>
+        #fuertewp-login-logs .column-ip { width: 120px; }
+        #fuertewp-login-logs .column-status { width: 100px; }
+        #fuertewp-login-logs .column-actions { width: 100px; }
+        #fuertewp-login-logs .status-success { color: #00a32a; font-weight: bold; }
+        #fuertewp-login-logs .status-failed { color: #d63638; font-weight: bold; }
+        #fuertewp-login-logs .status-blocked { color: #d63638; font-weight: bold; }
+        #fuertewp-login-logs .user-agent-cell {
+            max-width: 450px;
+            overflow-x: auto;
+            white-space: nowrap;
+            font-family: monospace;
+            font-size: 12px;
+            background: #f8f9f9;
+            padding: 4px;
+            border-radius: 3px;
+            border: 1px solid #e0e0e0;
+        }
+        </style>
+        <?php
+        return ob_get_clean();
     }
 
     /**
@@ -839,11 +1075,32 @@ updraft_admin_node',
         } else {
             if (!in_array($current_user->user_email, $super_users)) {
                 // Current_user not found in the array, add it back as super user
-                //$super_users[] = $current_user->user_email;
                 array_unshift($super_users, $current_user->user_email);
 
                 carbon_set_theme_option('fuertewp_super_users', $super_users);
             }
+        }
+
+        // Set default login security values if not already set
+        $login_enable = carbon_get_theme_option('fuertewp_login_enable');
+        if (empty($login_enable)) {
+            carbon_set_theme_option('fuertewp_login_enable', 'enabled');
+        }
+
+        $registration_enable = carbon_get_theme_option('fuertewp_registration_enable');
+        if (empty($registration_enable)) {
+            carbon_set_theme_option('fuertewp_registration_enable', 'enabled');
+        }
+
+        // Set other default login security values if needed
+        $max_attempts = carbon_get_theme_option('fuertewp_login_max_attempts');
+        if (empty($max_attempts)) {
+            carbon_set_theme_option('fuertewp_login_max_attempts', 5);
+        }
+
+        $lockout_duration = carbon_get_theme_option('fuertewp_login_lockout_duration');
+        if (empty($lockout_duration)) {
+            carbon_set_theme_option('fuertewp_login_lockout_duration', 15);
         }
 
         // Clears options cache

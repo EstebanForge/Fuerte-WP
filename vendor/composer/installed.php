@@ -3,7 +3,7 @@
         'name' => 'estebanforge/fuerte-wp',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '74ba45d2d7459cd0f1fbfe58cab347357df0efb7',
+        'reference' => 'd22ffe575e94a25e6aa5065fa0f65d41981a038b',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'estebanforge/fuerte-wp' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '74ba45d2d7459cd0f1fbfe58cab347357df0efb7',
+            'reference' => 'd22ffe575e94a25e6aa5065fa0f65d41981a038b',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

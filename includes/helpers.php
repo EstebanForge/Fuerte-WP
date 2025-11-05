@@ -146,9 +146,9 @@ if (!function_exists('write_log')) {
     {
         if (true === WP_DEBUG) {
             if (is_array($log) || is_object($log)) {
-                error_log(print_r($log, true));
+                // Debug logging removed for production
             } else {
-                error_log($log);
+                // Debug logging removed for production
             }
         }
     }
