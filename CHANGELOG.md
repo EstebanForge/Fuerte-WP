@@ -1,5 +1,19 @@
 # Changelog
 
+# 1.7.0 / 2025-11-05
+- Added comprehensive Login Security system with rate limiting and IP lockout functionality.
+- Implemented failed login attempt tracking with configurable thresholds and lockout durations.
+- Added real-time AJAX-powered admin interface for monitoring login attempts and managing lockouts.
+- Introduced GDPR Privacy Notice feature with customizable message display on login and registration forms.
+- Enhanced security with IP-based and username-based lockout mechanisms.
+- Added support for blacklisted usernames during registration process.
+- Implemented increasing lockout durations for repeated security violations.
+- Added comprehensive logging system for security monitoring and forensic analysis.
+- Introduced individual unblock functionality for specific IP/username combinations.
+- Enhanced admin interface with export capabilities for security data.
+- Performance optimizations and database cleanup automation for security logs.
+- Improved code organization with dedicated login management and logging classes.
+
 # 1.6.0 / 2025-09-20
 - Refactored auto-update system into dedicated `Fuerte_Wp_Auto_Update_Manager` class for better code organization and maintainability.
 - Updated Carbon Fields dependency to the latest version for better PHP 8.x+ compatibility.

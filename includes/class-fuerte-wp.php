@@ -139,6 +139,19 @@ class Fuerte_Wp
         $this->loader = new Fuerte_Wp_Loader();
 
         /**
+         * Login Security classes.
+         * Load unconditionally to ensure functionality works on login page.
+         */
+        require_once plugin_dir_path(dirname(__FILE__))
+            . 'includes/class-fuerte-wp-ip-manager.php';
+        require_once plugin_dir_path(dirname(__FILE__))
+            . 'includes/class-fuerte-wp-login-logger.php';
+        require_once plugin_dir_path(dirname(__FILE__))
+            . 'includes/class-fuerte-wp-csv-exporter.php';
+        require_once plugin_dir_path(dirname(__FILE__))
+            . 'includes/class-fuerte-wp-login-manager.php';
+
+        /**
          * The main Enforcer class.
          */
         require_once plugin_dir_path(dirname(__FILE__))
@@ -210,16 +223,10 @@ class Fuerte_Wp
             !function_exists('wp_get_current_user')
             || !function_exists('current_user_can')
         ) {
-            error_log('Fuerte-WP: WordPress functions not available yet');
-
             return false;
         }
 
         $result = current_user_can('manage_options');
-        error_log(
-            'Fuerte-WP: current_user_can result: '
-                . ($result ? 'true' : 'false'),
-        );
 
         return $result;
     }
@@ -232,12 +239,8 @@ class Fuerte_Wp
      */
     private function define_admin_hooks()
     {
-        error_log('Fuerte-WP: define_admin_hooks() called');
         // Set up admin hooks, but delay the capability check until WordPress is loaded
         if (is_admin() && class_exists('Fuerte_Wp_Admin')) {
-            error_log(
-                'Fuerte-WP: Setting up admin hooks with delayed capability check',
-            );
             $plugin_admin = new Fuerte_Wp_Admin(
                 $this->get_plugin_name(),
                 $this->get_version(),
@@ -254,7 +257,7 @@ class Fuerte_Wp
                 'enqueue_scripts',
             );
 
-            // Carbon Fields registration should happen immediately
+            // Carbon Fields registration
             $this->loader->add_action(
                 'carbon_fields_register_fields',
                 $plugin_admin,
@@ -264,9 +267,6 @@ class Fuerte_Wp
             // Add capability check for other admin functionality
             add_action('admin_init', function () use ($plugin_admin) {
                 if ($this->can_manage_options()) {
-                    error_log(
-                        'Fuerte-WP: Admin capabilities confirmed, enabling full admin functionality',
-                    );
                     // Add other admin-specific hooks here if needed
                 }
             });

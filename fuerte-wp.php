@@ -169,8 +169,6 @@ function fuertewp_ensure_super_user()
         if ($current_user && $current_user->ID > 0 && current_user_can('manage_options')) {
             // Add current user as super user
             carbon_set_theme_option('fuertewp_super_users', [$current_user->user_email]);
-
-            error_log('Fuerte-WP: Auto-added ' . $current_user->user_email . ' as super user (fallback)');
         }
     }
 }
