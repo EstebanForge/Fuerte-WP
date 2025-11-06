@@ -53,9 +53,13 @@ class Fuerte_Wp_IP_Manager
     {
         $custom_headers = carbon_get_theme_option('fuertewp_login_ip_headers');
         if (!empty($custom_headers)) {
-            // Split by comma and clean up
-            $headers = explode(',', $custom_headers);
-            $this->custom_ip_headers = array_map('trim', $headers);
+            // Use optimized string operations if available
+            if (class_exists('Fuerte_Wp_String_Optimizer')) {
+                $this->custom_ip_headers = array_map('trim', Fuerte_Wp_String_Optimizer::explode_cached(',', $custom_headers));
+            } else {
+                // Fallback to basic explode
+                $this->custom_ip_headers = array_map('trim', explode(',', $custom_headers));
+            }
         }
     }
 
@@ -118,8 +122,14 @@ class Fuerte_Wp_IP_Manager
     private function get_header_value($header)
     {
         // Headers are typically available in $_SERVER with HTTP_ prefix
-        if (strpos($header, 'HTTP_') !== 0) {
-            $header = 'HTTP_' . str_replace('-', '_', strtoupper($header));
+        if (class_exists('Fuerte_Wp_String_Optimizer')) {
+            if (!Fuerte_Wp_String_Optimizer::starts_with($header, 'HTTP_')) {
+                $header = 'HTTP_' . str_replace('-', '_', strtoupper($header));
+            }
+        } else {
+            if (strpos($header, 'HTTP_') !== 0) {
+                $header = 'HTTP_' . str_replace('-', '_', strtoupper($header));
+            }
         }
 
         return $_SERVER[$header] ?? '';
@@ -141,8 +151,10 @@ class Fuerte_Wp_IP_Manager
             return '';
         }
 
-        // Split by comma and clean up
-        $ips = explode(',', $header_value);
+        // Use optimized explode operation if available
+        $ips = class_exists('Fuerte_Wp_String_Optimizer')
+            ? Fuerte_Wp_String_Optimizer::explode_cached(',', $header_value)
+            : explode(',', $header_value);
 
         foreach ($ips as $ip) {
             // Normalize IP using helper
@@ -224,8 +236,30 @@ class Fuerte_Wp_IP_Manager
             return false;
         }
 
-        // Normalize range
-        $range = trim($range);
+        // Use optimized IP range parsing if available
+        if (class_exists('Fuerte_Wp_String_Optimizer')) {
+            $parsed_range = Fuerte_Wp_String_Optimizer::parse_ip_range($range);
+
+            switch ($parsed_range['type']) {
+                case 'single':
+                    return $ip === $parsed_range['value'];
+                case 'cidr':
+                    return Fuerte_Wp_Helper::ip_in_cidr($ip, $parsed_range['value']);
+                case 'range':
+                    return Fuerte_Wp_Helper::ip_in_dash_range($ip, $parsed_range['start'] . '-' . $parsed_range['end']);
+                case 'wildcard':
+                    return Fuerte_Wp_Helper::ip_matches_wildcard($ip, $parsed_range['value']);
+                case 'partial':
+                    return $this->ip_in_partial_range($ip, $parsed_range['value']);
+                default:
+                    return false;
+            }
+        }
+
+        // Fallback to original logic
+        $range = class_exists('Fuerte_Wp_String_Optimizer')
+            ? Fuerte_Wp_String_Optimizer::trim_optimized($range)
+            : trim($range);
 
         // Direct IP match
         if ($ip === $range) {
@@ -253,6 +287,8 @@ class Fuerte_Wp_IP_Manager
         }
 
         return false;
+
+        return false;
     }
 
     
@@ -266,9 +302,18 @@ class Fuerte_Wp_IP_Manager
      */
     private function ip_in_dash_range($ip, $range)
     {
-        list($start, $end) = explode('-', $range);
-        $start = trim($start);
-        $end = trim($end);
+        $parts = class_exists('Fuerte_Wp_String_Optimizer')
+            ? Fuerte_Wp_String_Optimizer::explode_cached('-', $range, 2)
+            : explode('-', $range, 2);
+        if (count($parts) !== 2) {
+            return false;
+        }
+        $start = class_exists('Fuerte_Wp_String_Optimizer')
+            ? Fuerte_Wp_String_Optimizer::trim_optimized($parts[0])
+            : trim($parts[0]);
+        $end = class_exists('Fuerte_Wp_String_Optimizer')
+            ? Fuerte_Wp_String_Optimizer::trim_optimized($parts[1])
+            : trim($parts[1]);
 
         if (!$this->is_valid_ip($start) || !$this->is_valid_ip($end)) {
             return false;
@@ -301,11 +346,19 @@ class Fuerte_Wp_IP_Manager
             return false;
         }
 
-        // Convert wildcard to regex pattern
-        $pattern = str_replace('*', '\d+', $range);
-        $pattern = '/^' . str_replace('.', '\.', $pattern) . '$/';
-
-        return preg_match($pattern, $ip) === 1;
+        // Use optimized regex pattern matching if available
+        if (class_exists('Fuerte_Wp_String_Optimizer')) {
+            $pattern = Fuerte_Wp_String_Optimizer::replace_optimized('*', '\d+', $range);
+            $pattern = Fuerte_Wp_String_Optimizer::replace_optimized('.', '\.', $pattern);
+            $pattern = '/^' . $pattern . '$/';
+            return Fuerte_Wp_String_Optimizer::preg_match_cached($pattern, $ip) === 1;
+        } else {
+            // Fallback to original regex
+            $pattern = str_replace('*', '\d+', $range);
+            $pattern = str_replace('.', '\.', $pattern);
+            $pattern = '/^' . $pattern . '$/';
+            return preg_match($pattern, $ip) === 1;
+        }
     }
 
     /**
@@ -319,11 +372,15 @@ class Fuerte_Wp_IP_Manager
     private function ip_in_partial_range($ip, $range)
     {
         if ($this->is_ipv6($ip)) {
-            return strpos($ip, $range) === 0;
+            return class_exists('Fuerte_Wp_String_Optimizer')
+                ? Fuerte_Wp_String_Optimizer::starts_with($ip, $range)
+                : strpos($ip, $range) === 0;
         }
 
         // For IPv4, partial means matching the beginning octets
-        return strpos($ip, $range . '.') === 0;
+        return class_exists('Fuerte_Wp_String_Optimizer')
+            ? Fuerte_Wp_String_Optimizer::starts_with($ip, $range . '.')
+            : strpos($ip, $range . '.') === 0;
     }
 
     /**

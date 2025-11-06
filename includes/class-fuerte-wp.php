@@ -55,6 +55,7 @@ class Fuerte_Wp
     public $pagenow;
     public $fuertewp;
     protected $enforcer;
+    protected $plugin_admin;
 
     /**
      * Define the core functionality of the plugin.
@@ -75,6 +76,7 @@ class Fuerte_Wp
 
         $this->plugin_name = 'fuerte-wp';
 
+        // Logger is loaded at the plugin root level
         $this->load_dependencies();
         $this->set_locale();
         $this->define_admin_hooks();
@@ -98,6 +100,12 @@ class Fuerte_Wp
      *
      * @since    1.3.0
      */
+
+    /**
+     * Load the required dependencies for this plugin.
+     *
+     * @since    1.3.0
+     */
     private function load_dependencies()
     {
         /**
@@ -116,16 +124,10 @@ class Fuerte_Wp
 
         /*
          * The class responsible for defining all actions that occur in the admin area.
-         * Load conditionally to improve performance
+         * Always load to ensure availability for hook registration.
          */
-        if (
-            is_admin()
-            || wp_doing_ajax()
-            || (function_exists('wp_doing_rest') && wp_doing_rest())
-        ) {
-            require_once plugin_dir_path(dirname(__FILE__))
-                . 'admin/class-fuerte-wp-admin.php';
-        }
+        require_once plugin_dir_path(dirname(__FILE__))
+            . 'admin/class-fuerte-wp-admin.php';
 
         /*
          * The class responsible for defining all actions that occur in the public-facing
@@ -247,31 +249,31 @@ class Fuerte_Wp
     {
         // Set up admin hooks, but delay the capability check until WordPress is loaded
         if (is_admin() && class_exists('Fuerte_Wp_Admin')) {
-            $plugin_admin = new Fuerte_Wp_Admin(
+            $this->plugin_admin = new Fuerte_Wp_Admin(
                 $this->get_plugin_name(),
                 $this->get_version(),
             );
 
             $this->loader->add_action(
                 'admin_enqueue_scripts',
-                $plugin_admin,
+                $this->plugin_admin,
                 'enqueue_styles',
             );
             $this->loader->add_action(
                 'admin_enqueue_scripts',
-                $plugin_admin,
+                $this->plugin_admin,
                 'enqueue_scripts',
             );
 
             // Carbon Fields registration
             $this->loader->add_action(
                 'carbon_fields_register_fields',
-                $plugin_admin,
+                $this->plugin_admin,
                 'fuertewp_plugin_options',
             );
 
             // Add capability check for other admin functionality
-            add_action('admin_init', function () use ($plugin_admin) {
+            add_action('admin_init', function () {
                 if ($this->can_manage_options()) {
                     // Add other admin-specific hooks here if needed
                 }
@@ -279,7 +281,7 @@ class Fuerte_Wp
 
             $this->loader->add_action(
                 'carbon_fields_theme_options_container_saved',
-                $plugin_admin,
+                $this->plugin_admin,
                 'fuertewp_theme_options_saved',
                 10,
                 2,
@@ -287,7 +289,7 @@ class Fuerte_Wp
 
             $this->loader->add_action(
                 'plugin_action_links_' . FUERTEWP_PLUGIN_BASE,
-                $plugin_admin,
+                $this->plugin_admin,
                 'add_action_links',
             );
         }
