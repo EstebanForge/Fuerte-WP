@@ -89,6 +89,8 @@ class Fuerte_Wp_Login_URL_Hider
         // Initialize request path for efficient checking
         $this->request_path = parse_url(rawurldecode($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?? '';
 
+        Fuerte_Wp_Logger::debug('Login URL Hider constructor called');
+
         $this->init_hooks();
     }
 
@@ -102,6 +104,8 @@ class Fuerte_Wp_Login_URL_Hider
     {
         // Only proceed if feature is enabled
         $is_enabled = $this->is_login_url_hiding_enabled();
+
+        Fuerte_Wp_Logger::debug('Login URL Hider init_hooks - feature enabled: ' . ($is_enabled ? 'YES' : 'NO'));
 
         if (!$is_enabled) {
             return;
@@ -128,11 +132,14 @@ class Fuerte_Wp_Login_URL_Hider
         // Direct wp-login.php access blocking
         add_action('login_init', [$this, 'handle_login_init'], 1);
 
-        // Admin access protection
-        add_action('admin_init', [$this, 'protect_wp_admin_access']);
-
         // Custom login URL request handling
         add_action('parse_request', [$this, 'handle_parse_request'], 1);
+
+        // Debug: Log hook registration
+        Fuerte_Wp_Logger::debug('Login URL Hider hooks registered - parse_request priority 1');
+
+        // Admin access protection
+        add_action('admin_init', [$this, 'protect_wp_admin_access']);
     }
 
     /**
@@ -147,22 +154,26 @@ class Fuerte_Wp_Login_URL_Hider
             return $this->config_cache['enabled'];
         }
 
-        // Read settings from Carbon Fields container
-        $container_data = $this->wpdb->get_var("SELECT option_value FROM {$this->wpdb->prefix}options WHERE option_name = '_carbon_fields_theme_options_fuerte-wp' LIMIT 1");
-        $container_array = $container_data ? @unserialize($container_data) : [];
-
-        $enabled = false;
-        if ($container_array && isset($container_array['fuertewp_login_url_hiding_enabled'])) {
-            $value = $container_array['fuertewp_login_url_hiding_enabled'];
-            // Handle array format from checkbox fields
-            if (is_array($value) && isset($value[0])) {
-                $value = $value[0];
-            }
-            $enabled = ($value === 'enabled' || $value === true || $value === 1);
+        // Ensure simple config class is loaded
+        if (!class_exists('Fuerte_Wp_Config')) {
+            require_once plugin_dir_path(__FILE__) . 'class-fuerte-wp-config.php';
         }
 
-        $this->config_cache['enabled'] = $enabled;
-        return $enabled;
+        // Use simple configuration with default value of false
+        $enabled = Fuerte_Wp_Config::get('login_security.login_url_hiding_enabled', false);
+
+        Fuerte_Wp_Logger::debug('Login URL Hider - raw config value: ' . var_export($enabled, true));
+
+        // Handle different value formats
+        if (is_array($enabled) && isset($enabled[0])) {
+            $enabled = $enabled[0];
+        }
+
+        $this->config_cache['enabled'] = ($enabled === 'enabled' || $enabled === true || $enabled === 1 || $enabled === '1');
+
+        Fuerte_Wp_Logger::debug('Login URL Hider - final enabled state: ' . ($this->config_cache['enabled'] ? 'YES' : 'NO'));
+
+        return $this->config_cache['enabled'];
     }
 
     /**
@@ -177,31 +188,25 @@ class Fuerte_Wp_Login_URL_Hider
             return $this->config_cache['redirect_config'];
         }
 
-        $container_data = $this->wpdb->get_var("SELECT option_value FROM {$this->wpdb->prefix}options WHERE option_name = '_carbon_fields_theme_options_fuerte-wp' LIMIT 1");
-        $container_array = $container_data ? @unserialize($container_data) : [];
+        // Use centralized configuration cache
+        $redirect_type = Fuerte_Wp_Config::get('login_security.redirect_invalid_logins', 'home_404');
+        $redirect_url = Fuerte_Wp_Config::get('login_security.redirect_invalid_logins_url', '');
 
-        $redirect_type = 'home_404'; // Default value
-        $redirect_url = '';
-
-        if ($container_data && $container_array) {
-            // Get redirect type
-            if (isset($container_array['fuertewp_redirect_invalid_logins'])) {
-                $value = $container_array['fuertewp_redirect_invalid_logins'];
-                if (is_array($value) && isset($value[0])) {
-                    $value = $value[0];
-                }
-                $redirect_type = in_array($value, ['home_404', 'custom_page']) ? $value : 'home_404';
-            }
-
-            // Get custom redirect URL if type is custom_page
-            if ($redirect_type === 'custom_page' && isset($container_array['fuertewp_redirect_invalid_logins_url'])) {
-                $value = $container_array['fuertewp_redirect_invalid_logins_url'];
-                if (is_array($value) && isset($value[0])) {
-                    $value = $value[0];
-                }
-                $redirect_url = esc_url_raw($value);
-            }
+        // Handle array format for redirect type
+        if (is_array($redirect_type) && isset($redirect_type[0])) {
+            $redirect_type = $redirect_type[0];
         }
+
+        // Validate redirect type
+        $redirect_type = in_array($redirect_type, ['home_404', 'custom_page']) ? $redirect_type : 'home_404';
+
+        // Handle array format for redirect URL
+        if (is_array($redirect_url) && isset($redirect_url[0])) {
+            $redirect_url = $redirect_url[0];
+        }
+
+        // Sanitize redirect URL
+        $redirect_url = esc_url_raw($redirect_url);
 
         $config = [
             'type' => $redirect_type,
@@ -224,18 +229,16 @@ class Fuerte_Wp_Login_URL_Hider
             return $this->config_cache['slug'];
         }
 
-        // Read settings directly for reliability
-        $container_data = $this->wpdb->get_var("SELECT option_value FROM {$this->wpdb->prefix}options WHERE option_name = '_carbon_fields_theme_options_fuerte-wp' LIMIT 1");
-        $container_array = $container_data ? @unserialize($container_data) : [];
+        // Use centralized configuration cache
+        $slug = Fuerte_Wp_Config::get('login_security.custom_login_slug', 'secure-login');
 
-        $slug = 'secure-login'; // Default value
-        if ($container_data && $container_array && isset($container_array['fuertewp_custom_login_slug'])) {
-            $value = $container_array['fuertewp_custom_login_slug'];
-            if (is_array($value) && isset($value[0])) {
-                $value = $value[0];
-            }
-            $slug = sanitize_title_with_dashes($value);
+        // Handle array format
+        if (is_array($slug) && isset($slug[0])) {
+            $slug = $slug[0];
         }
+
+        // Sanitize the slug
+        $slug = sanitize_title_with_dashes($slug);
 
         $this->config_cache['slug'] = $slug;
         return $slug;
@@ -253,18 +256,16 @@ class Fuerte_Wp_Login_URL_Hider
             return $this->config_cache['url_type'];
         }
 
-        $container_data = $this->wpdb->get_var("SELECT option_value FROM {$this->wpdb->prefix}options WHERE option_name = '_carbon_fields_theme_options_fuerte-wp' LIMIT 1");
-        $container_array = $container_data ? @unserialize($container_data) : [];
+        // Use centralized configuration cache
+        $url_type = Fuerte_Wp_Config::get('login_security.login_url_type', 'query_param');
 
-        $url_type = 'query_param'; // Default value
-
-        if ($container_data && $container_array && isset($container_array['fuertewp_login_url_type'])) {
-            $value = $container_array['fuertewp_login_url_type'];
-            if (is_array($value) && isset($value[0])) {
-                $value = $value[0];
-            }
-            $url_type = in_array($value, ['query_param', 'pretty_url']) ? $value : 'query_param';
+        // Handle array format
+        if (is_array($url_type) && isset($url_type[0])) {
+            $url_type = $url_type[0];
         }
+
+        // Validate URL type
+        $url_type = in_array($url_type, ['query_param', 'pretty_url']) ? $url_type : 'query_param';
 
         $this->config_cache['url_type'] = $url_type;
         return $url_type;
@@ -588,11 +589,12 @@ class Fuerte_Wp_Login_URL_Hider
         }
     }
 
+    
     /**
-     * Handle parse request for custom login URL detection.
+     * Handle custom login URL requests via parse_request.
      *
      * @since 1.8.0
-     * @param WP $wp WordPress environment instance
+     * @param WP $wp WordPress request object
      * @return void
      */
     public function handle_parse_request($wp)
@@ -601,6 +603,8 @@ class Fuerte_Wp_Login_URL_Hider
 
         $request = parse_url(rawurldecode($request_uri));
         $is_custom_login = $this->is_custom_login_url_request($request);
+
+        Fuerte_Wp_Logger::debug('Parse request - Custom login detected: ' . ($is_custom_login ? 'YES' : 'NO'));
 
         if ($is_custom_login) {
             $this->is_valid_login_request = true;
@@ -614,6 +618,8 @@ class Fuerte_Wp_Login_URL_Hider
                 'pagename' => 'wp-login',
                 'action' => isset($_GET['action']) ? $_GET['action'] : 'login'
             ]);
+
+            Fuerte_Wp_Logger::debug('Parse request - Including wp-login.php directly');
 
             // Include the login file directly
             $login_file = ABSPATH . 'wp-login.php';
@@ -730,6 +736,9 @@ class Fuerte_Wp_Login_URL_Hider
         $slug = $this->get_custom_login_slug();
         $url_type = $this->get_login_url_type();
 
+        Fuerte_Wp_Logger::debug('URL check - Slug: "' . $slug . '", Type: "' . $url_type . '"');
+        Fuerte_Wp_Logger::debug('URL check - GET params: ' . json_encode($_GET));
+
         if ($url_type === 'pretty_url') {
             // Check for pretty URL: /custom-slug/
             $expected_path = '/' . $slug . '/';
@@ -739,8 +748,14 @@ class Fuerte_Wp_Login_URL_Hider
 
             return ($normalized_request_path === $normalized_expected_path);
         } else {
-            // Check for query parameter: ?custom-slug
-            return isset($_GET[$slug]) && empty($_GET[$slug]);
+            // Check for query parameter: ?custom-slug (empty value indicates login request)
+            $result = isset($_GET[$slug]);
+
+            if (class_exists('Fuerte_Wp_Logger')) {
+                Fuerte_Wp_Logger::debug('Query param check - isset($_GET["' . $slug . '"]): ' . ($result ? 'YES' : 'NO'));
+            }
+
+            return $result;
         }
     }
 

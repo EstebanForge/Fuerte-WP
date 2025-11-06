@@ -72,14 +72,10 @@ class Fuerte_Wp_Login_Logger
     private static function get_cached_settings()
     {
         if (self::$cached_settings === null) {
-            global $wpdb;
-
-            $container_data = $wpdb->get_var("SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = '_carbon_fields_theme_options_fuerte-wp' LIMIT 1");
-            $container_array = $container_data ? unserialize($container_data) : [];
-
+            // Get settings using centralized cache
             self::$cached_settings = [
-                'max_attempts' => (int)($container_array['fuertewp_login_max_attempts'][0] ?? 5),
-                'lockout_duration' => (int)($container_array['fuertewp_login_lockout_duration'][0] ?? 60)
+                'max_attempts' => (int) Fuerte_Wp_Config::get('login_security.login_max_attempts', 5),
+                'lockout_duration' => (int) Fuerte_Wp_Config::get('login_security.login_lockout_duration', 60)
             ];
         }
         return self::$cached_settings;
@@ -98,15 +94,16 @@ class Fuerte_Wp_Login_Logger
      */
     public function log_attempt($username, $ip, $status, $message = '', $user_agent = '')
     {
+        // Use direct database insertion without memory manager
         $result = $this->wpdb->insert(
             $this->tables['attempts'],
             [
                 'ip_address' => sanitize_text_field($ip),
                 'username' => sanitize_text_field($username),
                 'attempt_time' => current_time('mysql'),
-                'status' => sanitize_text_field($status),
-                'user_agent' => sanitize_text_field($user_agent),
-                'result_message' => sanitize_text_field($message),
+                'status' => $status,
+                'user_agent' => sanitize_text_field(substr($user_agent, 0, 255)), // Limit user agent length
+                'result_message' => sanitize_text_field(substr($message, 0, 255)), // Limit message length
             ],
             [
                 '%s',
@@ -121,6 +118,8 @@ class Fuerte_Wp_Login_Logger
         if ($result === false) {
             return false;
         }
+
+        // Memory optimization removed - use default WordPress memory management
 
         return $this->wpdb->insert_id;
     }

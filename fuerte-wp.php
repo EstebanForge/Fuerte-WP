@@ -188,6 +188,13 @@ function uninstall_fuerte_wp()
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
+// Load logger first to ensure it's always available for debugging
+require plugin_dir_path(__FILE__) . "includes/class-fuerte-wp-logger.php";
+
+// Initialize logger immediately - only enable when WP_DEBUG is true
+Fuerte_Wp_Logger::enable(defined('WP_DEBUG') && WP_DEBUG);
+Fuerte_Wp_Logger::init_from_constant();
+
 require plugin_dir_path(__FILE__) . "includes/class-fuerte-wp.php";
 
 /**

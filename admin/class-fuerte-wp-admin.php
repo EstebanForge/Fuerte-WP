@@ -82,14 +82,28 @@ class Fuerte_Wp_Admin
         global $fuertewp;
 
         /*
-         * No admin options if main config file exists physically
+         * Allow admin options for super users even if config file exists
          */
         if (
             file_exists(ABSPATH . 'wp-config-fuerte.php')
             && is_array($fuertewp)
             && !empty($fuertewp)
         ) {
-            return;
+            // Check if current user is a super user
+            $current_user = wp_get_current_user();
+            $is_super_user = isset($fuertewp['super_users']) &&
+                           in_array(strtolower($current_user->user_email), $fuertewp['super_users']);
+
+            // Only hide options if not a super user
+            if (!$is_super_user) {
+                return;
+            }
+
+            // Show a read-only notice for super users when config file exists
+            echo '<div class="notice notice-warning"><p>';
+            echo '<strong>' . __('Configuration File Mode', 'fuerte-wp') . '</strong><br>';
+            echo __('Fuerte-WP is currently configured via wp-config-fuerte.php file. Some settings may be read-only.', 'fuerte-wp');
+            echo '</p></div>';
         }
 
         // Get site's domain. Avoids error: Undefined array key "SERVER_NAME".
@@ -309,7 +323,7 @@ class Fuerte_Wp_Admin
                                 'fuerte-wp',
                             ),
                             admin_url(
-                                'customize.php?return=%2Fwp-admin%2Foptions-general.php%3Fpage%3Dcrb_carbon_fields_container_fuerte-wp.php',
+                                'customize.php?return=%2Fwp-admin%2Foptions-general.php%3Fpage%3Dfuerte-wp-options',
                             ),
                         ),
                     ),
@@ -614,6 +628,31 @@ class Fuerte_Wp_Admin
                             $(\'.fuertewp-login-url-info\').hide();
                         }
                     }
+
+                    // Validate and ensure custom login slug is never empty on form submission
+                    $(\'#carbon_fields_container\').on(\'submit\', function() {
+                        var loginHidingEnabled = $(\'input[name="fuertewp_login_url_hiding_enabled"]\').prop(\'checked\');
+                        var customSlug = $(\'input[name="fuertewp_custom_login_slug"]\').val();
+
+                        if (loginHidingEnabled && (customSlug === \'\' || customSlug.trim() === \'\')) {
+                            // Set default value before form submission
+                            $(\'input[name="fuertewp_custom_login_slug"]\').val(\'secure-login\');
+
+                            // Update preview to show the new default
+                            updateLoginUrlPreview();
+                        }
+                    });
+
+                    // Ensure field has default value when login hiding is enabled
+                    $(\'input[name="fuertewp_login_url_hiding_enabled"]\').on(\'change\', function() {
+                        var enabled = $(this).prop(\'checked\');
+                        var customSlug = $(\'input[name="fuertewp_custom_login_slug"]\').val();
+
+                        if (enabled && (customSlug === \'\' || customSlug.trim() === \'\')) {
+                            $(\'input[name="fuertewp_custom_login_slug"]\').val(\'secure-login\');
+                            updateLoginUrlPreview();
+                        }
+                    });
 
                     // Update preview when settings change
                     $(\'input[name="fuertewp_login_url_hiding_enabled"]\').on(\'change\', updateLoginUrlPreview);
@@ -1173,6 +1212,12 @@ updraft_admin_node',
     {
         global $current_user;
 
+        // Validate and ensure custom login slug is never empty
+        $custom_login_slug = carbon_get_theme_option('fuertewp_custom_login_slug');
+        if (empty($custom_login_slug) || trim($custom_login_slug) === '') {
+            carbon_set_theme_option('fuertewp_custom_login_slug', 'secure-login');
+        }
+
         // Check if current_user is a super user, if not, add it
         if (!isset($current_user)) {
             $current_user = wp_get_current_user();
@@ -1195,31 +1240,87 @@ updraft_admin_node',
             }
         }
 
-        // Set default login security values if not already set
-        $login_enable = carbon_get_theme_option('fuertewp_login_enable');
-        if (empty($login_enable)) {
-            carbon_set_theme_option('fuertewp_login_enable', 'enabled');
+        // Set default login security values using direct options
+        $defaults_to_set = [
+            'fuertewp_login_enable' => 'enabled',
+            'fuertewp_registration_enable' => 'enabled',
+            'fuertewp_login_max_attempts' => 5,
+            'fuertewp_login_lockout_duration' => 15,
+            'fuertewp_custom_login_slug' => 'secure-login', // Ensure default login slug is always set
+        ];
+
+        // Set defaults efficiently using built-in WordPress functions
+        foreach ($defaults_to_set as $option => $default_value) {
+            if (get_option($option) === false) {
+                update_option($option, $default_value);
+            }
         }
 
-        $registration_enable = carbon_get_theme_option('fuertewp_registration_enable');
-        if (empty($registration_enable)) {
-            carbon_set_theme_option('fuertewp_registration_enable', 'enabled');
+        // Intelligent cache clearing based on changed settings
+        require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-fuerte-wp-config.php';
+
+        // Determine which sections might have changed based on the data
+        $changed_sections = [];
+
+        if (isset($data) && is_array($data)) {
+            foreach ($data as $key => $value) {
+                if (strpos($key, 'login') !== false) {
+                    $changed_sections[] = 'login';
+                }
+                if (strpos($key, 'restriction') !== false || strpos($key, 'disable') !== false) {
+                    $changed_sections[] = 'restrictions';
+                }
+                if (strpos($key, 'tweak') !== false || strpos($key, 'hide') !== false) {
+                    $changed_sections[] = 'tweaks';
+                }
+                if (strpos($key, 'email') !== false || strpos($key, 'sender') !== false) {
+                    $changed_sections[] = 'emails';
+                }
+                if (strpos($key, 'login_url') !== false) {
+                    $changed_sections[] = 'login_url_hiding';
+                }
+            }
         }
 
-        // Set other default login security values if needed
-        $max_attempts = carbon_get_theme_option('fuertewp_login_max_attempts');
-        if (empty($max_attempts)) {
-            carbon_set_theme_option('fuertewp_login_max_attempts', 5);
+        // Remove duplicates
+        $changed_sections = array_unique($changed_sections);
+
+        // Clear cache for affected sections - simplified approach
+        if (!empty($changed_sections)) {
+            // Clear entire cache since we're using simple transient system
+            if (class_exists('Fuerte_Wp_Config')) {
+                Fuerte_Wp_Config::invalidate_cache();
+            }
+
+            // Flush rewrite rules if login URL hiding settings were changed
+            if (in_array('login_url_hiding', $changed_sections)) {
+                // Hard flush WordPress rewrite rules
+                global $wp_rewrite;
+
+                // Rebuild rewrite rules
+                $wp_rewrite->init();
+                $wp_rewrite->flush_rules(true); // true = hard flush
+
+                // Additional hard flush
+                flush_rewrite_rules(true);
+
+                // Force update of rewrite_rules option
+                $wp_rewrite->wp_rewrite_rules();
+
+                // Update rewrite rules in database
+                update_option('rewrite_rules', $wp_rewrite->wp_rewrite_rules());
+            }
+        } else {
+            // Fallback to full cache invalidation
+            if (class_exists('Fuerte_Wp_Config')) {
+                Fuerte_Wp_Config::invalidate_cache();
+            }
         }
 
-        $lockout_duration = carbon_get_theme_option('fuertewp_login_lockout_duration');
-        if (empty($lockout_duration)) {
-            carbon_set_theme_option('fuertewp_login_lockout_duration', 15);
+        // Clear configuration cache
+        if (class_exists('Fuerte_Wp_Config')) {
+            Fuerte_Wp_Config::invalidate_cache();
         }
-
-        // Clears options cache
-        $version_to_string = str_replace('.', '', FUERTEWP_VERSION);
-        delete_transient('fuertewp_cache_config_' . $version_to_string);
     }
 
     /**
@@ -1242,6 +1343,7 @@ updraft_admin_node',
             return $links;
         }
 
+        // Use simple string operations for email comparison
         if (
             !in_array(
                 strtolower($current_user->user_email),
@@ -1257,7 +1359,7 @@ updraft_admin_node',
             sprintf(
                 __('<a href="%s">Settings</a>', 'fuerte-wp'),
                 admin_url(
-                    'options-general.php?page=crb_carbon_fields_container_fuerte-wp.php',
+                    'options-general.php?page=fuerte-wp-options',
                 ),
             ),
         ];

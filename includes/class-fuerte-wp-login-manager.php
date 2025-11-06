@@ -74,15 +74,47 @@ class Fuerte_Wp_Login_Manager
      */
     public function run()
     {
+        // Early exit #1: Plugin disabled
+        if (defined('FUERTEWP_DISABLE') && FUERTEWP_DISABLE) {
+            return;
+        }
+
+        // Early exit #2: CLI requests (login security not needed)
+        if (defined('WP_CLI') && WP_CLI) {
+            return;
+        }
+
+        // Early exit #3: Cron jobs (except our cleanup cron)
+        if (wp_doing_cron() && (!isset($_REQUEST['action']) || $_REQUEST['action'] !== 'fuertewp_cleanup_login_logs')) {
+            return;
+        }
+
+        // Early exit #4: AJAX requests not related to login
+        if (wp_doing_ajax() && !in_array($_REQUEST['action'] ?? '', ['fuertewp_get_remaining_attempts'])) {
+            return;
+        }
+
+        // Early exit #5: Check if login security is enabled
+        if (!$this->is_enabled()) {
+            return;
+        }
+
+        // Only register hooks if we get past all early exits
+        $this->register_login_hooks();
+    }
+
+    /**
+     * Register login-related hooks.
+     *
+     * @since 1.7.0
+     * @return void
+     */
+    private function register_login_hooks()
+    {
         // Hook into authenticate filter with proper priorities
         add_filter('authenticate', [$this, 'track_credentials'], 30, 3);
         add_filter('authenticate', [$this, 'authenticate'], 20, 3);
         add_filter('wp_authenticate_user', [$this, 'wp_authenticate_user'], 10, 2);
-
-        // Test hook to verify hooks are working
-        add_action('init', function() {
-            // Hook registration successful
-        });
 
         // Hook into login failed
         add_action('wp_login_failed', [$this, 'handle_login_failed'], 10, 1);
@@ -100,6 +132,10 @@ class Fuerte_Wp_Login_Manager
 
         // Cleanup hook (cron)
         add_action('fuertewp_cleanup_login_logs', [$this, 'cleanup_logs']);
+
+        // AJAX handler for login attempts
+        add_action('wp_ajax_nopriv_fuertewp_get_remaining_attempts', [$this, 'ajax_get_remaining_attempts']);
+        add_action('wp_ajax_fuertewp_get_remaining_attempts', [$this, 'ajax_get_remaining_attempts']);
     }
 
     /**
@@ -381,17 +417,8 @@ class Fuerte_Wp_Login_Manager
      */
     public function display_gdpr_message()
     {
-        // Since Carbon Fields isn't working properly in login context, read settings directly
-        global $wpdb;
-
-        $container_data = $wpdb->get_var("SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = '_carbon_fields_theme_options_fuerte-wp' LIMIT 1");
-
-        $gdpr_message = '';
-
-        // Try to extract GDPR message using regex since unserialize is failing
-        if ($container_data && preg_match('/s:26:"fuertewp_login_gdpr_message";a:1:{i:0;s:(\d+):"([^"]+)";}/', $container_data, $matches)) {
-            $gdpr_message = $matches[2];
-        }
+        // Get GDPR message using configuration
+        $gdpr_message = Fuerte_Wp_Config::get('login_security.login_gdpr_message');
 
         // Use default message if no custom message is set
         if (empty($gdpr_message)) {
@@ -480,37 +507,15 @@ class Fuerte_Wp_Login_Manager
      */
     private function is_enabled()
     {
-        // Ensure Carbon Fields containers are registered
-        $this->ensure_carbon_fields_loaded();
+        // Batch operations removed - using simple approach now
 
-        // Since Carbon Fields isn't working properly in login context, read the container data directly
-        global $wpdb;
-        $container_data = $wpdb->get_var("SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = '_carbon_fields_theme_options_fuerte-wp' LIMIT 1");
-
-        $enabled = null;
-        if ($container_data) {
-            $container_array = unserialize($container_data);
-            if (isset($container_array['fuertewp_login_enable'])) {
-                $enabled = $container_array['fuertewp_login_enable'];
-                // Handle the array format from checkbox fields
-                if (is_array($enabled) && isset($enabled[0])) {
-                    $enabled = $enabled[0];
-                }
-                // Direct container read successful
-            }
+        // Ensure simple config class is loaded
+        if (!class_exists('Fuerte_Wp_Config')) {
+            require_once plugin_dir_path(__FILE__) . 'class-fuerte-wp-config.php';
         }
 
-        // Fallback: Try individual option if container fails
-        if ($enabled === null) {
-            $individual_value = $wpdb->get_var("SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = '_carbon_fields_theme_options_fuertewp_login_enable' LIMIT 1");
-            if ($individual_value) {
-                $individual_array = unserialize($individual_value);
-                if (isset($individual_array[0])) {
-                    $enabled = $individual_array[0];
-                    // Using individual option fallback
-                }
-            }
-        }
+        // Get login setting using simple configuration
+        $enabled = Fuerte_Wp_Config::get('login_security.login_enable', 'enabled');
 
         // Handle different Carbon Fields return formats
         $is_enabled = false;
@@ -638,16 +643,11 @@ class Fuerte_Wp_Login_Manager
     private function get_cached_settings()
     {
         if ($this->cached_settings === null) {
-            // Since Carbon Fields isn't working properly in login context, read settings directly
-            global $wpdb;
-
-            $container_data = $wpdb->get_var("SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = '_carbon_fields_theme_options_fuerte-wp' LIMIT 1");
-            $container_array = $container_data ? unserialize($container_data) : [];
-
+            // Get settings using centralized cache
             $this->cached_settings = [
-                'max_attempts' => (int)($container_array['fuertewp_login_max_attempts'][0] ?? 5),
-                'lockout_duration' => (int)($container_array['fuertewp_login_lockout_duration'][0] ?? 60),
-                'increasing_lockout' => ($container_array['fuertewp_login_increasing_lockout'][0] ?? 'no') === 'yes'
+                'max_attempts' => (int) Fuerte_Wp_Config::get('login_security.login_max_attempts', 5),
+                'lockout_duration' => (int) Fuerte_Wp_Config::get('login_security.login_lockout_duration', 60),
+                'increasing_lockout' => Fuerte_Wp_Config::get('login_security.login_increasing_lockout', '') === 'yes'
             ];
         }
         return $this->cached_settings;
