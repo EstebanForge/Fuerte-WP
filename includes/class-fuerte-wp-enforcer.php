@@ -516,6 +516,99 @@ class Fuerte_Wp_Enforcer
     }
 
     /**
+     * Normalize configuration structure to handle both old and new config formats.
+     *
+     * @since 1.7.0
+     * @param array $config Configuration array
+     * @return array Normalized configuration array
+     */
+    private function normalize_config_structure($config)
+    {
+        // If advanced_restrictions exists, extract those sections to top level
+        if (isset($config['advanced_restrictions'])) {
+            $advanced = $config['advanced_restrictions'];
+
+            // Extract advanced restriction sections to top level for backward compatibility
+            if (isset($advanced['restricted_scripts'])) {
+                $config['restricted_scripts'] = $advanced['restricted_scripts'];
+            }
+            if (isset($advanced['restricted_pages'])) {
+                $config['restricted_pages'] = $advanced['restricted_pages'];
+            }
+            if (isset($advanced['removed_menus'])) {
+                $config['removed_menus'] = $advanced['removed_menus'];
+            }
+            if (isset($advanced['removed_submenus'])) {
+                $config['removed_submenus'] = $advanced['removed_submenus'];
+            }
+            if (isset($advanced['removed_adminbar_menus'])) {
+                $config['removed_adminbar_menus'] = $advanced['removed_adminbar_menus'];
+            }
+        }
+
+        // If login_security exists, extract sections to old structure
+        if (isset($config['login_security'])) {
+            $login = $config['login_security'];
+
+            // Map new login_security structure to old field names
+            if (isset($login['login_enable'])) {
+                $config['login_enable'] = $login['login_enable'];
+            }
+            if (isset($login['registration_enable'])) {
+                $config['registration_enable'] = $login['registration_enable'];
+            }
+            if (isset($login['login_max_attempts'])) {
+                $config['login_max_attempts'] = $login['login_max_attempts'];
+            }
+            if (isset($login['login_lockout_duration'])) {
+                $config['login_lockout_duration'] = $login['login_lockout_duration'];
+            }
+            if (isset($login['login_increasing_lockout'])) {
+                $config['login_increasing_lockout'] = $login['login_increasing_lockout'];
+            }
+            if (isset($login['login_ip_headers'])) {
+                $config['login_ip_headers'] = $login['login_ip_headers'];
+            }
+            if (isset($login['login_gdpr_message'])) {
+                $config['login_gdpr_message'] = $login['login_gdpr_message'];
+            }
+            if (isset($login['login_data_retention'])) {
+                $config['login_data_retention'] = $login['login_data_retention'];
+            }
+        }
+
+        // If username_lists exists, extract sections
+        if (isset($config['username_lists'])) {
+            $usernames = $config['username_lists'];
+
+            if (isset($usernames['whitelist'])) {
+                $config['username_whitelist'] = $usernames['whitelist'];
+            }
+            if (isset($usernames['block_default_users'])) {
+                $config['block_default_users'] = $usernames['block_default_users'];
+            }
+            if (isset($usernames['blacklist'])) {
+                $config['username_blacklist'] = $usernames['blacklist'];
+            }
+        }
+
+        // If registration exists, extract registration_protect
+        if (isset($config['registration'])) {
+            $config['registration_protect'] = $config['registration']['registration_protect'] ?? true;
+        }
+
+        // Ensure rest_api section exists for backward compatibility
+        if (!isset($config['rest_api']) && isset($config['restrictions'])) {
+            $config['rest_api'] = [
+                'loggedin_only' => $config['restrictions']['restapi_loggedin_only'] ?? false,
+                'disable_app_passwords' => $config['restrictions']['restapi_disable_app_passwords'] ?? true,
+            ];
+        }
+
+        return $config;
+    }
+
+    /**
      * Config Setup.
      */
     private function config_setup()
@@ -528,7 +621,8 @@ class Fuerte_Wp_Enforcer
             && is_array($fuertewp)
             && !empty($fuertewp)
         ) {
-            return $fuertewp;
+            // Normalize the structure for backward compatibility
+            return $this->normalize_config_structure($fuertewp);
         }
 
         // If Fuerte-WP hasn't been init yet
@@ -548,6 +642,9 @@ class Fuerte_Wp_Enforcer
                     . 'config-sample/wp-config-fuerte.php';
                 $defaults = $fuertewp;
                 $fuertewp = $fuertewp_pre;
+
+                // Normalize the default structure for backward compatibility
+                $defaults = $this->normalize_config_structure($defaults);
 
                 // Only set Carbon Fields options if functions are available
                 if (function_exists('carbon_set_theme_option')) {
@@ -972,7 +1069,8 @@ class Fuerte_Wp_Enforcer
             );
         }
 
-        return $fuertewp;
+        // Normalize the structure for backward compatibility (for database configs)
+        return $this->normalize_config_structure($fuertewp);
     }
 
     /**

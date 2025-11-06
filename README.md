@@ -20,37 +20,86 @@ Fuerte-WP will limit some administrators from access critical WordPress areas th
 
 Fuerte-WP auto-protect itself and cannot be disabled, unless your account is declared as super user, or you have access to the server (FTP, SFTP, SSH, cPanel/Plesk, etc.).
 
+## Login Security Deep Dive
+
+Fuerte-WP's Login Security system provides comprehensive protection against brute force attacks and unauthorized access attempts:
+
+### 🛡️ Attack Prevention
+- **Rate Limiting**: Configurable thresholds for failed login attempts (default: 5 attempts in 15 minutes)
+- **Progressive Lockouts**: Increasing lockout durations for repeated security violations
+- **IP & Username Tracking**: Track and block based on both IP addresses and usernames
+- **Real-time Monitoring**: Live dashboard showing current login attempts and active lockouts
+
+### 📊 Monitoring & Management
+- **Detailed Logging**: Comprehensive logs of all security events with timestamps and user agents
+- **AJAX Dashboard**: Real-time updates without page refreshes
+- **Export Functionality**: Export security data for external analysis or backup
+- **Individual Unblock**: Unblock specific IPs or usernames without clearing all data
+
+### 🇪🇺 GDPR Compliance
+- **Privacy Notices**: Customizable GDPR compliance messages on login and registration forms
+- **Default Messaging**: Built-in privacy notice template if no custom message is provided
+- **Non-Intrusive Design**: Messages displayed below forms without affecting user experience
+
+### 🔐 Optional: Login URL Obscurity
+*Security by obscurity - disabled by default for optimal security*
+
+For users who want additional obscurity layers, Fuerte-WP offers optional login URL hiding:
+
+- **Hide wp-login.php**: Prevents direct access to the default WordPress login URL
+- **Custom Login Endpoints**: Use either pretty URLs (`/secure-login/`) or query parameters (`?secure-login`)
+- **WP-Admin Protection**: Automatically blocks direct `/wp-admin/` access for unauthorized users
+- **Smart Redirection**: Configure custom redirect URLs for blocked login attempts
+
+**Note**: This feature is disabled by default because true security comes from strong authentication and monitoring, not hiding URLs. Enable only if you understand the trade-offs.
+
 ## Features
 
-- Configure your own super users that will not be affected by changes and tweaks enforced by Fuerte-WP.
-- Enable and force auto updates for WordPress core, plugins, themes & translations.
-- Disables several WP email notification to site admin or network admin.
-- Disables WP Application Passwords feature.
-- Disables XML-RPC API.
-- Restrict the REST API to logged in users only.
-- Change WordPress [recovery email](https://make.wordpress.org/core/2019/04/16/fatal-error-recovery-mode-in-5-2/) so WP crashes will go to a different email than the Administration Email Address in WP General Settings.
-- Change WordPress sender email address to match WP installed domain, to avoid receiving WP emails as spam (assuming your domain SPF records are properly configured).
-- Customizable not allowed error message.
-- Disables WordPress theme and plugin editor, for non super users.
-- Disables installation of new themes and/or plugins, for non super users.
-- Remove (and restrict) items from WordPress menus, for non super users.
-- Restrict editing or deleting super users, for non super users.
-- Disables ACF Custom Fields editor access (ACF editor/creator backend UI), for non super users.
-- Force users to use WordPress default strong password suggestion, for non super users.
-- Prevent the use of weak passwords disabling the "Confirm use of weak password" checkbox.
-- Prevent admin accounts creation or edition, for non super users.
-- Restrict access to some pages inside WordPress admin panel, like plugins or theme uploads, for non super users. Restricted pages and areas can be extended vía configuration.
-- Disable WP admin bar for specific roles. Defaults to disable it for: subscriber, customer.
-- Disable access to Permalinks configuration.
-- Disable Plugins installation (via WP's repo or upload). Also disable plugins deletion.
-- Enable using Customizer custom logo as a WP login logo.
-- Disable Customizer Additional CSS editor.
+### 🛡️ Login Security
+- **Rate Limiting & Lockouts**: Configurable thresholds for failed login attempts with automatic IP lockouts
+- **Real-time Monitoring**: AJAX-powered dashboard for monitoring login attempts and managing lockouts
+- **GDPR Privacy Notice**: Customizable privacy compliance message displayed on login/registration forms
+- **Hidden Field Validation**: Enhanced CSRF protection with hidden form validation
+- **Invalid Login Redirect**: Configure where unauthorized login attempts are redirected (404 page or custom URL)
+- **Login URL Obscurity** (Optional): Obscure your WordPress login URL by hiding `wp-login.php` and `/wp-admin/` access (security by obscurity, disabled by default)
+
+### 🔐 Access Control & Restrictions
+- **Super User System**: Configure users who bypass all restrictions and maintain full access
+- **Role-Based Restrictions**: Limit what different administrator roles can access and modify
+- **Plugin & Theme Protection**: Prevent installation, deletion, and editing of plugins/themes by non-super users
+- **Menu Management**: Remove or restrict access to specific WordPress admin menu items
+- **Page Access Control**: Restrict access to sensitive WordPress admin areas
+- **User Account Protection**: Prevent editing or deletion of super user accounts
+- **ACF Integration**: Restrict access to Advanced Custom Fields editor interface
+
+### ⚙️ WordPress Core Tweaks
+- **Auto-Update Management**: Configurable automatic updates for core, plugins, themes, and translations
+- **API Security**: Disable XML-RPC, Application Passwords, and restrict REST API access
+- **Email Configuration**: Customize WordPress recovery and sender email addresses
+- **Security Hardening**: Disable file editors, force strong passwords, and block weak password usage
+- **Admin Bar Control**: Disable WordPress admin bar for specific user roles
+- **Customizer Restrictions**: Lock down Customizer features like CSS editor and theme modifications
+
+### 🚀 Performance & Monitoring
+- **Login Logging**: Comprehensive logging of all login attempts, failed authentications, and security events
+- **Export Capabilities**: Export security data and logs for analysis
+- **Database Optimization**: Automated cleanup and maintenance of security logs
+- **Cron-Based Updates**: Background auto-updates that don't impact site performance
+
+### 🔧 Developer Features
+- **File-Based Configuration**: Support for `wp-config-fuerte.php` for mass deployment
+- **Configuration Caching**: Optimized performance with intelligent caching
+- **Hook System**: Extensible architecture with comprehensive WordPress hook integration
+- **Multisite Support**: Compatible with WordPress multisite installations
 
 ## How to install
 
 1. Install Fuerte-WP from WordPress repository. Plugins > Add New > Search for: Fuerte-WP. Activate it.
 2. Configure Fuerte-WP at Settings > Fuerte-WP.
-3. Enjoy.
+3. **Setup Login Security**: Configure your custom login URL and review security settings.
+4. **Configure Super Users**: Add your email address to the super users list to maintain full access.
+5. **Review Restrictions**: Customize which admin areas and features to restrict for other administrators.
+6. Enjoy enhanced WordPress security!
 
 ### Harder configuration (optional)
 
