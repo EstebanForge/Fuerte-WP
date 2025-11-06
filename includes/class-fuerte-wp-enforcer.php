@@ -85,6 +85,13 @@ class Fuerte_Wp_Enforcer
         $login_manager = new Fuerte_Wp_Login_Manager();
         $login_manager->run();
 
+        // Initialize login URL hider
+        try {
+            $login_url_hider = Fuerte_Wp_Login_URL_Hider::get_instance();
+        } catch (Exception $e) {
+            // Error creating Login URL Hider, continue without it
+        }
+
         // AJAX handlers for admin
         if (is_admin() && current_user_can('manage_options')) {
             add_action('wp_ajax_fuertewp_clear_login_logs', [$this, 'ajax_clear_login_logs']);

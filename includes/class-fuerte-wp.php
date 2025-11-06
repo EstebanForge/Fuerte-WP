@@ -164,6 +164,12 @@ class Fuerte_Wp
             . 'includes/class-fuerte-wp-two-factor.php';
 
         /**
+         * Login URL Hider class.
+         */
+        require_once plugin_dir_path(dirname(__FILE__))
+            . 'includes/class-fuerte-wp-login-url-hider.php';
+
+        /**
          * Auto-update manager class.
          */
         require_once plugin_dir_path(dirname(__FILE__))

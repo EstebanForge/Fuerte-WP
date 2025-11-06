@@ -1,6 +1,6 @@
 # Changelog
 
-# 1.7.0 / 2025-11-05
+# 1.7.0 / 2025-11-06
 - Added comprehensive Login Security system with rate limiting and IP lockout functionality.
 - Implemented failed login attempt tracking with configurable thresholds and lockout durations.
 - Added real-time AJAX-powered admin interface for monitoring login attempts and managing lockouts.
@@ -13,6 +13,15 @@
 - Enhanced admin interface with export capabilities for security data.
 - Performance optimizations and database cleanup automation for security logs.
 - Improved code organization with dedicated login management and logging classes.
+- Added comprehensive Login URL Hiding functionality to obscure wp-login.php access points.
+- Implemented support for both query parameter mode (?custom-slug) and pretty URL mode (/custom-slug/).
+- Added customizable login slug with default 'secure-login' option for easy configuration.
+- Integrated wp-admin protection to redirect unauthorized admin area requests to custom login URL.
+- Added hidden field validation to login forms for enhanced security against direct POST attacks.
+- Comprehensive URL filtering system covering site_url, login_url, logout_url, lostpassword_url, and register_url.
+- Full integration with existing super user bypass system and security logging.
+- Implemented proper redirect handling with 404-like behavior for blocked login attempts.
+- Enhanced security through obscurity while maintaining WordPress core compatibility.
 
 # 1.6.0 / 2025-09-20
 - Refactored auto-update system into dedicated `Fuerte_Wp_Auto_Update_Manager` class for better code organization and maintainability.
