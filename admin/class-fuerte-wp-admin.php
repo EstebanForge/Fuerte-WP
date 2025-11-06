@@ -525,7 +525,8 @@ class Fuerte_Wp_Admin
                 )
                     ->set_default_value('')
                     ->set_rows(3)
-                    ->set_help_text(__('Optional privacy notice displayed below the login form. Leave empty to disable.', 'fuerte-wp')),
+                    ->set_attribute('placeholder', __('By proceeding you understand and give your consent that your IP address and browser information might be processed by the security plugins installed on this site.', 'fuerte-wp'))
+                    ->set_help_text(__('Privacy notice displayed below the login form. Default message will be shown if left empty.', 'fuerte-wp')),
 
                 Field::make(
                     'separator',
@@ -543,6 +544,119 @@ class Fuerte_Wp_Admin
                     ->set_attribute('min', 1)
                     ->set_attribute('max', 365)
                     ->set_help_text(__('Number of days to keep login logs (1-365). Old records are automatically deleted.', 'fuerte-wp')),
+
+                Field::make(
+                    'separator',
+                    'fuertewp_login_separator_url_hiding',
+                    __('Login URL Hiding', 'fuerte-wp'),
+                ),
+
+                Field::make(
+                    'checkbox',
+                    'fuertewp_login_url_hiding_enabled',
+                    __('Enable Login URL Hiding', 'fuerte-wp'),
+                )
+                    ->set_default_value(false)
+                    ->set_help_text(__('Hide the default wp-login.php URL to protect against brute force attacks.', 'fuerte-wp')),
+
+                Field::make(
+                    'text',
+                    'fuertewp_custom_login_slug',
+                    __('Custom Login Slug', 'fuerte-wp'),
+                )
+                    ->set_default_value('secure-login')
+                    ->set_help_text(__('Custom slug for accessing the login page (e.g., "secure-login"). Avoid common names like "login" or "admin".', 'fuerte-wp'))
+                    ->set_conditional_logic([
+                        'relation' => 'AND',
+                        ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true]
+                    ]),
+
+                Field::make(
+                    'select',
+                    'fuertewp_login_url_type',
+                    __('Login URL Type', 'fuerte-wp'),
+                )
+                    ->add_options([
+                        'query_param' => __('Query Parameter (?your-slug)', 'fuerte-wp'),
+                        'pretty_url' => __('Pretty URL (/your-slug/)', 'fuerte-wp'),
+                    ])
+                    ->set_default_value('query_param')
+                    ->set_help_text(__('Query Parameter: https://yoursite.com/?your-slug | Pretty URL: https://yoursite.com/your-slug/', 'fuerte-wp'))
+                    ->set_conditional_logic([
+                        'relation' => 'AND',
+                        ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true]
+                    ]),
+
+                Field::make(
+                    'html',
+                    'fuertewp_login_url_info'
+                )
+                ->set_html('<div class="fuertewp-login-url-info" style="display: none; background: #f9f9f9; border: 1px solid #ddd; padding: 12px; margin: 10px 0; border-radius: 4px;"><strong>' . __('Your New Login URL:', 'fuerte-wp') . '</strong> <span id="fuertewp-preview-url" style="font-family: monospace; background: #e7e7e7; padding: 2px 6px; border-radius: 3px;"></span></div>
+                <script>
+                jQuery(document).ready(function($) {
+                    function updateLoginUrlPreview() {
+                        var enabled = $(\'input[name="fuertewp_login_url_hiding_enabled"]\').prop(\'checked\');
+                        var slug = $(\'input[name="fuertewp_custom_login_slug"]\').val() || \'secure-login\';
+                        var urlType = $(\'select[name="fuertewp_login_url_type"]\').val() || \'query_param\';
+                        var baseUrl = window.location.origin + window.location.pathname.replace(/\/wp-admin.*$/, \'/\');
+
+                        var newUrl;
+                        if (urlType === "pretty_url") {
+                            newUrl = baseUrl + slug + \'/\';
+                        } else {
+                            newUrl = baseUrl + \'?\' + slug;
+                        }
+
+                        if (enabled) {
+                            $(\'.fuertewp-login-url-info\').show();
+                            $(\'#fuertewp-preview-url\').text(newUrl);
+                        } else {
+                            $(\'.fuertewp-login-url-info\').hide();
+                        }
+                    }
+
+                    // Update preview when settings change
+                    $(\'input[name="fuertewp_login_url_hiding_enabled"]\').on(\'change\', updateLoginUrlPreview);
+                    $(\'input[name="fuertewp_custom_login_slug"]\').on(\'input\', updateLoginUrlPreview);
+                    $(\'select[name="fuertewp_login_url_type"]\').on(\'change\', updateLoginUrlPreview);
+
+                    // Initial update
+                    updateLoginUrlPreview();
+                });
+                </script>')
+                ->set_conditional_logic([
+                    'relation' => 'AND',
+                    ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true]
+                ]),
+
+            Field::make(
+                    'select',
+                    'fuertewp_redirect_invalid_logins',
+                    __('Invalid Login Redirect', 'fuerte-wp'),
+                )
+                    ->add_options([
+                        'home_404' => __('Home Page with 404 Error', 'fuerte-wp'),
+                        'custom_page' => __('Custom URL Redirect', 'fuerte-wp'),
+                    ])
+                    ->set_default_value('home_404')
+                    ->set_help_text(__('Where to redirect users who try to access the login page directly.', 'fuerte-wp'))
+                    ->set_conditional_logic([
+                        'relation' => 'AND',
+                        ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true]
+                    ]),
+
+            Field::make(
+                    'text',
+                    'fuertewp_redirect_invalid_logins_url',
+                    __('Custom Redirect URL', 'fuerte-wp'),
+                )
+                    ->set_attribute('placeholder', 'https://example.com/custom-page')
+                    ->set_help_text(__('Enter the full URL where invalid login attempts should be redirected. Can be any internal or external URL.', 'fuerte-wp'))
+                    ->set_conditional_logic([
+                        'relation' => 'AND',
+                        ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true],
+                        ['field' => 'fuertewp_redirect_invalid_logins', 'value' => 'custom_page']
+                    ]),
             ])
 
             ->add_tab(__('REST API', 'fuerte-wp'), [
@@ -1016,7 +1130,7 @@ updraft_admin_node',
                     <?php esc_html_e('Export CSV', 'fuerte-wp'); ?>
                 </button>
                 <button type="button" id="fuertewp-clear-logs" class="button button-secondary">
-                    <?php esc_html_e('Clear Failed Attempts', 'fuerte-wp'); ?>
+                    <?php esc_html_e('Clear All Logs', 'fuerte-wp'); ?>
                 </button>
                 <button type="button" id="fuertewp-reset-lockouts" class="button button-secondary">
                     <?php esc_html_e('Reset All Lockouts', 'fuerte-wp'); ?>

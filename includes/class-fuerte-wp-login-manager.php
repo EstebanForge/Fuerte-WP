@@ -369,8 +369,8 @@ class Fuerte_Wp_Login_Manager
             echo '</div>';
         }
 
-        // Display GDPR compliance message
-        $this->display_gdpr_message();
+        // GDPR compliance message is already displayed via login_footer hook
+        // to avoid duplication when custom login URLs are used
     }
 
     /**
