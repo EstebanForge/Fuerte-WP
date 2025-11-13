@@ -15,6 +15,9 @@
 // No access outside WP
 defined('ABSPATH') || die();
 
+// Ensure Carbon Fields functions are available
+require_once FUERTEWP_PATH . 'vendor/htmlburger/carbon-fields/core/functions.php';
+
 /**
  * Login Manager class for authentication handling.
  *

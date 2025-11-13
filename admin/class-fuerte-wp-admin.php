@@ -18,6 +18,13 @@ use Carbon_Fields\Field;
  *
  * @author     Esteban Cuevas <esteban@attitude.cl>
  */
+
+// No access outside WP
+defined('ABSPATH') || die();
+
+// Ensure Carbon Fields functions are available
+require_once FUERTEWP_PATH . 'vendor/htmlburger/carbon-fields/core/functions.php';
+
 class Fuerte_Wp_Admin
 {
     /**
@@ -80,6 +87,11 @@ class Fuerte_Wp_Admin
     public function fuertewp_plugin_options()
     {
         global $fuertewp;
+
+        // Early exit if not a super admin - fallback capability check for migration compatibility
+        if (!current_user_can('manage_options')) {
+            return;
+        }
 
         /*
          * Allow admin options for super users even if config file exists
@@ -1225,11 +1237,16 @@ updraft_admin_node',
 
         $super_users = carbon_get_theme_option('fuertewp_super_users');
 
+        // Normalize to array format for consistency
+        if (is_string($super_users) && !empty($super_users)) {
+            $super_users = [$super_users];
+        }
+
         if (empty($super_users) || !is_array($super_users)) {
             // No users at all. Add current_user back as super user
             carbon_set_theme_option(
                 'fuertewp_super_users',
-                $current_user->user_email,
+                [$current_user->user_email],
             );
         } else {
             if (!in_array($current_user->user_email, $super_users)) {
