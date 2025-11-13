@@ -18,6 +18,9 @@ defined('ABSPATH') || die();
 // Load the helper class
 require_once FUERTEWP_PATH . 'includes/class-fuerte-wp-helper.php';
 
+// Ensure Carbon Fields functions are available
+require_once FUERTEWP_PATH . 'vendor/htmlburger/carbon-fields/core/functions.php';
+
 /**
  * IP Manager class for handling IP address operations.
  *

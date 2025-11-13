@@ -5,7 +5,7 @@
  * Plugin Name:       Fuerte-WP
  * Plugin URI:        https://github.com/EstebanForge/Fuerte-WP
  * Description:       Stronger WP. Limit access to critical WordPress areas, even other for admins.
- * Version:           1.7.0
+ * Version:           1.7.1
  * Author:            Esteban Cuevas
  * Author URI:        https://actitud.xyz
  * License:           GPL-2.0+
@@ -163,11 +163,11 @@ function fuertewp_ensure_super_user()
     // Check if super_users option exists and is not empty
     $super_users = carbon_get_theme_option('fuertewp_super_users');
 
-    if (empty($super_users) || !is_array($super_users)) {
+    if (empty($super_users)) {
         $current_user = wp_get_current_user();
 
         if ($current_user && $current_user->ID > 0 && current_user_can('manage_options')) {
-            // Add current user as super user
+            // Add current user as super user - store as array for consistency
             carbon_set_theme_option('fuertewp_super_users', [$current_user->user_email]);
         }
     }

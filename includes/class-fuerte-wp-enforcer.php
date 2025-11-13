@@ -12,6 +12,9 @@
 // No access outside WP
 defined('ABSPATH') || die();
 
+// Ensure Carbon Fields functions are available
+require_once FUERTEWP_PATH . 'vendor/htmlburger/carbon-fields/core/functions.php';
+
 /**
  * Main Fuerte-WP Class.
  */
@@ -72,8 +75,9 @@ class Fuerte_Wp_Enforcer
         }
 
         // Check if super users are already configured (check this first to avoid unnecessary work)
-        $super_users = get_option('_fuertewp_super_users', '');
-        if (!empty($super_users)) {
+        $existing_super_users = carbon_get_theme_option('fuertewp_super_users');
+
+        if (!empty($existing_super_users)) {
             return; // Super users already configured
         }
 
@@ -89,7 +93,7 @@ class Fuerte_Wp_Enforcer
             if (!empty($file_config['super_users'])) {
                 // Import super users from file to database
                 $first_super_user = reset($file_config['super_users']);
-                update_option('_fuertewp_super_users', $first_super_user);
+                carbon_set_theme_option('fuertewp_super_users', $first_super_user);
                 Fuerte_Wp_Logger::info('Super users imported from file: ' . $first_super_user);
                 return;
             }
@@ -98,11 +102,13 @@ class Fuerte_Wp_Enforcer
         // No super users found - auto-configure current admin user
         $current_user = wp_get_current_user();
         if ($current_user && $current_user->ID > 0 && current_user_can('manage_options')) {
-            update_option('_fuertewp_super_users', $current_user->user_email);
+            // Store as string for backward compatibility
+            carbon_set_theme_option('fuertewp_super_users', $current_user->user_email);
 
-            // Also set plugin status if not already set
-            if (get_option('_fuertewp_status') === false) {
-                update_option('_fuertewp_status', 'enabled');
+            // Also set plugin status if not already set using Carbon Fields
+            $status = carbon_get_theme_option('fuertewp_status');
+            if (empty($status)) {
+                carbon_set_theme_option('fuertewp_status', 'enabled');
             }
 
             Fuerte_Wp_Logger::info('Self-healing: Set super user to ' . $current_user->user_email);
@@ -550,7 +556,7 @@ class Fuerte_Wp_Enforcer
         // Only attempt to get Carbon Fields options if the function exists
         if (function_exists('carbon_get_theme_option')) {
             $options['fuertewp_status'] = carbon_get_theme_option('fuertewp_status');
-            $options['_fuertewp_super_users'] = carbon_get_theme_option('fuertewp_super_users');
+            $options['super_users'] = carbon_get_theme_option('fuertewp_super_users');
             $options['fuertewp_access_denied_message'] = carbon_get_theme_option('fuertewp_access_denied_message');
             $options['fuertewp_recovery_email'] = carbon_get_theme_option('fuertewp_recovery_email');
             $options['fuertewp_sender_email_enable'] = carbon_get_theme_option('fuertewp_sender_email_enable');
