@@ -5,7 +5,7 @@
  * Plugin Name:       Fuerte-WP
  * Plugin URI:        https://github.com/EstebanForge/Fuerte-WP
  * Description:       Stronger WP. Limit access to critical WordPress areas, even other for admins.
- * Version:           1.7.1
+ * Version:           1.7.2
  * Author:            Esteban Cuevas
  * Author URI:        https://actitud.xyz
  * License:           GPL-2.0+
@@ -32,7 +32,7 @@ if (!defined("WPINC")) {
  * Rename this for your plugin and update it as you release new versions.
  */
 define("FUERTEWP_PLUGIN_BASE", plugin_basename(__FILE__));
-define("FUERTEWP_VERSION", "1.7.0");
+define("FUERTEWP_VERSION", "1.7.2");
 define("FUERTEWP_PATH", realpath(plugin_dir_path(__FILE__)) . "/");
 define("FUERTEWP_URL", trailingslashit(plugin_dir_url(__FILE__)));
 define("FUERTEWP_LATE_PRIORITY", 9999);
@@ -212,6 +212,31 @@ function run_fuerte_wp()
 	$plugin->run();
 }
 run_fuerte_wp();
+
+/**
+ * Hook into plugin updates to clear configuration cache.
+ * This ensures that the super users and other configuration are properly
+ * refreshed when the plugin is updated.
+ *
+ * @since 1.7.1
+ */
+add_action('upgrader_process_complete', 'fuertewp_handle_plugin_update', 10, 2);
+
+function fuertewp_handle_plugin_update($upgrader_object, $options) {
+    // Check if this is a plugin update and if it's our plugin
+    if ($options['action'] === 'update' && $options['type'] === 'plugin') {
+        if (isset($options['plugins'])) {
+            foreach ($options['plugins'] as $plugin) {
+                if ($plugin === plugin_basename(FUERTEWP_PLUGIN_BASE)) {
+                    // This is our plugin being updated - clear the cache
+                    require_once FUERTEWP_PATH . 'includes/class-fuerte-wp-activator.php';
+                    Fuerte_Wp_Activator::handle_plugin_update();
+                    break;
+                }
+            }
+        }
+    }
+}
 
 /**
  * htaccess security rules

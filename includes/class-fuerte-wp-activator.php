@@ -40,10 +40,12 @@ class Fuerte_Wp_Activator
      */
     public static function activate()
     {
+        // Check if this is a plugin update and clear cache if version changed
+        self::handle_plugin_update();
+
         self::create_login_security_tables();
         self::schedule_cron_jobs();
         self::setup_initial_super_user();
-        delete_transient('fuertewp_cache_config');
     }
 
     /**
@@ -154,6 +156,42 @@ class Fuerte_Wp_Activator
         // Daily cleanup of old login logs
         if (!wp_next_scheduled('fuertewp_cleanup_login_logs')) {
             wp_schedule_event(time(), 'daily', 'fuertewp_cleanup_login_logs');
+        }
+    }
+
+    /**
+     * Handle plugin updates and clear configuration cache when needed.
+     *
+     * @since 1.7.1
+     */
+    public static function handle_plugin_update()
+    {
+        $option_name = 'fuertewp_version';
+        $current_version = defined('FUERTEWP_VERSION') ? FUERTEWP_VERSION : '1.0.0';
+        $previous_version = get_option($option_name, '1.0.0');
+
+        // If version has changed, clear all relevant caches
+        if ($previous_version !== $current_version) {
+            // Clear the configuration cache
+            delete_transient('fuertewp_cache_config');
+
+            // Clear the new simple config cache if class exists
+            if (class_exists('Fuerte_Wp_Config')) {
+                Fuerte_Wp_Config::invalidate_cache();
+            }
+
+            // Clear any other plugin-related transients
+            delete_transient('fuertewp_login_attempts_cache');
+            delete_transient('fuertewp_ip_whitelist_cache');
+
+            // Update the stored version
+            update_option($option_name, $current_version);
+
+            // Log the version update for debugging
+            if (function_exists('Fuerte_Wp_Logger') && class_exists('Fuerte_Wp_Logger')) {
+                $logger = new Fuerte_Wp_Logger();
+                $logger->log("Plugin updated from {$previous_version} to {$current_version} - caches cleared");
+            }
         }
     }
 }
