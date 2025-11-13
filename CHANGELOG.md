@@ -1,6 +1,6 @@
 # Changelog
 
-# 1.7.0 / 2025-11-06
+# 1.7.0 / 2025-11-13
 - Added comprehensive Login Security system with rate limiting and IP lockout functionality.
 - Implemented failed login attempt tracking with configurable thresholds and lockout durations.
 - Added real-time AJAX-powered admin interface for monitoring login attempts and managing lockouts.
