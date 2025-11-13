@@ -91,10 +91,9 @@ class Fuerte_Wp_Enforcer
             $fuertewp = $original_fuertewp;
 
             if (!empty($file_config['super_users'])) {
-                // Import super users from file to database
-                $first_super_user = reset($file_config['super_users']);
-                carbon_set_theme_option('fuertewp_super_users', $first_super_user);
-                Fuerte_Wp_Logger::info('Super users imported from file: ' . $first_super_user);
+                // Import super users from file to database as array to match multiselect field
+                carbon_set_theme_option('fuertewp_super_users', $file_config['super_users']);
+                Fuerte_Wp_Logger::info('Super users imported from file: ' . implode(', ', $file_config['super_users']));
                 return;
             }
         }
@@ -102,8 +101,8 @@ class Fuerte_Wp_Enforcer
         // No super users found - auto-configure current admin user
         $current_user = wp_get_current_user();
         if ($current_user && $current_user->ID > 0 && current_user_can('manage_options')) {
-            // Store as string for backward compatibility
-            carbon_set_theme_option('fuertewp_super_users', $current_user->user_email);
+            // Store as array to match the multiselect field type
+            carbon_set_theme_option('fuertewp_super_users', [$current_user->user_email]);
 
             // Also set plugin status if not already set using Carbon Fields
             $status = carbon_get_theme_option('fuertewp_status');
@@ -556,7 +555,17 @@ class Fuerte_Wp_Enforcer
         // Only attempt to get Carbon Fields options if the function exists
         if (function_exists('carbon_get_theme_option')) {
             $options['fuertewp_status'] = carbon_get_theme_option('fuertewp_status');
-            $options['super_users'] = carbon_get_theme_option('fuertewp_super_users');
+            // Get super users from Carbon Fields (where self-healing stores them)
+            $super_users = carbon_get_theme_option('fuertewp_super_users');
+
+            // Normalize to array format for consistency
+            if (is_string($super_users) && !empty($super_users)) {
+                $options['super_users'] = [$super_users];
+            } elseif (is_array($super_users)) {
+                $options['super_users'] = $super_users;
+            } else {
+                $options['super_users'] = [];
+            }
             $options['fuertewp_access_denied_message'] = carbon_get_theme_option('fuertewp_access_denied_message');
             $options['fuertewp_recovery_email'] = carbon_get_theme_option('fuertewp_recovery_email');
             $options['fuertewp_sender_email_enable'] = carbon_get_theme_option('fuertewp_sender_email_enable');
