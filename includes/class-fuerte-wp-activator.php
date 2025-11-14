@@ -25,11 +25,14 @@ class Fuerte_Wp_Activator
 {
     /**
      * Database version for login security feature.
-     * Increment when database schema changes.
+     * Uses plugin version to ensure consistency.
      *
-     * @since 1.7.0
+     * @since 1.7.3
      */
-    const DB_VERSION = '1.0.0';
+    public static function get_db_version()
+    {
+        return defined('FUERTEWP_VERSION') ? FUERTEWP_VERSION : '1.0.0';
+    }
 
     /**
      * Short Description. (use period).
@@ -51,27 +54,27 @@ class Fuerte_Wp_Activator
     /**
      * Set up initial super user from current admin user.
      * This prevents lockout when the plugin is first activated.
+     * Uses standardized Config class methods to avoid Carbon Fields timing issues.
      *
-     * @since 1.7.0
+     * @since 1.7.2
      */
     public static function setup_initial_super_user()
     {
-        // Check if Carbon Fields functions are available
-        // During activation, Carbon Fields may not be loaded yet
-        if (!function_exists('carbon_get_theme_option')) {
+        // Use our standardized Config class methods instead of Carbon Fields
+        if (!class_exists('Fuerte_Wp_Config')) {
             return;
         }
 
         // Check if super_users is already set
-        $existing_super_users = carbon_get_theme_option('fuertewp_super_users');
+        $existing_super_users = Fuerte_Wp_Config::get_field('super_users', [], true);
 
-        if (empty($existing_super_users) || !is_array($existing_super_users)) {
+        if (empty($existing_super_users)) {
             // Get current user if available (works during activation)
             $current_user = wp_get_current_user();
 
             if ($current_user && $current_user->ID > 0) {
-                // Add current user as super user
-                carbon_set_theme_option('fuertewp_super_users', [$current_user->user_email]);
+                // Add current user as super user using our standardized method
+                Fuerte_Wp_Config::set_field('super_users', [$current_user->user_email], true);
             }
         }
     }
@@ -143,7 +146,7 @@ class Fuerte_Wp_Activator
         dbDelta($sql_ips);
 
         // Store database version
-        add_option('fuertewp_login_db_version', self::DB_VERSION);
+        add_option('_fuertewp_login_db_version', self::get_db_version());
     }
 
     /**

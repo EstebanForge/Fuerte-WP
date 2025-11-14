@@ -391,7 +391,7 @@ class Fuerte_Wp_Login_Manager
 
         // Show remaining attempts if any failed
         $remaining = $this->logger->get_remaining_attempts($ip, $username);
-        $max_attempts = (int)carbon_get_theme_option('fuertewp_login_max_attempts', 5);
+        $max_attempts = (int)Fuerte_Wp_Config::get_field('login_max_attempts', 5);
 
         if ($remaining < $max_attempts) {
             echo '<div id="fuertewp-remaining-message" class="message warning" style="padding: 10px; margin: 10px 0; background: #fff3cd; border-left: 4px solid #ffb900;">';
@@ -584,7 +584,7 @@ class Fuerte_Wp_Login_Manager
     private function is_registration_enabled()
     {
         // Use the correct container ID ('Fuerte-WP') since we're using compact input
-        $enabled = carbon_get_theme_option('fuertewp_registration_enable', 'fuerte-wp');
+        $enabled = Fuerte_Wp_Config::get_field('registration_enable', 'enabled');
 
         // Handle different Carbon Fields return formats
         $is_enabled = false;

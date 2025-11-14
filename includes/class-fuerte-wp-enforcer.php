@@ -543,81 +543,15 @@ class Fuerte_Wp_Enforcer
     }
 
     /**
-     * Get configuration options using Carbon Fields API.
-     * This ensures proper integration with Carbon Fields custom datastore.
+     * Get configuration options using standardized Config class methods.
+     * Replaces all direct get_option/carbon_get_theme_option calls with a single standardized method.
+     *
+     * @since 1.7.2
+     * @return array Configuration options
      */
     private function get_config_options_batch()
     {
-        // Use Carbon Fields API to get theme options
-        // This handles the custom datastore and underscore prefix correctly
-        $options = [];
-
-        // Only attempt to get Carbon Fields options if the function exists
-        if (function_exists('carbon_get_theme_option')) {
-            $options['fuertewp_status'] = carbon_get_theme_option('fuertewp_status');
-            // Get super users from Carbon Fields (where self-healing stores them)
-            $super_users = carbon_get_theme_option('fuertewp_super_users');
-
-            // Normalize to array format for consistency
-            if (is_string($super_users) && !empty($super_users)) {
-                $options['super_users'] = [$super_users];
-            } elseif (is_array($super_users)) {
-                $options['super_users'] = $super_users;
-            } else {
-                $options['super_users'] = [];
-            }
-            $options['fuertewp_access_denied_message'] = carbon_get_theme_option('fuertewp_access_denied_message');
-            $options['fuertewp_recovery_email'] = carbon_get_theme_option('fuertewp_recovery_email');
-            $options['fuertewp_sender_email_enable'] = carbon_get_theme_option('fuertewp_sender_email_enable');
-            $options['fuertewp_sender_email'] = carbon_get_theme_option('fuertewp_sender_email');
-            $options['fuertewp_autoupdate_core'] = carbon_get_theme_option('fuertewp_autoupdate_core');
-            $options['fuertewp_autoupdate_plugins'] = carbon_get_theme_option('fuertewp_autoupdate_plugins');
-            $options['fuertewp_autoupdate_themes'] = carbon_get_theme_option('fuertewp_autoupdate_themes');
-            $options['fuertewp_autoupdate_translations'] = carbon_get_theme_option('fuertewp_autoupdate_translations');
-            $options['fuertewp_autoupdate_frequency'] = carbon_get_theme_option('fuertewp_autoupdate_frequency');
-
-            // Login Security settings
-            $options['fuertewp_login_enable'] = carbon_get_theme_option('fuertewp_login_enable');
-            $options['fuertewp_registration_enable'] = carbon_get_theme_option('fuertewp_registration_enable');
-            $options['fuertewp_login_max_attempts'] = carbon_get_theme_option('fuertewp_login_max_attempts');
-            $options['fuertewp_login_lockout_duration'] = carbon_get_theme_option('fuertewp_login_lockout_duration');
-            $options['fuertewp_login_lockout_duration_type'] = carbon_get_theme_option('fuertewp_login_lockout_duration_type');
-            $options['fuertewp_login_cron_cleanup_frequency'] = carbon_get_theme_option('fuertewp_login_cron_cleanup_frequency');
-
-            $options['fuertewp_tweaks_use_site_logo_login'] = carbon_get_theme_option('fuertewp_tweaks_use_site_logo_login');
-            $options['fuertewp_emails_fatal_error'] = carbon_get_theme_option('fuertewp_emails_fatal_error');
-            $options['fuertewp_emails_automatic_updates'] = carbon_get_theme_option('fuertewp_emails_automatic_updates');
-            $options['fuertewp_emails_comment_awaiting_moderation'] = carbon_get_theme_option('fuertewp_emails_comment_awaiting_moderation');
-            $options['fuertewp_emails_comment_has_been_published'] = carbon_get_theme_option('fuertewp_emails_comment_has_been_published');
-            $options['fuertewp_emails_user_reset_their_password'] = carbon_get_theme_option('fuertewp_emails_user_reset_their_password');
-            $options['fuertewp_emails_user_confirm_personal_data_export_request'] = carbon_get_theme_option('fuertewp_emails_user_confirm_personal_data_export_request');
-            $options['fuertewp_emails_new_user_created'] = carbon_get_theme_option('fuertewp_emails_new_user_created');
-            $options['fuertewp_emails_network_new_site_created'] = carbon_get_theme_option('fuertewp_emails_network_new_site_created');
-            $options['fuertewp_emails_network_new_user_site_registered'] = carbon_get_theme_option('fuertewp_emails_network_new_user_site_registered');
-            $options['fuertewp_emails_network_new_site_activated'] = carbon_get_theme_option('fuertewp_emails_network_new_site_activated');
-            $options['fuertewp_restrictions_restapi_loggedin_only'] = carbon_get_theme_option('fuertewp_restrictions_restapi_loggedin_only');
-            $options['fuertewp_restrictions_restapi_disable_app_passwords'] = carbon_get_theme_option('fuertewp_restrictions_restapi_disable_app_passwords');
-            $options['fuertewp_restrictions_disable_xmlrpc'] = carbon_get_theme_option('fuertewp_restrictions_disable_xmlrpc');
-            $options['fuertewp_restrictions_htaccess_security_rules'] = carbon_get_theme_option('fuertewp_restrictions_htaccess_security_rules');
-            $options['fuertewp_restrictions_disable_admin_create_edit'] = carbon_get_theme_option('fuertewp_restrictions_disable_admin_create_edit');
-            $options['fuertewp_restrictions_disable_weak_passwords'] = carbon_get_theme_option('fuertewp_restrictions_disable_weak_passwords');
-            $options['fuertewp_restrictions_force_strong_passwords'] = carbon_get_theme_option('fuertewp_restrictions_force_strong_passwords');
-            $options['fuertewp_restrictions_disable_admin_bar_roles'] = carbon_get_theme_option('fuertewp_restrictions_disable_admin_bar_roles');
-            $options['fuertewp_restrictions_restrict_permalinks'] = carbon_get_theme_option('fuertewp_restrictions_restrict_permalinks');
-            $options['fuertewp_restrictions_restrict_acf'] = carbon_get_theme_option('fuertewp_restrictions_restrict_acf');
-            $options['fuertewp_restrictions_disable_theme_editor'] = carbon_get_theme_option('fuertewp_restrictions_disable_theme_editor');
-            $options['fuertewp_restrictions_disable_plugin_editor'] = carbon_get_theme_option('fuertewp_restrictions_disable_plugin_editor');
-            $options['fuertewp_restrictions_disable_theme_install'] = carbon_get_theme_option('fuertewp_restrictions_disable_theme_install');
-            $options['fuertewp_restrictions_disable_plugin_install'] = carbon_get_theme_option('fuertewp_restrictions_disable_plugin_install');
-            $options['fuertewp_restrictions_disable_customizer_css'] = carbon_get_theme_option('fuertewp_restrictions_disable_customizer_css');
-            $options['fuertewp_restricted_scripts'] = carbon_get_theme_option('fuertewp_restricted_scripts');
-            $options['fuertewp_restricted_pages'] = carbon_get_theme_option('fuertewp_restricted_pages');
-            $options['fuertewp_removed_menus'] = carbon_get_theme_option('fuertewp_removed_menus');
-            $options['fuertewp_removed_submenus'] = carbon_get_theme_option('fuertewp_removed_submenus');
-            $options['fuertewp_removed_adminbar_menus'] = carbon_get_theme_option('fuertewp_removed_adminbar_menus');
-        }
-
-        return $options;
+        return Fuerte_Wp_Config::get_enforcer_config();
     }
 
     /**

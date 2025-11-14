@@ -1,7 +1,7 @@
 === Fuerte-WP ===
 Contributors: tcattd
 Tags: security, login, protection, admin, brute-force, GDPR, privacy, access-control, multisite
-Stable tag: 1.7.2
+Stable tag: 1.7.3
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 8.1
