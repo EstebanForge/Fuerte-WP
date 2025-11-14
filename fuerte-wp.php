@@ -5,71 +5,70 @@
  * Plugin Name:       Fuerte-WP
  * Plugin URI:        https://github.com/EstebanForge/Fuerte-WP
  * Description:       Stronger WP. Limit access to critical WordPress areas, even other for admins.
- * Version:           1.7.2
+ * Version:           1.7.3
  * Author:            Esteban Cuevas
  * Author URI:        https://actitud.xyz
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       fuerte-wp
  * Domain Path:       /languages
- * Requires at least: 6.0
+ * Requires at least: 6.4
  * Tested up to:      6.9
  * Requires PHP:      8.1
  *
  * @link              https://actitud.xyz
  * @since             1.3.0
- * @package           Fuerte_Wp
  */
 
 // If this file is called directly, abort.
-if (!defined("WPINC")) {
-	die();
+if (!defined('WPINC')) {
+    die();
 }
 
-/**
+/*
  * Currently plugin version.
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define("FUERTEWP_PLUGIN_BASE", plugin_basename(__FILE__));
-define("FUERTEWP_VERSION", "1.7.2");
-define("FUERTEWP_PATH", realpath(plugin_dir_path(__FILE__)) . "/");
-define("FUERTEWP_URL", trailingslashit(plugin_dir_url(__FILE__)));
-define("FUERTEWP_LATE_PRIORITY", 9999);
+define('FUERTEWP_PLUGIN_BASE', plugin_basename(__FILE__));
+define('FUERTEWP_VERSION', '1.7.3');
+define('FUERTEWP_PATH', realpath(plugin_dir_path(__FILE__)) . '/');
+define('FUERTEWP_URL', trailingslashit(plugin_dir_url(__FILE__)));
+define('FUERTEWP_LATE_PRIORITY', 9999);
 
-/**
+/*
  * Load Fuerte-WP config file if exist
  */
-if (file_exists(ABSPATH . "wp-config-fuerte.php")) {
-	require_once ABSPATH . "wp-config-fuerte.php";
+if (file_exists(ABSPATH . 'wp-config-fuerte.php')) {
+    require_once ABSPATH . 'wp-config-fuerte.php';
 }
 
-/**
+/*
  * Exit if FUERTEWP_DISABLE is defined (in wp-config.php or wp-config-fuerte.php)
  */
-if (defined("FUERTEWP_DISABLE") && true === FUERTEWP_DISABLE) {
-	return false;
+if (defined('FUERTEWP_DISABLE') && true === FUERTEWP_DISABLE) {
+    return false;
 }
 
 /**
- * Includes & Autoload
+ * Includes & Autoload.
  */
 function fuertewp_includes_autoload()
 {
-	if (file_exists(FUERTEWP_PATH . "includes/helpers.php")) {
-		require_once FUERTEWP_PATH . "includes/helpers.php";
-	}
+    if (file_exists(FUERTEWP_PATH . 'includes/helpers.php')) {
+        require_once FUERTEWP_PATH . 'includes/helpers.php';
+    }
 
-	// Elementor has JS issues with Carbon-Fields being loaded while in his editor.
-	if (isset($_REQUEST["action"]) && $_REQUEST["action"] == "elementor") {
-		return;
-	}
+    // Elementor has JS issues with Carbon-Fields being loaded while in his editor.
+    if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'elementor') {
+        return;
+    }
 
-	if (file_exists(FUERTEWP_PATH . "vendor/autoload.php")) {
-		require_once FUERTEWP_PATH . "vendor/autoload.php";
-	}
+    if (file_exists(FUERTEWP_PATH . 'vendor/autoload.php')) {
+        require_once FUERTEWP_PATH . 'vendor/autoload.php';
+    }
 }
-add_action("after_setup_theme", "fuertewp_includes_autoload", 100);
+add_action('after_setup_theme', 'fuertewp_includes_autoload', 100);
 
 /**
  * Load Carbon Fields early on plugins_loaded hook.
@@ -79,49 +78,49 @@ add_action("after_setup_theme", "fuertewp_includes_autoload", 100);
  */
 function fuertewp_load_carbon_fields()
 {
-    if (file_exists(FUERTEWP_PATH . "vendor/autoload.php")) {
+    if (file_exists(FUERTEWP_PATH . 'vendor/autoload.php')) {
         // Carbon Fields configuration
         // https://github.com/htmlburger/carbon-fields/issues/805#issuecomment-680959592
         // https://docs.carbonfields.net/learn/advanced-topics/compacting-input-vars.html
         define(
-            "Carbon_Fields\\URL",
-            FUERTEWP_URL . "vendor/htmlburger/carbon-fields/",
+            'Carbon_Fields\\URL',
+            FUERTEWP_URL . 'vendor/htmlburger/carbon-fields/',
         );
-        define("Carbon_Fields\\COMPACT_INPUT", true);
-        define("Carbon_Fields\\COMPACT_INPUT_KEY", "fuertewp_carbonfields");
+        define('Carbon_Fields\\COMPACT_INPUT', true);
+        define('Carbon_Fields\\COMPACT_INPUT_KEY', 'fuertewp_carbonfields');
 
-        require_once FUERTEWP_PATH . "vendor/autoload.php";
+        require_once FUERTEWP_PATH . 'vendor/autoload.php';
 
         // Initialize Carbon Fields
-        \Carbon_Fields\Carbon_Fields::boot();
+        Carbon_Fields\Carbon_Fields::boot();
     }
 }
 add_action('plugins_loaded', 'fuertewp_load_carbon_fields', 0);
 
 /**
  * The code that runs during plugin activation.
- * This action is documented in includes/class-fuerte-wp-activator.php
+ * This action is documented in includes/class-fuerte-wp-activator.php.
  */
 function activate_fuerte_wp()
 {
-	require_once plugin_dir_path(__FILE__) .
-		"includes/class-fuerte-wp-activator.php";
-	Fuerte_Wp_Activator::activate();
+    require_once plugin_dir_path(__FILE__)
+        . 'includes/class-fuerte-wp-activator.php';
+    Fuerte_Wp_Activator::activate();
 }
 
 /**
  * The code that runs during plugin deactivation.
- * This action is documented in includes/class-fuerte-wp-deactivator.php
+ * This action is documented in includes/class-fuerte-wp-deactivator.php.
  */
 function deactivate_fuerte_wp()
 {
-	require_once plugin_dir_path(__FILE__) .
-		"includes/class-fuerte-wp-deactivator.php";
-	Fuerte_Wp_Deactivator::deactivate();
+    require_once plugin_dir_path(__FILE__)
+        . 'includes/class-fuerte-wp-deactivator.php';
+    Fuerte_Wp_Deactivator::deactivate();
 }
 
-register_activation_hook(__FILE__, "activate_fuerte_wp");
-register_deactivation_hook(__FILE__, "deactivate_fuerte_wp");
+register_activation_hook(__FILE__, 'activate_fuerte_wp');
+register_deactivation_hook(__FILE__, 'deactivate_fuerte_wp');
 
 /**
  * Check database version on plugin load and create/update tables if needed.
@@ -131,11 +130,11 @@ register_deactivation_hook(__FILE__, "deactivate_fuerte_wp");
  */
 function fuertewp_check_login_db_version()
 {
-    require_once plugin_dir_path(__FILE__) . "includes/class-fuerte-wp-activator.php";
+    require_once plugin_dir_path(__FILE__) . 'includes/class-fuerte-wp-activator.php';
 
-    $installed_version = get_option('fuertewp_login_db_version', '0.0.0');
+    $installed_version = get_option('_fuertewp_login_db_version', '0.0.0');
 
-    if (version_compare($installed_version, Fuerte_Wp_Activator::DB_VERSION, '<')) {
+    if (version_compare($installed_version, Fuerte_Wp_Activator::get_db_version(), '<')) {
         Fuerte_Wp_Activator::create_login_security_tables();
         Fuerte_Wp_Activator::schedule_cron_jobs();
         Fuerte_Wp_Activator::setup_initial_super_user();
@@ -175,13 +174,13 @@ function fuertewp_ensure_super_user()
 add_action('admin_init', 'fuertewp_ensure_super_user');
 
 /**
- * Code that runs on plugins uninstallation
+ * Code that runs on plugins uninstallation.
  */
 function uninstall_fuerte_wp()
 {
-	require_once plugin_dir_path(__FILE__) .
-		"includes/class-fuerte-wp-uninstaller.php";
-	Fuerte_Wp_Uninstaller::uninstall();
+    require_once plugin_dir_path(__FILE__)
+        . 'includes/class-fuerte-wp-uninstaller.php';
+    Fuerte_Wp_Uninstaller::uninstall();
 }
 
 /**
@@ -189,13 +188,13 @@ function uninstall_fuerte_wp()
  * admin-specific hooks, and public-facing site hooks.
  */
 // Load logger first to ensure it's always available for debugging
-require plugin_dir_path(__FILE__) . "includes/class-fuerte-wp-logger.php";
+require plugin_dir_path(__FILE__) . 'includes/class-fuerte-wp-logger.php';
 
 // Initialize logger immediately - only enable when WP_DEBUG is true
 Fuerte_Wp_Logger::enable(defined('WP_DEBUG') && WP_DEBUG);
 Fuerte_Wp_Logger::init_from_constant();
 
-require plugin_dir_path(__FILE__) . "includes/class-fuerte-wp.php";
+require plugin_dir_path(__FILE__) . 'includes/class-fuerte-wp.php';
 
 /**
  * Begins execution of the plugin.
@@ -208,12 +207,12 @@ require plugin_dir_path(__FILE__) . "includes/class-fuerte-wp.php";
  */
 function run_fuerte_wp()
 {
-	$plugin = new Fuerte_Wp();
-	$plugin->run();
+    $plugin = new Fuerte_Wp();
+    $plugin->run();
 }
 run_fuerte_wp();
 
-/**
+/*
  * Hook into plugin updates to clear configuration cache.
  * This ensures that the super users and other configuration are properly
  * refreshed when the plugin is updated.
@@ -222,7 +221,8 @@ run_fuerte_wp();
  */
 add_action('upgrader_process_complete', 'fuertewp_handle_plugin_update', 10, 2);
 
-function fuertewp_handle_plugin_update($upgrader_object, $options) {
+function fuertewp_handle_plugin_update($upgrader_object, $options)
+{
     // Check if this is a plugin update and if it's our plugin
     if ($options['action'] === 'update' && $options['type'] === 'plugin') {
         if (isset($options['plugins'])) {
@@ -239,7 +239,7 @@ function fuertewp_handle_plugin_update($upgrader_object, $options) {
 }
 
 /**
- * htaccess security rules
+ * htaccess security rules.
  */
 $fuertewp_htaccess = "
 # BEGIN Fuerte-WP

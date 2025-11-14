@@ -93,6 +93,39 @@ class Fuerte_Wp_Admin
             return;
         }
 
+        // Handle debug actions for troubleshooting cache issues
+        if (isset($_GET['fuertewp_action']) && current_user_can('manage_options')) {
+            switch ($_GET['fuertewp_action']) {
+                case 'debug_cache':
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        $debug_info = Fuerte_Wp_Config::debug_cache();
+                        echo '<div class="notice notice-info"><pre>';
+                        echo 'Fuerte-WP Cache Debug Information:' . "\n";
+                        echo '=====================================' . "\n";
+                        echo 'Cache Key: ' . $debug_info['cache_key'] . "\n";
+                        echo 'Cache Exists: ' . ($debug_info['cache_exists'] ? 'Yes' : 'No') . "\n";
+                        echo 'Cache Super Users: ' . print_r($debug_info['cache_super_users'], true) . "\n";
+                        echo 'Fresh Super Users: ' . print_r($debug_info['fresh_super_users'], true) . "\n";
+                        echo 'Cache Match: ' . ($debug_info['cache_match'] ? 'Yes' : 'No') . "\n";
+                        echo 'Current URL: ' . $debug_info['current_url'] . "\n";
+                        echo 'Current Screen: ' . $debug_info['current_screen'] . "\n";
+                        echo '</pre></div>';
+                    }
+                    break;
+
+                case 'clear_cache':
+                    Fuerte_Wp_Config::invalidate_cache();
+                    echo '<div class="notice notice-success"><p>Fuerte-WP configuration cache cleared.</p></div>';
+                    break;
+
+                case 'force_refresh':
+                    $fresh_config = Fuerte_Wp_Config::force_refresh();
+                    echo '<div class="notice notice-success"><p>Fuerte-WP configuration refreshed from database.</p>';
+                    echo '<p>Super Users in database: ' . (isset($fresh_config['super_users']) ? print_r($fresh_config['super_users'], true) : 'Not set') . '</p></div>';
+                    break;
+            }
+        }
+
         /*
          * Allow admin options for super users even if config file exists
          */
@@ -622,7 +655,7 @@ class Fuerte_Wp_Admin
                 jQuery(document).ready(function($) {
                     function updateLoginUrlPreview() {
                         var enabled = $(\'input[name="fuertewp_login_url_hiding_enabled"]\').prop(\'checked\');
-                        var slug = $(\'input[name="fuertewp_custom_login_slug"]\').val() || \'secure-login\';
+                        var slug = $(\'input[name="_fuertewp_custom_login_slug"]\').val() || \'secure-login\';
                         var urlType = $(\'select[name="fuertewp_login_url_type"]\').val() || \'query_param\';
                         var baseUrl = window.location.origin + window.location.pathname.replace(/\/wp-admin.*$/, \'/\');
 
@@ -644,11 +677,11 @@ class Fuerte_Wp_Admin
                     // Validate and ensure custom login slug is never empty on form submission
                     $(\'#carbon_fields_container\').on(\'submit\', function() {
                         var loginHidingEnabled = $(\'input[name="fuertewp_login_url_hiding_enabled"]\').prop(\'checked\');
-                        var customSlug = $(\'input[name="fuertewp_custom_login_slug"]\').val();
+                        var customSlug = $(\'input[name="_fuertewp_custom_login_slug"]\').val();
 
                         if (loginHidingEnabled && (customSlug === \'\' || customSlug.trim() === \'\')) {
                             // Set default value before form submission
-                            $(\'input[name="fuertewp_custom_login_slug"]\').val(\'secure-login\');
+                            $(\'input[name="_fuertewp_custom_login_slug"]\').val(\'secure-login\');
 
                             // Update preview to show the new default
                             updateLoginUrlPreview();
@@ -658,17 +691,17 @@ class Fuerte_Wp_Admin
                     // Ensure field has default value when login hiding is enabled
                     $(\'input[name="fuertewp_login_url_hiding_enabled"]\').on(\'change\', function() {
                         var enabled = $(this).prop(\'checked\');
-                        var customSlug = $(\'input[name="fuertewp_custom_login_slug"]\').val();
+                        var customSlug = $(\'input[name="_fuertewp_custom_login_slug"]\').val();
 
                         if (enabled && (customSlug === \'\' || customSlug.trim() === \'\')) {
-                            $(\'input[name="fuertewp_custom_login_slug"]\').val(\'secure-login\');
+                            $(\'input[name="_fuertewp_custom_login_slug"]\').val(\'secure-login\');
                             updateLoginUrlPreview();
                         }
                     });
 
                     // Update preview when settings change
                     $(\'input[name="fuertewp_login_url_hiding_enabled"]\').on(\'change\', updateLoginUrlPreview);
-                    $(\'input[name="fuertewp_custom_login_slug"]\').on(\'input\', updateLoginUrlPreview);
+                    $(\'input[name="_fuertewp_custom_login_slug"]\').on(\'input\', updateLoginUrlPreview);
                     $(\'select[name="fuertewp_login_url_type"]\').on(\'change\', updateLoginUrlPreview);
 
                     // Initial update
@@ -1225,9 +1258,9 @@ updraft_admin_node',
         global $current_user;
 
         // Validate and ensure custom login slug is never empty
-        $custom_login_slug = carbon_get_theme_option('fuertewp_custom_login_slug');
+        $custom_login_slug = Fuerte_Wp_Config::get_field('custom_login_slug', 'secure-login');
         if (empty($custom_login_slug) || trim($custom_login_slug) === '') {
-            carbon_set_theme_option('fuertewp_custom_login_slug', 'secure-login');
+            Fuerte_Wp_Config::set_field('custom_login_slug', 'secure-login');
         }
 
         // Check if current_user is a super user, if not, add it
@@ -1235,7 +1268,7 @@ updraft_admin_node',
             $current_user = wp_get_current_user();
         }
 
-        $super_users = carbon_get_theme_option('fuertewp_super_users');
+        $super_users = Fuerte_Wp_Config::get_field('super_users', [], true);
 
         // Normalize to array format for consistency
         if (is_string($super_users) && !empty($super_users)) {
@@ -1253,17 +1286,17 @@ updraft_admin_node',
                 // Current_user not found in the array, add it back as super user
                 array_unshift($super_users, $current_user->user_email);
 
-                carbon_set_theme_option('fuertewp_super_users', $super_users);
+                Fuerte_Wp_Config::set_field('super_users', $super_users, true);
             }
         }
 
-        // Set default login security values using direct options
+        // Set default login security values using standardized _fuertewp_ pattern
         $defaults_to_set = [
-            'fuertewp_login_enable' => 'enabled',
-            'fuertewp_registration_enable' => 'enabled',
-            'fuertewp_login_max_attempts' => 5,
-            'fuertewp_login_lockout_duration' => 15,
-            'fuertewp_custom_login_slug' => 'secure-login', // Ensure default login slug is always set
+            '_fuertewp_login_enable' => 'enabled',
+            '_fuertewp_registration_enable' => 'enabled',
+            '_fuertewp_login_max_attempts' => 5,
+            '_fuertewp_login_lockout_duration' => 15,
+            '_fuertewp_custom_login_slug' => 'secure-login', // Ensure default login slug is always set
         ];
 
         // Set defaults efficiently using built-in WordPress functions

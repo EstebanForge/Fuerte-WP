@@ -547,7 +547,7 @@ class Fuerte_Wp_Login_Logger
      */
     public function get_remaining_attempts($ip, $username)
     {
-        $max_attempts = (int)carbon_get_theme_option('fuertewp_login_max_attempts', 5);
+        $max_attempts = (int)Fuerte_Wp_Config::get_field('login_max_attempts', 5);
 
         $failed_count = $this->get_failed_attempts($ip, $username);
 
