@@ -326,8 +326,8 @@ class Fuerte_Wp_Hook_Manager
 
         // Sender email customization
         if (isset(self::$config['general']['sender_email_enable']) && self::$config['general']['sender_email_enable']) {
-            self::add_hook('wp_mail_from', 'Fuerte_Wp_Enforcer', 'sender_email', 10, true);
-            self::add_hook('wp_mail_from_name', 'Fuerte_Wp_Enforcer', 'sender_name', 10, true);
+            self::add_hook('wp_mail_from', 'Fuerte_Wp_Enforcer', 'sender_email_address', 10, true);
+            self::add_hook('wp_mail_from_name', 'Fuerte_Wp_Enforcer', 'sender_email_name', 10, true);
         }
 
         // Email notification filters
