@@ -1,6 +1,6 @@
 === Fuerte-WP ===
 Contributors: tcattd
-Tags: security, login, protection, admin, brute-force
+Tags: maintenance, security, admin, plugins, updates
 Stable tag: 1.7.4
 Requires at least: 6.0
 Tested up to: 6.9
@@ -8,101 +8,96 @@ Requires PHP: 8.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
-Fortify your WordPress site with military-grade security. Stop brute-force attacks, hide your login URL, and control admin access like never before.
+Take control of your WordPress maintenance. Automate plugin updates, manage administrator access, and prevent broken functionality from outdated plugins without proper oversight.
 
 == Description ==
 
-🛡️ **ULTIMATE WORDPRESS SECURITY SOLUTION**
+⚙️ **ULTIMATE WORDPRESS SECURITY AND MAINTENANCE SOLUTION**
 
-Is your WordPress site vulnerable to attacks? Every day, thousands of sites get compromised through weak login security, unrestricted admin access, and exposed login URLs. Fuerte-WP is your fortress against these threats.
+Is your WordPress site suffering from plugin neglect? Every day, thousands of sites break due to outdated plugins, untested updates, and lack of proper maintenance oversight. Fuerte-WP is your guardian against WordPress maintenance chaos.
 
-**⚠️ STARTLING FACT:**
-- 90% of hacked WordPress sites are compromised through brute-force attacks on wp-login.php
-- Most WordPress security breaches happen from within - by administrator accounts with too much power
-- Your default wp-login.php URL is a public invitation to attackers
+**⚠️ THE REALITY:**
+- 90% of WordPress site failures are caused by outdated plugins, themes or incompatible updates
+- Most WordPress downtime happens from untested plugin updates by administrators with too much freedom
+- Your WordPress installation is only as reliable as your maintenance routine
 
 **🔥 WHY FUERTE-WP IS DIFFERENT:**
 
-Most security plugins just alert you AFTER an attack. Fuerte-WP PREVENTS attacks before they happen, combining multiple layers of protection that work together seamlessly.
+Most maintenance plugins just alert you AFTER something breaks. Fuerte-WP PREVENTS issues before they happen, combining automated updates with access control that works together seamlessly.
 
-**🚨 BRUTE-FORTRESS™ ATTACK PREVENTION**
-- **Intelligent Rate Limiting**: Configurable thresholds (default: 5 attempts in 15 minutes)
-- **Progressive Lockouts**: Smart lockouts that get longer with repeated attempts
-- **IP & Username Blacklisting**: Automatic blocking of suspicious IPs and usernames
-- **Real-Time Threat Detection**: Live dashboard showing current attacks and active lockouts
+**🚨 AUTO-UPDATE MANAGEMENT SYSTEM**
+- **Intelligent Update Scheduling**: Configurable update frequency (default: every 12 hours)
+- **Selective Updates**: Choose which plugins, themes, and core components to auto-update
+- **Compatibility Monitoring**: Track which updates are safe and tested
+- **Real-Time Update Dashboard**: Live dashboard showing current update status and scheduled maintenance
 
-**👑 ADMINISTRATOR CONTROL SYSTEM**
-- **Super User Access**: Designate who has full access (YOU) while restricting others
-- **Role-Based Permissions**: Granular control over what different admin roles can do
-- **Plugin & Theme Protection**: Prevent other admins from installing, deleting, or modifying critical files
-- **Menu Management**: Hide sensitive WordPress menu items from restricted users
-- **User Account Shielding**: Protect super user accounts from being edited or deleted
+**👑 ADMINISTRATOR OVERSIGHT SYSTEM**
+- **Super User Access**: Designate who has full maintenance control (YOU) while restricting others
+- **Role-Based Permissions**: Granular control over what different admin roles can modify
+- **Plugin & Theme Management**: Prevent other admins from installing unstable plugins or untested updates
+- **Menu Management**: Hide sensitive WordPress settings from inexperienced administrators
+- **User Account Protection**: Protect maintenance accounts from being modified by other admins
 
-**📊 SECURITY COMMAND CENTER**
-- **Live Attack Monitoring**: Real-time AJAX dashboard shows login attempts as they happen
-- **Detailed Forensic Logs**: Comprehensive logging with timestamps, IPs, and user agents
-- **Export Security Data**: Download logs for analysis or compliance reporting
-- **Smart Notifications**: Get alerted about security events and lockouts
-- **One-Click Management**: Instantly unblock IPs, clear logs, or reset lockouts
+**📊 MAINTENANCE COMMAND CENTER**
+- **Live Update Monitoring**: Real-time AJAX dashboard shows plugin/theme updates as they happen
+- **Detailed Maintenance Logs**: Comprehensive logging with timestamps, versions, and compatibility notes
+- **Export Maintenance Data**: Download update reports for analysis or compliance
+- **Smart Notifications**: Get alerted about available updates and maintenance tasks
+- **One-Click Management**: Instantly schedule updates, clear logs, or manage maintenance tasks
 
-**🇪🇺 GDPR COMPLIANCE MADE EASY**
-- **Privacy Notice Builder**: Customizable GDPR compliance messages for login/registration forms
-- **Built-in Legal Templates**: Professional default privacy messages if you don't customize
-- **Non-Intrusive Design**: Compliance that doesn't hurt user experience
-- **Audit Trail**: Logging that helps with GDPR compliance requirements
+**🇪🇺 EMAIL MANAGEMENT**
+- **Recovery Email Routing**: Route WordPress admin emails to the right maintenance team
+- **Custom Sender Configuration**: Professional email sender setup that matches your domain
+- **Non-Intrusive Design**: Email management that doesn't affect user experience
+- **Email Audit Trail**: Logging that helps with maintenance communication tracking
 
-**⚙️ ADVANCED WORDPRESS HARDENING**
-- **Auto-Update Management**: Automated updates for core, plugins, themes, and translations
-- **API Security Shield**: Disable XML-RPC, Application Passwords, and restrict REST API
-- **Email Protection**: Customize WordPress recovery and sender emails
-- **Security Hardening**: Force strong passwords, disable file editors, block weak passwords
-- **Performance Optimized**: Background updates that don't slow down your site
+**⚙️ ADVANCED WORDPRESS OPTIMIZATION**
+- **Automated Update Management**: Background updates for core, plugins, themes, and translations
+- **API Optimization**: Disable unused XML-RPC endpoints and optimize REST API access
+- **Email Configuration**: Customize WordPress recovery and sender email addresses
+- **Performance Hardening**: Disable unused features, optimize database performance
+- **Background Processing**: Maintenance tasks that don't slow down your site
 
-**🔐 OPTIONAL: LOGIN URL OBSCURITY**
-*For users who want additional obscurity layers*
+**🔐 OPTIONAL: ADMIN ACCESS MANAGEMENT**
+*For organizations with multiple administrators*
 
-- **Invisible Login URL**: Replace default `wp-login.php` with custom URLs
-- **Smart Redirection**: Send attackers away from your site (404 page or custom URL)
-- **WP-Admin Fortress**: Block direct `/wp-admin/` access to unauthorized users
-- **Hidden Field Protection**: Advanced CSRF protection against automated attacks
+- **Custom Login Endpoints**: Create dedicated maintenance access points
+- **Smart Redirection**: Guide users to appropriate admin areas based on permissions
+- **WP-Admin Access Control**: Restrict direct `/wp-admin/` access for specific user roles
+- **Session Management**: Enhanced session controls for administrator accounts
 
-*Note: This feature is disabled by default because true security comes from strong authentication, not hiding URLs.*
+*Note: These features are optional and should be used based on your specific organizational needs.*
 
 **🔒 WHY CHOOSE FUERTE-WP?**
 
-✅ **PROACTIVE PROTECTION** - Stops attacks BEFORE they succeed
-✅ **INTELLIGENT RATE LIMITING** - Real-time attack detection and prevention
-✅ **ADMIN INSIDER THREAT PROTECTION** - Controls what other administrators can do
-✅ **GDPR READY** - Built-in privacy compliance features
+✅ **PROACTIVE MAINTENANCE** - Prevents plugin conflicts BEFORE they break your site
+✅ **INTELLIGENT UPDATE MANAGEMENT** - Real-time update scheduling and compatibility checking
+✅ **ADMIN OVERSIGHT CONTROL** - Controls what other administrators can modify
+✅ **EMAIL MANAGEMENT** - Built-in email routing and configuration features
 ✅ **PERFORMANCE OPTIMIZED** - Won't slow down your website
 ✅ **MULTISITE COMPATIBLE** - Works on single sites and WordPress networks
 ✅ **SELF-PROTECTING** - Cannot be disabled by non-super users
 ✅ **DEVELOPER FRIENDLY** - File-based configuration for mass deployment
-✅ **SMART SECURITY APPROACH** - Focuses on real protection over security by obscurity
+✅ **SMART MAINTENANCE APPROACH** - Focuses on prevention over reactive fixes
 
 **🎯 PERFECT FOR:**
-- Multi-author blogs and news sites
-- Client websites built by agencies
-- E-commerce stores with multiple administrators
-- Educational institutions with WordPress installations
-- Enterprise WordPress deployments
-- Anyone serious about WordPress security
+- Multi-author blogs and news sites with frequent content updates
+- Client websites built by agencies that need reliable maintenance
+- E-commerce stores with critical uptime requirements
+- Educational institutions with multiple WordPress installations
+- Enterprise WordPress deployments requiring strict maintenance policies
+- Anyone serious about WordPress maintenance and reliability
 
-**⚡ INSTALL IN SECONDS, PROTECT FOR YEARS**
+**⚡ INSTALL IN SECONDS, MAINTAIN FOR YEARS**
 
-Don't wait for your site to get hacked. Install Fuerte-WP today and join thousands of smart WordPress administrators who sleep better at night knowing their sites are fortified.
+Don't wait for your site to break from outdated plugins. Install Fuerte-WP today and join thousands of smart WordPress administrators who sleep better at night knowing their sites are properly maintained.
 
 == Installation ==
 
 1. Click "Install Now" or search for "Fuerte-WP" in your WordPress dashboard
 2. Activate the plugin
-3. Visit Settings > Fuerte-WP to configure your security fortress
-4. **CRITICAL**: Add your email as a Super User to maintain full access
-5. Setup your custom login URL (takes 30 seconds)
-6. Review and customize your security restrictions
-7. Congratulations! Your WordPress site is now fortified.
-
-🚨 **IMPORTANT**: After activation, immediately add your email address to the Super Users list to ensure you maintain full administrative access.
+3. Visit Settings > Fuerte-WP to configure the settings as you like. Defaults are good if you want to leave them like that
+4. Congratulations! Your WordPress site is now professionally maintained.
 
 == Frequently Asked Questions ==
 
@@ -114,7 +109,6 @@ Please, open [a discussion](https://github.com/EstebanForge/Fuerte-WP/discussion
 
 = Found a Bug or Error? =
 Please, open [an issue](https://github.com/EstebanForge/Fuerte-WP/issues).
-
 
 == Screenshots ==
 
