@@ -1,5 +1,8 @@
 # Changelog
 
+# 1.7.5 / 2025-11-18
+- Prevent Carbon Fields from booting in Elementor editor to avoid JS conflicts.
+
 # 1.7.4 / 2025-11-13
 - Added comprehensive Login Security system with rate limiting and IP lockout functionality.
 - Implemented failed login attempt tracking with configurable thresholds and lockout durations.
