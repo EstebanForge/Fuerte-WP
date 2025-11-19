@@ -83,6 +83,9 @@ class Fuerte_Wp
         $this->define_public_hooks();
 
         $this->run_enforcer();
+
+        // Handle Elementor conflicts
+        $this->define_elementor_hooks();
     }
 
     /**
@@ -292,6 +295,12 @@ class Fuerte_Wp
                 $this->plugin_admin,
                 'add_action_links',
             );
+
+            // Fix Carbon Fields admin styles incorrectly loading in Gutenberg iframe
+            $this->loader->add_action('wp_enqueue_scripts', $this, 'fix_carbon_fields_gutenberg_styles', 1);
+            $this->loader->add_action('admin_enqueue_scripts', $this, 'fix_carbon_fields_gutenberg_styles', 1);
+            $this->loader->add_action('enqueue_block_assets', $this, 'fix_carbon_fields_gutenberg_styles', 1);
+            $this->loader->add_filter('style_loader_tag', $this, 'prevent_carbon_fields_styles', 10, 3);
         }
     }
 
@@ -321,6 +330,18 @@ class Fuerte_Wp
                 'enqueue_scripts',
             );
         }
+    }
+
+    /**
+     * Register all of the hooks related to Elementor compatibility
+     *
+     * @since    1.7.5
+     */
+    private function define_elementor_hooks()
+    {
+        // Handle Elementor conflicts by preventing Carbon Fields asset loading
+        $this->loader->add_action('admin_enqueue_scripts', $this, 'handle_elementor_assets', 9999);
+        $this->loader->add_action('admin_print_footer_scripts', $this, 'handle_elementor_assets', 1);
     }
 
     /**
@@ -369,5 +390,142 @@ class Fuerte_Wp
     public function get_version()
     {
         return $this->version;
+    }
+
+    /**
+     * Fix Carbon Fields admin styles incorrectly loading in Gutenberg iframe.
+     *
+     * @since    1.7.5
+     */
+    public function fix_carbon_fields_gutenberg_styles()
+    {
+        global $wp_styles;
+
+        $screen = get_current_screen();
+        $is_block_editor = ($screen && $screen->is_block_editor());
+
+        // Check if we're in block editor context (including iframe)
+        $is_gutenberg = ($is_block_editor || (defined('REST_REQUEST') && REST_REQUEST) || (isset($_GET['context']) && $_GET['context'] === 'edit'));
+
+        if ($is_gutenberg) {
+            // Prevent Carbon Fields styles from being enqueued in block editor
+            $blocked_styles = array(
+                'carbon-fields-core',
+                'carbon-fields-metaboxes',
+                'carbon-fields-blocks'
+            );
+
+            foreach ($blocked_styles as $style) {
+                if (isset($wp_styles->registered[$style])) {
+                    wp_dequeue_style($style);
+                    wp_deregister_style($style);
+                }
+            }
+        }
+    }
+
+    /**
+     * Prevent Carbon Fields styles from being registered in the first place.
+     *
+     * @since    1.7.5
+     * @param    string    $tag     The style tag.
+     * @param    string    $handle  The style handle.
+     * @param    string    $src     The style source.
+     * @return   string    Modified tag or original.
+     */
+    public function prevent_carbon_fields_styles($tag, $handle, $src)
+    {
+        $blocked_handles = array(
+            'carbon-fields-core',
+            'carbon-fields-metaboxes',
+            'carbon-fields-blocks'
+        );
+
+        if (in_array($handle, $blocked_handles)) {
+            $screen = get_current_screen();
+            if ($screen && $screen->is_block_editor()) {
+                return ''; // Don't output the style tag
+            }
+        }
+
+        return $tag;
+    }
+
+    /**
+     * Detect if we're in Elementor editor context.
+     *
+     * Checks for: wp-admin + post.php + action=elementor
+     * Note: get_current_screen() is not available during early bootstrap
+     *
+     * @since    1.7.5
+     * @return   bool   True if in Elementor editor context
+     */
+    private function is_elementor_editor_context()
+    {
+        // Must be in admin area
+        if (!is_admin()) {
+            return false;
+        }
+
+        // Must have action=elementor parameter
+        if (!isset($_GET['action']) || $_GET['action'] !== 'elementor') {
+            return false;
+        }
+
+        // Must be on a post/edit screen
+        global $pagenow;
+        if ($pagenow !== 'post.php') {
+            return false;
+        }
+
+        // Must have a post ID parameter (required for Elementor editor)
+        if (!isset($_GET['post']) || !is_numeric($_GET['post'])) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Handle Elementor conflicts by preventing Carbon Fields assets from being enqueued
+     *
+     * @since    1.7.5
+     */
+    public function handle_elementor_assets()
+    {
+        // Only apply in Elementor editor context
+        if (!$this->is_elementor_editor_context()) {
+            return;
+        }
+
+        // Debug: Log when this function is called
+        error_log('[Fuerte-WP] handle_elementor_assets method triggered in Elementor context');
+
+        // Remove Carbon Fields asset enqueuing hooks
+        if (class_exists('\Carbon_Fields\Carbon_Fields') && \Carbon_Fields\Carbon_Fields::is_booted()) {
+            $loader = \Carbon_Fields\Carbon_Fields::resolve('loader');
+
+            // Remove the asset enqueue hook
+            remove_action('admin_print_footer_scripts', [$loader, 'enqueue_assets'], 9);
+            remove_action('admin_print_footer_scripts', [$loader, 'initialize_ui'], 9999);
+
+            // Also remove container initialization to prevent data from being generated
+            remove_action('carbon_fields_fields_registered', [$loader, 'initialize_containers']);
+        }
+
+        // Directly dequeue and deregister all Carbon Fields assets
+        $carbon_assets = [
+            'carbon-fields-vendor',
+            'carbon-fields-core',
+            'carbon-fields-metaboxes',
+            'carbon-fields-blocks'
+        ];
+
+        foreach ($carbon_assets as $asset) {
+            wp_dequeue_script($asset);
+            wp_dequeue_style($asset);
+            wp_deregister_script($asset);
+            wp_deregister_style($asset);
+        }
     }
 }

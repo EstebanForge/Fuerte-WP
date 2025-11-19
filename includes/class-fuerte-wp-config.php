@@ -435,7 +435,7 @@ class Fuerte_Wp_Config
                 if ($option_name === 'fuertewp_login_db_version') {
                     $underscored_name = '_fuertewp_login_db_version';
                     if (!get_option($underscored_name)) {
-                        $current_version = defined('FUERTEWP_VERSION') ? FUERTEWP_VERSION : '1.7.4';
+                        $current_version = defined('FUERTEWP_VERSION') ? FUERTEWP_VERSION : '1.0.0';
                         update_option($underscored_name, $current_version); // Set to current plugin version
                         $cleanup_results['preserved_fuertewp_options']++;
                     }
