@@ -5,3 +5,4 @@ deploy.sh
 deploy-notag.sh
 TODO.md
 update-readme-only.sh
+deploy-readme-only.sh
