@@ -147,9 +147,21 @@ Upload your updated ```wp-config-fuerte.php``` to your WordPress's root director
 
 Don't worry. New Fuerte-WP features that need new configuration values will not run or affect you until you upgrade your config file and add the new/missing settings.
 
+## Documentation
+
+For detailed documentation, please see:
+
+- **[FAQ](docs/FAQ.md)** - Frequently Asked Questions
+- **[Changelog](CHANGELOG.md)** - Version history and changes
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Deployment instructions and best practices
+- **[Composer Commands](docs/COMPOSER_COMMANDS.md)** - Available composer scripts for development
+- **[Security Policy](SECURITY.md)** - Security reporting and policies
+- **[CLAUDE.md](CLAUDE.md)** - Project architecture and development guidelines (for contributors)
+- **[TODO](docs/TODO.md)** - Planned features and development roadmap
+
 ## FAQ
 
-Check the [full FAQ here](https://github.com/EstebanForge/Fuerte-WP/blob/master/FAQ.md).
+Check the [full FAQ here](docs/FAQ.md).
 
 ## Suggestions, Support
 
@@ -161,4 +173,4 @@ Please, open [an issue](https://github.com/EstebanForge/Fuerte-WP/issues).
 
 ## Changelog
 
-[Available here](https://github.com/EstebanForge/Fuerte-WP/blob/master/CHANGELOG.md).
+See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
