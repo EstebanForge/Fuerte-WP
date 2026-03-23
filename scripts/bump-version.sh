@@ -93,26 +93,22 @@ echo -e "${YELLOW}Updating version in plugin files...${NC}"
 # 1. Main plugin file (fuerte-wp.php)
 if [ -f "$PLUGIN_DIR/fuerte-wp.php" ]; then
     # Update Version header
-    if sed -i.bak "s/Version: .*/Version: ${VERSION}/" "$PLUGIN_DIR/fuerte-wp.php" 2>/dev/null; then
+    if sed -i "s/Version: .*/Version: ${VERSION}/" "$PLUGIN_DIR/fuerte-wp.php" 2>/dev/null; then
         # Update FUERTEWP_VERSION constant
-        sed -i.bak "s/define('FUERTEWP_VERSION', '[^']*')/define('FUERTEWP_VERSION', '${VERSION}')/" "$PLUGIN_DIR/fuerte-wp.php" 2>/dev/null || true
-        rm -f "$PLUGIN_DIR/fuerte-wp.php.bak"
+        sed -i "s/define('FUERTEWP_VERSION', '[^']*')/define('FUERTEWP_VERSION', '${VERSION}')/" "$PLUGIN_DIR/fuerte-wp.php" 2>/dev/null || true
         echo -e "${GREEN}✓ Updated fuerte-wp.php${NC}"
         ((COUNT++))
     else
-        rm -f "$PLUGIN_DIR/fuerte-wp.php.bak"
         echo -e "${RED}✗ Failed to update fuerte-wp.php${NC}"
     fi
 fi
 
 # 2. composer.json
 if [ -f "$PLUGIN_DIR/composer.json" ]; then
-    if sed -i.bak "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "$PLUGIN_DIR/composer.json" 2>/dev/null; then
-        rm -f "$PLUGIN_DIR/composer.json.bak"
+    if sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "$PLUGIN_DIR/composer.json" 2>/dev/null; then
         echo -e "${GREEN}✓ Updated composer.json${NC}"
         ((COUNT++))
     else
-        rm -f "$PLUGIN_DIR/composer.json.bak"
         echo -e "${RED}✗ Failed to update composer.json${NC}"
     fi
 fi
@@ -120,12 +116,10 @@ fi
 # 3. README.md (if it contains Stable tag)
 if [ -f "$PLUGIN_DIR/README.md" ]; then
     if grep -q "Stable tag:" "$PLUGIN_DIR/README.md"; then
-        if sed -i.bak "s/Stable tag: .*/Stable tag: ${VERSION}/" "$PLUGIN_DIR/README.md" 2>/dev/null; then
-            rm -f "$PLUGIN_DIR/README.md.bak"
+        if sed -i "s/Stable tag: .*/Stable tag: ${VERSION}/" "$PLUGIN_DIR/README.md" 2>/dev/null; then
             echo -e "${GREEN}✓ Updated README.md${NC}"
             ((COUNT++))
         else
-            rm -f "$PLUGIN_DIR/README.md.bak"
             echo -e "${RED}✗ Failed to update README.md${NC}"
         fi
     fi
@@ -134,17 +128,15 @@ fi
 # 4. README.txt (WordPress readme format)
 if [ -f "$PLUGIN_DIR/README.txt" ]; then
     # Update Stable tag
-    if sed -i.bak "s/Stable tag: .*/Stable tag: ${VERSION}/" "$PLUGIN_DIR/README.txt" 2>/dev/null; then
+    if sed -i "s/Stable tag: .*/Stable tag: ${VERSION}/" "$PLUGIN_DIR/README.txt" 2>/dev/null; then
         # Update version in header if present
         if grep -q "^=== Fuerte-WP ===" "$PLUGIN_DIR/README.txt"; then
             # Check if there's a version line and update it (ignore if not found)
-            sed -i.bak "s/^Version: .*/Version: ${VERSION}/" "$PLUGIN_DIR/README.txt" 2>/dev/null || true
+            sed -i "s/^Version: .*/Version: ${VERSION}/" "$PLUGIN_DIR/README.txt" 2>/dev/null || true
         fi
-        rm -f "$PLUGIN_DIR/README.txt.bak"
         echo -e "${GREEN}✓ Updated README.txt${NC}"
         ((COUNT++))
     else
-        rm -f "$PLUGIN_DIR/README.txt.bak"
         echo -e "${YELLOW}⚠ Failed to update README.txt (file may not have Stable tag)${NC}"
     fi
 fi
@@ -153,12 +145,10 @@ fi
 if [ -f "$PLUGIN_DIR/SECURITY.md" ]; then
     # Check if it has a version section and update it
     if grep -q "## Version" "$PLUGIN_DIR/SECURITY.md" 2>/dev/null; then
-        if sed -i.bak "s/## Version.*/## Version ${VERSION}/" "$PLUGIN_DIR/SECURITY.md" 2>/dev/null; then
-            rm -f "$PLUGIN_DIR/SECURITY.md.bak"
+        if sed -i "s/## Version.*/## Version ${VERSION}/" "$PLUGIN_DIR/SECURITY.md" 2>/dev/null; then
             echo -e "${GREEN}✓ Updated SECURITY.md${NC}"
             ((COUNT++))
         else
-            rm -f "$PLUGIN_DIR/SECURITY.md.bak"
             echo -e "${RED}✗ Failed to update SECURITY.md${NC}"
         fi
     fi
@@ -166,24 +156,20 @@ fi
 
 # 6. package.json (if it exists - for any JS assets)
 if [ -f "$PLUGIN_DIR/package.json" ]; then
-    if sed -i.bak "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "$PLUGIN_DIR/package.json" 2>/dev/null; then
-        rm -f "$PLUGIN_DIR/package.json.bak"
+    if sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "$PLUGIN_DIR/package.json" 2>/dev/null; then
         echo -e "${GREEN}✓ Updated package.json${NC}"
         ((COUNT++))
     else
-        rm -f "$PLUGIN_DIR/package.json.bak"
         echo -e "${RED}✗ Failed to update package.json${NC}"
     fi
 fi
 
 # 7. fuerte-wpasset.php (if it exists - constants file)
 if [ -f "$PLUGIN_DIR/includes/fuerte-wpasset.php" ]; then
-    if sed -i.bak "s/define( 'FUERTEWP_VERSION', '[^']*' );/define( 'FUERTEWP_VERSION', '${VERSION}' );/" "$PLUGIN_DIR/includes/fuerte-wpasset.php" 2>/dev/null; then
-        rm -f "$PLUGIN_DIR/includes/fuerte-wpasset.php.bak"
+    if sed -i "s/define( 'FUERTEWP_VERSION', '[^']*' );/define( 'FUERTEWP_VERSION', '${VERSION}' );/" "$PLUGIN_DIR/includes/fuerte-wpasset.php" 2>/dev/null; then
         echo -e "${GREEN}✓ Updated fuertewpasset.php${NC}"
         ((COUNT++))
     else
-        rm -f "$PLUGIN_DIR/includes/fuerte-wpasset.php.bak"
         echo -e "${RED}✗ Failed to update fuertewpasset.php${NC}"
     fi
 fi
@@ -211,16 +197,6 @@ echo -e "   ${BLUE}git commit -m \"chore: bump version to ${VERSION}\"${NC}"
 echo -e "   ${BLUE}git tag v${VERSION}${NC}"
 echo -e "   ${BLUE}git push origin main --tags${NC}"
 echo ""
-
-# Ask if user wants to see a diff
-read -rp "Show diff of changes? (y/N): " SHOW_DIFF
-if [[ "$SHOW_DIFF" =~ ^[Yy]$ ]]; then
-    echo ""
-    echo -e "${YELLOW}========================================${NC}"
-    echo -e "${YELLOW}File Differences${NC}"
-    echo -e "${YELLOW}========================================${NC}"
-    git diff "$PLUGIN_DIR" 2>/dev/null || echo "Git diff not available"
-fi
 
 echo ""
 echo -e "${GREEN}Done!${NC}"

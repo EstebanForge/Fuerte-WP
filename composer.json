@@ -51,6 +51,10 @@
 		],
 		"version-bump": [
 			"bash scripts/bump-version.sh"
+		],
+		"deploy": [
+			"@production",
+			"bash scripts/deploy.sh"
 		]
 	},
 	"config": {
