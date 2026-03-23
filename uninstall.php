@@ -21,17 +21,15 @@
  *
  * @link       https://actitud.xyz
  * @since      1.3.0
- *
- * @package    Fuerte_Wp
  */
 
 // If uninstall not called from WordPress, then exit.
 if (!defined('WP_UNINSTALL_PLUGIN')) {
-	exit;
+    exit;
 }
 
 if (isset($_REQUEST['plugin']) && $_REQUEST['plugin'] != 'fuerte-wp/fuerte-wp.php' && $_REQUEST['action'] != 'delete-plugin') {
-	wp_die('Error uninstalling: wrong plugin.');
+    wp_die('Error uninstalling: wrong plugin.');
 }
 
 // Clears all Fuerte-WP options from DB
@@ -40,9 +38,9 @@ global $wpdb;
 $fuertewp_options = $wpdb->get_results("SELECT option_name FROM $wpdb->options WHERE option_name LIKE '_fuertewp_%'");
 
 if (is_array($fuertewp_options) && !empty($fuertewp_options)) {
-	foreach ($fuertewp_options as $option) {
-		delete_option($option->option_name);
-	}
+    foreach ($fuertewp_options as $option) {
+        delete_option($option->option_name);
+    }
 }
 
 // Clears Fuerte-WP transient

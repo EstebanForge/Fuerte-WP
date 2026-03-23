@@ -1,7 +1,7 @@
 {
 	"name": "estebanforge/fuerte-wp",
 	"description": "Stronger & Safer WordPress",
-	"version": "1.7.5",
+	"version": "1.8.0",
 	"license": "GPL-2.0",
 	"type": "wordpress-plugin",
 	"homepage": "https://github.com/EstebanForge/Fuerte-WP",
@@ -15,8 +15,18 @@
 		"issues": "https://github.com/EstebanForge/Fuerte-WP/issues"
 	},
 	"require": {
-		"php": ">=8.0",
+		"php": ">=8.1",
 		"htmlburger/carbon-fields": "^3"
+	},
+	"require-dev": {
+		"pestphp/pest": "^4",
+		"brain/monkey": "^2",
+		"phpunit/phpunit": "^12"
+	},
+	"config": {
+		"allow-plugins": {
+			"pestphp/pest-plugin": true
+		}
 	},
 	"scripts": {
 		"post-install-cmd": [
@@ -27,7 +37,26 @@
 		],
 		"cs:fix": [
 			"php-cs-fixer fix"
+		],
+		"test": [
+			"@php vendor/bin/pest"
+		],
+		"test:coverage": [
+			"@php vendor/bin/pest --coverage"
+		],
+		"production": [
+			"@cs:fix",
+			"composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction",
+			"@composer dump-autoload --optimize --classmap-authoritative"
+		],
+		"version-bump": [
+			"bash scripts/bump-version.sh"
 		]
+	},
+	"config": {
+		"allow-plugins": {
+			"pestphp/pest-plugin": true
+		}
 	},
 	"extra": {
 		"strauss": {

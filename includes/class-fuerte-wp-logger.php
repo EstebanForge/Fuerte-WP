@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Logger Class for Fuerte-WP
+ * Logger Class for Fuerte-WP.
  *
  * Simple wrapper for logging that can be easily enabled/disabled.
  * Allows for quick debugging without modifying error_log calls throughout the codebase.
@@ -26,6 +26,7 @@ class Fuerte_Wp_Logger
      * Whether logging is enabled.
      *
      * @since 1.7.0
+     *
      * @var bool
      */
     private static $enabled = false;
@@ -34,6 +35,7 @@ class Fuerte_Wp_Logger
      * Log prefix for all messages.
      *
      * @since 1.7.0
+     *
      * @var string
      */
     private static $prefix = '[Fuerte-WP]';
@@ -42,8 +44,8 @@ class Fuerte_Wp_Logger
      * Enable or disable logging.
      *
      * @since 1.7.0
+     *
      * @param bool $enable Whether to enable logging
-     * @return void
      */
     public static function enable($enable = true)
     {
@@ -54,7 +56,6 @@ class Fuerte_Wp_Logger
      * Disable logging.
      *
      * @since 1.7.0
-     * @return void
      */
     public static function disable()
     {
@@ -65,6 +66,7 @@ class Fuerte_Wp_Logger
      * Check if logging is enabled.
      *
      * @since 1.7.0
+     *
      * @return bool Whether logging is enabled
      */
     public static function is_enabled()
@@ -76,9 +78,9 @@ class Fuerte_Wp_Logger
      * Log a message.
      *
      * @since 1.7.0
+     *
      * @param string $message Message to log
      * @param string $level Log level (DEBUG, INFO, WARNING, ERROR)
-     * @return void
      */
     public static function log($message, $level = 'INFO')
     {
@@ -96,8 +98,8 @@ class Fuerte_Wp_Logger
      * Log debug message.
      *
      * @since 1.7.0
+     *
      * @param string $message Debug message
-     * @return void
      */
     public static function debug($message)
     {
@@ -108,8 +110,8 @@ class Fuerte_Wp_Logger
      * Log info message.
      *
      * @since 1.7.0
+     *
      * @param string $message Info message
-     * @return void
      */
     public static function info($message)
     {
@@ -120,8 +122,8 @@ class Fuerte_Wp_Logger
      * Log warning message.
      *
      * @since 1.7.0
+     *
      * @param string $message Warning message
-     * @return void
      */
     public static function warning($message)
     {
@@ -132,8 +134,8 @@ class Fuerte_Wp_Logger
      * Log error message.
      *
      * @since 1.7.0
+     *
      * @param string $message Error message
-     * @return void
      */
     public static function error($message)
     {
@@ -144,10 +146,10 @@ class Fuerte_Wp_Logger
      * Log an array or object (for debugging).
      *
      * @since 1.7.0
+     *
      * @param mixed $data Data to log
      * @param string $message Optional message to prepend
      * @param string $level Log level
-     * @return void
      */
     public static function log_data($data, $message = '', $level = 'DEBUG')
     {
@@ -165,8 +167,8 @@ class Fuerte_Wp_Logger
      * Set custom prefix.
      *
      * @since 1.7.0
+     *
      * @param string $prefix Custom prefix
-     * @return void
      */
     public static function set_prefix($prefix)
     {
@@ -178,7 +180,6 @@ class Fuerte_Wp_Logger
      * Call this during plugin initialization if you want to use a constant.
      *
      * @since 1.7.0
-     * @return void
      */
     public static function init_from_constant()
     {

@@ -144,6 +144,6 @@
             "install-path": "../htmlburger/carbon-fields"
         }
     ],
-    "dev": true,
+    "dev": false,
     "dev-package-names": []
 }

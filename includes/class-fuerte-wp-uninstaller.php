@@ -16,6 +16,7 @@ defined('ABSPATH') || die();
  * This class defines all code necessary to run during the plugin's uninstallation.
  *
  * @since      1.4.0
+ *
  * @author     Esteban Cuevas <esteban@attitude.cl>
  */
 class Fuerte_Wp_Uninstaller

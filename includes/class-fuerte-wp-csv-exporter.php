@@ -25,6 +25,7 @@ class Fuerte_Wp_CSV_Exporter
      * Login Logger instance.
      *
      * @since 1.7.0
+     *
      * @var Fuerte_Wp_Login_Logger
      */
     private $logger;
@@ -43,8 +44,8 @@ class Fuerte_Wp_CSV_Exporter
      * Export login attempts to CSV.
      *
      * @since 1.7.0
+     *
      * @param array $args Filter arguments
-     * @return void Sends CSV to browser
      */
     public function export_attempts($args = [])
     {
@@ -66,7 +67,9 @@ class Fuerte_Wp_CSV_Exporter
      * Generate CSV content from attempts data.
      *
      * @since 1.7.0
+     *
      * @param array $attempts Login attempts data
+     *
      * @return string CSV content
      */
     private function generate_attempts_csv($attempts)
@@ -111,8 +114,8 @@ class Fuerte_Wp_CSV_Exporter
      * Export IP whitelist/blacklist to CSV.
      *
      * @since 1.7.0
+     *
      * @param string $type List type (whitelist or blacklist)
-     * @return void Sends CSV to browser
      */
     public function export_ip_list($type)
     {
@@ -129,7 +132,9 @@ class Fuerte_Wp_CSV_Exporter
      * Generate CSV content from IP list data.
      *
      * @since 1.7.0
+     *
      * @param array $ips IP entries
+     *
      * @return string CSV content
      */
     private function generate_ip_list_csv($ips)
@@ -172,8 +177,10 @@ class Fuerte_Wp_CSV_Exporter
      * Import IP list from CSV file.
      *
      * @since 1.7.0
+     *
      * @param string $csv_content CSV file content
      * @param string $type List type (whitelist or blacklist)
+     *
      * @return array|WP_Error Import results
      */
     public function import_ip_list($csv_content, $type)
@@ -231,7 +238,9 @@ class Fuerte_Wp_CSV_Exporter
      * Removes or escapes problematic characters.
      *
      * @since 1.7.0
+     *
      * @param string $user_agent User agent string
+     *
      * @return string Sanitized user agent
      */
     private function sanitize_user_agent($user_agent)
@@ -253,9 +262,9 @@ class Fuerte_Wp_CSV_Exporter
      * Send CSV to browser with proper headers.
      *
      * @since 1.7.0
+     *
      * @param string $filename Filename
      * @param string $csv_content CSV content
-     * @return void
      */
     private function send_csv($filename, $csv_content)
     {
@@ -287,9 +296,11 @@ class Fuerte_Wp_CSV_Exporter
      * Useful for generating reports.
      *
      * @since 1.7.0
+     *
      * @param string $status Filter by status (optional)
      * @param string $date_from Start date (optional)
      * @param string $date_to End date (optional)
+     *
      * @return array Array of IP addresses
      */
     public function get_unique_ips($status = '', $date_from = '', $date_to = '')
@@ -333,7 +344,6 @@ class Fuerte_Wp_CSV_Exporter
      * Generate simple statistics CSV.
      *
      * @since 1.7.0
-     * @return void Sends statistics CSV to browser
      */
     public function export_stats()
     {

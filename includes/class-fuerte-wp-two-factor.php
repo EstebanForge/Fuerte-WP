@@ -20,6 +20,7 @@ class Fuerte_Wp_TwoFactor extends Fuerte_Wp
      * Plugin instance.
      *
      * @see get_instance()
+     *
      * @type object
      */
     protected static $instance = null;
@@ -72,8 +73,6 @@ class Fuerte_Wp_TwoFactor extends Fuerte_Wp
 
         // Don't allow disabling two-factor plugin
         add_filter('plugin_action_links_two-factor/two-factor.php', [$this, 'disable_two_factor']);
-
-        //
 
     }
 

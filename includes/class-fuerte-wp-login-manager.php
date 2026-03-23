@@ -29,6 +29,7 @@ class Fuerte_Wp_Login_Manager
      * IP Manager instance.
      *
      * @since 1.7.0
+     *
      * @var Fuerte_Wp_IP_Manager
      */
     private $ip_manager;
@@ -37,6 +38,7 @@ class Fuerte_Wp_Login_Manager
      * Login Logger instance.
      *
      * @since 1.7.0
+     *
      * @var Fuerte_Wp_Login_Logger
      */
     private $logger;
@@ -45,6 +47,7 @@ class Fuerte_Wp_Login_Manager
      * Cached client IP address for current request.
      *
      * @since 1.7.0
+     *
      * @var string
      */
     private $cached_ip = null;
@@ -53,6 +56,7 @@ class Fuerte_Wp_Login_Manager
      * Cached settings for current request.
      *
      * @since 1.7.0
+     *
      * @var array
      */
     private $cached_settings = null;
@@ -110,7 +114,6 @@ class Fuerte_Wp_Login_Manager
      * Register login-related hooks.
      *
      * @since 1.7.0
-     * @return void
      */
     private function register_login_hooks()
     {
@@ -142,17 +145,19 @@ class Fuerte_Wp_Login_Manager
     }
 
     /**
-     * Keep track of if user or password are empty, to filter errors correctly
+     * Keep track of if user or password are empty, to filter errors correctly.
      *
      * @since 1.7.0
+     *
      * @param WP_User|WP_Error|null $user WP_User or WP_Error object
      * @param string $username Username
      * @param string $password Password
+     *
      * @return WP_User|WP_Error|null User object
      */
     public function track_credentials($user, $username, $password)
     {
-        
+
         // Start session if not already started
         if (!session_id()) {
             session_start();
@@ -173,14 +178,16 @@ class Fuerte_Wp_Login_Manager
      * This is called early in the authentication process.
      *
      * @since 1.7.0
+     *
      * @param WP_User|WP_Error|null $user WP_User or WP_Error object
      * @param string $username Username
      * @param string $password Password
+     *
      * @return WP_User|WP_Error Authenticated user or error
      */
     public function authenticate($user, $username, $password)
     {
-        
+
         // Return if feature is disabled
         if (!$this->is_enabled()) {
             return $user;
@@ -201,6 +208,7 @@ class Fuerte_Wp_Login_Manager
         // Check if IP is blacklisted
         if ($this->ip_manager->is_blacklisted($ip)) {
             $this->logger->log_attempt($username, $ip, 'blocked', __('IP address blocked', 'fuerte-wp'), $_SERVER['HTTP_USER_AGENT'] ?? '');
+
             return new WP_Error(
                 'fuertewp_ip_blocked',
                 __('Your IP address has been blocked from accessing this site.', 'fuerte-wp')
@@ -210,6 +218,7 @@ class Fuerte_Wp_Login_Manager
         // Check if username is blacklisted
         if ($this->is_username_blacklisted($username)) {
             $this->logger->log_attempt($username, $ip, 'blocked', __('Username blocked', 'fuerte-wp'), $_SERVER['HTTP_USER_AGENT'] ?? '');
+
             return new WP_Error(
                 'fuertewp_username_blocked',
                 __('This username is not allowed.', 'fuerte-wp')
@@ -224,6 +233,7 @@ class Fuerte_Wp_Login_Manager
 
             if ($seconds_until_unlock > 0) {
                 $this->logger->log_attempt($username, $ip, 'blocked', sprintf(__('Locked out for %d seconds', 'fuerte-wp'), $seconds_until_unlock), $_SERVER['HTTP_USER_AGENT'] ?? '');
+
                 return new WP_Error(
                     'fuertewp_locked_out',
                     sprintf(
@@ -242,8 +252,10 @@ class Fuerte_Wp_Login_Manager
      * Additional authentication check after user validation.
      *
      * @since 1.7.0
+     *
      * @param WP_User|WP_Error $user User object
      * @param string $password Password
+     *
      * @return WP_User|WP_Error User object or error
      */
     public function wp_authenticate_user($user, $password)
@@ -260,8 +272,10 @@ class Fuerte_Wp_Login_Manager
 
         // Check if IP is currently locked out
         $lockout = $this->logger->get_active_lockout($ip);
+
         if ($lockout) {
             $time_remaining = $this->get_time_remaining($lockout->unlock_time);
+
             return new WP_Error(
                 'fuertewp_locked_out',
                 sprintf(__('Too many failed login attempts. Please try again in %s.', 'fuerte-wp'), $time_remaining)
@@ -275,8 +289,8 @@ class Fuerte_Wp_Login_Manager
      * Handle failed login attempt.
      *
      * @since 1.7.0
+     *
      * @param string $username Username that failed
-     * @return void
      */
     public function handle_login_failed($username)
     {
@@ -338,9 +352,9 @@ class Fuerte_Wp_Login_Manager
      * Handle successful login.
      *
      * @since 1.7.0
+     *
      * @param string $user_login User login
      * @param WP_User $user WP_User object
-     * @return void
      */
     public function handle_login_success($user_login, $user)
     {
@@ -361,7 +375,6 @@ class Fuerte_Wp_Login_Manager
      * Display login security messages on login form.
      *
      * @since 1.7.0
-     * @return void
      */
     public function display_login_messages()
     {
@@ -370,7 +383,7 @@ class Fuerte_Wp_Login_Manager
         }
 
         $ip = $this->get_cached_ip();
-        $username = isset($_POST['log']) ? $_POST['log'] : '';
+        $username = $_POST['log'] ?? '';
 
         // Check for active lockout
         $lockout = $this->logger->get_active_lockout($ip, $username);
@@ -386,12 +399,13 @@ class Fuerte_Wp_Login_Manager
                 $minutes
             ) . '</p>';
             echo '</div>';
+
             return;
         }
 
         // Show remaining attempts if any failed
         $remaining = $this->logger->get_remaining_attempts($ip, $username);
-        $max_attempts = (int)Fuerte_Wp_Config::get_field('login_max_attempts', 5);
+        $max_attempts = (int) Fuerte_Wp_Config::get_field('login_max_attempts', 5);
 
         if ($remaining < $max_attempts) {
             echo '<div id="fuertewp-remaining-message" class="message warning" style="padding: 10px; margin: 10px 0; background: #fff3cd; border-left: 4px solid #ffb900;">';
@@ -416,7 +430,6 @@ class Fuerte_Wp_Login_Manager
      * Display GDPR compliance message.
      *
      * @since 1.7.0
-     * @return void
      */
     public function display_gdpr_message()
     {
@@ -438,9 +451,11 @@ class Fuerte_Wp_Login_Manager
      * Protect registration by blocking blacklisted usernames.
      *
      * @since 1.7.0
+     *
      * @param WP_Error $errors Registration errors
      * @param string $sanitized_user_login Sanitized username
      * @param string $user_email User email
+     *
      * @return WP_Error Registration errors
      */
     public function protect_registration($errors, $sanitized_user_login, $user_email)
@@ -456,6 +471,7 @@ class Fuerte_Wp_Login_Manager
 
         // Check if IP is currently locked out
         $lockout = $this->logger->get_active_lockout($ip_address);
+
         if ($lockout) {
             $time_remaining = $this->get_time_remaining($lockout->unlock_time);
             $errors->add(
@@ -465,6 +481,7 @@ class Fuerte_Wp_Login_Manager
                     $time_remaining
                 )
             );
+
             return $errors;
         }
 
@@ -477,6 +494,7 @@ class Fuerte_Wp_Login_Manager
                 'fuertewp_registration_limit_exceeded',
                 __('Too many registration attempts from this IP address. Registration temporarily blocked.', 'fuerte-wp')
             );
+
             return $errors;
         }
 
@@ -506,6 +524,7 @@ class Fuerte_Wp_Login_Manager
      * Check if feature is enabled.
      *
      * @since 1.7.0
+     *
      * @return bool True if enabled, false otherwise
      */
     private function is_enabled()
@@ -522,6 +541,7 @@ class Fuerte_Wp_Login_Manager
 
         // Handle different Carbon Fields return formats
         $is_enabled = false;
+
         if ($enabled === 'enabled' || $enabled === true || $enabled === 1) {
             $is_enabled = true;
         }
@@ -534,7 +554,6 @@ class Fuerte_Wp_Login_Manager
      * Ensure Carbon Fields is properly loaded and containers are registered.
      *
      * @since 1.7.0
-     * @return void
      */
     private function ensure_carbon_fields_loaded()
     {
@@ -579,6 +598,7 @@ class Fuerte_Wp_Login_Manager
      * Check if registration protection is enabled.
      *
      * @since 1.7.0
+     *
      * @return bool True if registration protection is enabled, false otherwise
      */
     private function is_registration_enabled()
@@ -588,6 +608,7 @@ class Fuerte_Wp_Login_Manager
 
         // Handle different Carbon Fields return formats
         $is_enabled = false;
+
         if ($enabled === 'enabled' || $enabled === true || $enabled === 1) {
             $is_enabled = true;
         }
@@ -600,7 +621,9 @@ class Fuerte_Wp_Login_Manager
      * Check if username is blacklisted.
      *
      * @since 1.7.0
+     *
      * @param string $username Username to check
+     *
      * @return bool True if blacklisted, false otherwise
      */
     private function is_username_blacklisted($username)
@@ -615,6 +638,7 @@ class Fuerte_Wp_Login_Manager
 
         foreach ($blacklisted as $blocked) {
             $blocked_lower = strtolower($blocked);
+
             if ($username_lower === $blocked_lower) {
                 return true;
             }
@@ -627,6 +651,7 @@ class Fuerte_Wp_Login_Manager
      * Get cached client IP address.
      *
      * @since 1.7.0
+     *
      * @return string IP address
      */
     private function get_cached_ip()
@@ -634,6 +659,7 @@ class Fuerte_Wp_Login_Manager
         if ($this->cached_ip === null) {
             $this->cached_ip = $this->ip_manager->get_client_ip();
         }
+
         return $this->cached_ip;
     }
 
@@ -641,6 +667,7 @@ class Fuerte_Wp_Login_Manager
      * Get cached settings array.
      *
      * @since 1.7.0
+     *
      * @return array Settings with max_attempts, lockout_duration, increasing_lockout
      */
     private function get_cached_settings()
@@ -650,9 +677,10 @@ class Fuerte_Wp_Login_Manager
             $this->cached_settings = [
                 'max_attempts' => (int) Fuerte_Wp_Config::get('login_security.login_max_attempts', 5),
                 'lockout_duration' => (int) Fuerte_Wp_Config::get('login_security.login_lockout_duration', 60),
-                'increasing_lockout' => Fuerte_Wp_Config::get('login_security.login_increasing_lockout', '') === 'yes'
+                'increasing_lockout' => Fuerte_Wp_Config::get('login_security.login_increasing_lockout', '') === 'yes',
             ];
         }
+
         return $this->cached_settings;
     }
 
@@ -660,9 +688,9 @@ class Fuerte_Wp_Login_Manager
      * Clear lockouts for IP and/or username.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $username Username (optional)
-     * @return void
      */
     private function clear_lockouts($ip, $username = '')
     {
@@ -697,7 +725,9 @@ class Fuerte_Wp_Login_Manager
      * Get display name for lockout reason.
      *
      * @since 1.7.0
+     *
      * @param string $reason Internal reason
+     *
      * @return string User-friendly reason
      */
     public function get_lockout_reason_display($reason)
@@ -709,7 +739,9 @@ class Fuerte_Wp_Login_Manager
      * Get all usernames with failed attempts in time window.
      *
      * @since 1.7.0
+     *
      * @param int $minutes Time window in minutes
+     *
      * @return array Array of usernames
      */
     public function get_usernames_with_failures($minutes = 60)
@@ -734,7 +766,9 @@ class Fuerte_Wp_Login_Manager
      * Get all IPs with failed attempts in time window.
      *
      * @since 1.7.0
+     *
      * @param int $minutes Time window in minutes
+     *
      * @return array Array of IP addresses
      */
     public function get_ips_with_failures($minutes = 60)
@@ -759,7 +793,9 @@ class Fuerte_Wp_Login_Manager
      * Get formatted time remaining until unlock.
      *
      * @since 1.7.0
+     *
      * @param string $unlock_time Unlock time in MySQL datetime format
+     *
      * @return string Formatted time remaining (e.g., "1 hour, 30 minutes")
      */
     private function get_time_remaining($unlock_time)
@@ -776,9 +812,11 @@ class Fuerte_Wp_Login_Manager
         $minutes = floor(($seconds_remaining % 3600) / 60);
 
         $parts = [];
+
         if ($hours > 0) {
             $parts[] = sprintf(_n('%d hour', '%d hours', $hours, 'fuerte-wp'), $hours);
         }
+
         if ($minutes > 0 || empty($parts)) {
             $parts[] = sprintf(_n('%d minute', '%d minutes', $minutes, 'fuerte-wp'), $minutes);
         }

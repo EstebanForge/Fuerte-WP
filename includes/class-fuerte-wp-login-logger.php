@@ -29,6 +29,7 @@ class Fuerte_Wp_Login_Logger
      * WordPress database instance.
      *
      * @since 1.7.0
+     *
      * @var wpdb
      */
     private $wpdb;
@@ -37,6 +38,7 @@ class Fuerte_Wp_Login_Logger
      * Table names with prefix.
      *
      * @since 1.7.0
+     *
      * @var array
      */
     private $tables = [];
@@ -45,6 +47,7 @@ class Fuerte_Wp_Login_Logger
      * Cached settings.
      *
      * @since 1.7.0
+     *
      * @var array
      */
     private static $cached_settings = null;
@@ -70,6 +73,7 @@ class Fuerte_Wp_Login_Logger
      * Get cached settings (static method for efficiency).
      *
      * @since 1.7.0
+     *
      * @return array Settings with max_attempts and lockout_duration
      */
     private static function get_cached_settings()
@@ -78,9 +82,10 @@ class Fuerte_Wp_Login_Logger
             // Get settings using centralized cache
             self::$cached_settings = [
                 'max_attempts' => (int) Fuerte_Wp_Config::get('login_security.login_max_attempts', 5),
-                'lockout_duration' => (int) Fuerte_Wp_Config::get('login_security.login_lockout_duration', 60)
+                'lockout_duration' => (int) Fuerte_Wp_Config::get('login_security.login_lockout_duration', 60),
             ];
         }
+
         return self::$cached_settings;
     }
 
@@ -88,11 +93,13 @@ class Fuerte_Wp_Login_Logger
      * Log a login attempt.
      *
      * @since 1.7.0
+     *
      * @param string $username Username attempted
      * @param string $ip IP address
      * @param string $status Status (success, failed, blocked)
      * @param string $message Result message
      * @param string $user_agent User agent (optional)
+     *
      * @return int|false Insert ID on success, false on failure
      */
     public function log_attempt($username, $ip, $status, $message = '', $user_agent = '')
@@ -131,9 +138,11 @@ class Fuerte_Wp_Login_Logger
      * Get failed attempts for IP or username within time window.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $username Username
      * @param int $minutes Time window in minutes
+     *
      * @return int Number of failed attempts
      */
     public function get_failed_attempts($ip, $username, $minutes = 60)
@@ -155,15 +164,17 @@ class Fuerte_Wp_Login_Logger
             )
         );
 
-        return (int)$count;
+        return (int) $count;
     }
 
     /**
      * Check if IP or username is currently locked out.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $username Username (optional)
+     *
      * @return array|false Lockout data if locked, false otherwise
      */
     public function get_active_lockout($ip, $username = '')
@@ -177,17 +188,17 @@ class Fuerte_Wp_Login_Logger
 
         // Check IP lockout
         if (!empty($ip)) {
-            $conditions[] = "ip_address = %s";
+            $conditions[] = 'ip_address = %s';
             $values[] = $ip;
         }
 
         // Check username lockout if provided
         if (!empty($username)) {
-            $conditions[] = "(username = %s OR username IS NULL)";
+            $conditions[] = '(username = %s OR username IS NULL)';
             $values[] = $username;
         }
 
-        $sql .= implode(' OR ', $conditions) . ") LIMIT 1";
+        $sql .= implode(' OR ', $conditions) . ') LIMIT 1';
 
         $query = $this->wpdb->prepare($sql, ...$values);
         $result = $this->wpdb->get_row($query);
@@ -208,11 +219,13 @@ class Fuerte_Wp_Login_Logger
      * Create a lockout for IP or username.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address (optional if username provided)
      * @param string $username Username (optional if IP provided)
      * @param int $duration Duration in minutes
      * @param string $reason Lockout reason
      * @param int $attempt_count Number of attempts (default 1)
+     *
      * @return int|false Lockout ID on success, false on failure
      */
     public function create_lockout($ip, $username, $duration, $reason, $attempt_count = 1)
@@ -256,14 +269,16 @@ class Fuerte_Wp_Login_Logger
      * Remove a lockout.
      *
      * @since 1.7.0
+     *
      * @param int $lockout_id Lockout ID
+     *
      * @return bool True on success, false on failure
      */
     public function remove_lockout($lockout_id)
     {
         return $this->wpdb->delete(
             $this->tables['lockouts'],
-            ['id' => (int)$lockout_id],
+            ['id' => (int) $lockout_id],
             ['%d']
         ) !== false;
     }
@@ -272,6 +287,7 @@ class Fuerte_Wp_Login_Logger
      * Get all active lockouts.
      *
      * @since 1.7.0
+     *
      * @return array Array of lockout data
      */
     public function get_active_lockouts()
@@ -290,7 +306,9 @@ class Fuerte_Wp_Login_Logger
      * Get login attempts with filters and pagination.
      *
      * @since 1.7.0
+     *
      * @param array $args Query arguments
+     *
      * @return array Attempts data
      */
     public function get_attempts($args = [])
@@ -341,6 +359,7 @@ class Fuerte_Wp_Login_Logger
 
         // Validate orderby and order
         $allowed_orderby = ['attempt_time', 'status', 'ip_address', 'username'];
+
         if (!in_array($args['orderby'], $allowed_orderby)) {
             $args['orderby'] = 'attempt_time';
         }
@@ -352,8 +371,8 @@ class Fuerte_Wp_Login_Logger
                 ORDER BY {$args['orderby']} {$args['order']}, id {$args['order']}
                 LIMIT %d OFFSET %d";
 
-        $values[] = (int)$args['limit'];
-        $values[] = (int)$args['offset'];
+        $values[] = (int) $args['limit'];
+        $values[] = (int) $args['offset'];
 
         if (!empty($values)) {
             $query = $this->wpdb->prepare($sql, ...$values);
@@ -368,7 +387,9 @@ class Fuerte_Wp_Login_Logger
      * Get total count of attempts matching filters.
      *
      * @since 1.7.0
+     *
      * @param array $args Query arguments
+     *
      * @return int Total count
      */
     public function get_attempts_count($args = [])
@@ -421,13 +442,14 @@ class Fuerte_Wp_Login_Logger
             $query = $sql;
         }
 
-        return (int)$this->wpdb->get_var($query);
+        return (int) $this->wpdb->get_var($query);
     }
 
     /**
      * Get lockout statistics.
      *
      * @since 1.7.0
+     *
      * @return array Statistics data
      */
     public function get_lockout_stats()
@@ -435,13 +457,13 @@ class Fuerte_Wp_Login_Logger
         $stats = [];
 
         // Total lockouts
-        $stats['total_lockouts'] = (int)$this->wpdb->get_var(
+        $stats['total_lockouts'] = (int) $this->wpdb->get_var(
             "SELECT COUNT(*) FROM {$this->tables['lockouts']}"
         );
 
         // Active lockouts
         $now = current_time('mysql');
-        $stats['active_lockouts'] = (int)$this->wpdb->get_var(
+        $stats['active_lockouts'] = (int) $this->wpdb->get_var(
             $this->wpdb->prepare(
                 "SELECT COUNT(*) FROM {$this->tables['lockouts']} WHERE unlock_time > %s",
                 $now
@@ -450,7 +472,7 @@ class Fuerte_Wp_Login_Logger
 
         // Failed attempts today
         $today = date('Y-m-d 00:00:00');
-        $stats['failed_today'] = (int)$this->wpdb->get_var(
+        $stats['failed_today'] = (int) $this->wpdb->get_var(
             $this->wpdb->prepare(
                 "SELECT COUNT(*) FROM {$this->tables['attempts']} WHERE status = 'failed' AND attempt_time >= %s",
                 $today
@@ -459,7 +481,7 @@ class Fuerte_Wp_Login_Logger
 
         // Failed attempts this week
         $week_ago = date('Y-m-d 00:00:00', strtotime('-7 days'));
-        $stats['failed_week'] = (int)$this->wpdb->get_var(
+        $stats['failed_week'] = (int) $this->wpdb->get_var(
             $this->wpdb->prepare(
                 "SELECT COUNT(*) FROM {$this->tables['attempts']} WHERE status = 'failed' AND attempt_time >= %s",
                 $week_ago
@@ -475,11 +497,12 @@ class Fuerte_Wp_Login_Logger
      * Runs via cron job. Removes records older than retention period.
      *
      * @since 1.7.0
+     *
      * @return int Number of records deleted
      */
     public function cleanup_old_records()
     {
-        $retention_days = (int)carbon_get_theme_option('fuertewp_login_data_retention', 30);
+        $retention_days = (int) carbon_get_theme_option('fuertewp_login_data_retention', 30);
 
         if ($retention_days <= 0) {
             return 0;
@@ -508,13 +531,14 @@ class Fuerte_Wp_Login_Logger
             )
         );
 
-        return (int)$deleted;
+        return (int) $deleted;
     }
 
     /**
      * Clear all login attempts (admin function).
      *
      * @since 1.7.0
+     *
      * @return bool True on success, false on failure
      */
     public function clear_all_attempts()
@@ -528,6 +552,7 @@ class Fuerte_Wp_Login_Logger
      * Reset lockouts (admin function).
      *
      * @since 1.7.0
+     *
      * @return bool True on success, false on failure
      */
     public function reset_all_lockouts()
@@ -541,13 +566,15 @@ class Fuerte_Wp_Login_Logger
      * Get remaining attempts before lockout.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $username Username
+     *
      * @return int Remaining attempts
      */
     public function get_remaining_attempts($ip, $username)
     {
-        $max_attempts = (int)Fuerte_Wp_Config::get_field('login_max_attempts', 5);
+        $max_attempts = (int) Fuerte_Wp_Config::get_field('login_max_attempts', 5);
 
         $failed_count = $this->get_failed_attempts($ip, $username);
 
@@ -558,8 +585,10 @@ class Fuerte_Wp_Login_Logger
      * Get time until unlock for current lockout.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $username Username
+     *
      * @return int Seconds until unlock (0 if not locked)
      */
     public function get_seconds_until_unlock($ip, $username)
@@ -580,8 +609,10 @@ class Fuerte_Wp_Login_Logger
      * Check if IP has exceeded maximum failed attempts.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $username Username (optional, used for context like 'registration')
+     *
      * @return bool True if exceeded, false otherwise
      */
     public function has_exceeded_attempts($ip, $username = '')
@@ -598,9 +629,11 @@ class Fuerte_Wp_Login_Logger
      * Lock an IP address (alias for create_lockout with standardized parameters).
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $username Username (optional)
      * @param string $reason Lockout reason
+     *
      * @return int|false Lockout ID on success, false on failure
      */
     public function lock_ip($ip, $username = '', $reason = 'Login limit exceeded')

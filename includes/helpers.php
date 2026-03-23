@@ -15,6 +15,8 @@ defined('ABSPATH') || die();
 // Static cache for performance
 static $fuertewp_admin_users_cache = null;
 static $fuertewp_wp_roles_cache = null;
+static $fuertewp_plugins_cache = null;
+static $fuertewp_themes_cache = null;
 
 /**
  * Get WordPress admin users (cached).
@@ -133,6 +135,60 @@ function fuertewp_scheduled_tasks_interval($schedules)
     return $schedules;
 }
 add_filter('cron_schedules', 'fuertewp_scheduled_tasks_interval');
+
+/**
+ * Get list of installed plugins (cached).
+ *
+ * @since 1.8.0
+ *
+ * @return array Array of plugins with plugin file as key and name as value
+ */
+function fuertewp_get_installed_plugins()
+{
+    global $fuertewp_plugins_cache;
+
+    if (null === $fuertewp_plugins_cache) {
+        if (!function_exists('get_plugins')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
+        $plugins = get_plugins();
+        $plugin_list = [];
+
+        foreach ($plugins as $plugin_file => $plugin_data) {
+            $plugin_list[$plugin_file] = $plugin_data['Name'];
+        }
+
+        $fuertewp_plugins_cache = $plugin_list;
+    }
+
+    return $fuertewp_plugins_cache;
+}
+
+/**
+ * Get list of installed themes (cached).
+ *
+ * @since 1.8.0
+ *
+ * @return array Array of themes with theme slug as key and name as value
+ */
+function fuertewp_get_installed_themes()
+{
+    global $fuertewp_themes_cache;
+
+    if (null === $fuertewp_themes_cache) {
+        $themes = wp_get_themes();
+        $theme_list = [];
+
+        foreach ($themes as $theme_slug => $theme) {
+            $theme_list[$theme_slug] = $theme->get('Name');
+        }
+
+        $fuertewp_themes_cache = $theme_list;
+    }
+
+    return $fuertewp_themes_cache;
+}
 
 /*
  * Write log

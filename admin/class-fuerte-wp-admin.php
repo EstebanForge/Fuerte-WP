@@ -31,7 +31,8 @@ class Fuerte_Wp_Admin
      * The ID of this plugin.
      *
      * @since    1.0.0
-     * @var      string       The ID of this plugin.
+     *
+     * @var string The ID of this plugin.
      */
     private $plugin_name;
 
@@ -39,7 +40,8 @@ class Fuerte_Wp_Admin
      * The version of this plugin.
      *
      * @since    1.0.0
-     * @var      string       The version of this plugin.
+     *
+     * @var string The version of this plugin.
      */
     private $version;
 
@@ -47,8 +49,9 @@ class Fuerte_Wp_Admin
      * Initialize the class and set its properties.
      *
      * @since    1.0.0
-     * @param      string    $plugin_name       The name of this plugin.
-     * @param      string    $version    The version of this plugin.
+     *
+     * @param string $plugin_name The name of this plugin.
+     * @param string $version The version of this plugin.
      */
     public function __construct($plugin_name, $version)
     {
@@ -65,6 +68,7 @@ class Fuerte_Wp_Admin
     {
         // Only load on Fuerte-WP admin pages for performance
         $screen = get_current_screen();
+
         if (!$screen || !strpos($screen->id, 'fuerte-wp')) {
             return;
         }
@@ -79,6 +83,7 @@ class Fuerte_Wp_Admin
     {
         // Only load on Fuerte-WP admin pages for performance
         $screen = get_current_screen();
+
         if (!$screen || !strpos($screen->id, 'fuerte-wp')) {
             return;
         }
@@ -627,7 +632,7 @@ class Fuerte_Wp_Admin
                     ->set_help_text(__('Custom slug for accessing the login page (e.g., "secure-login"). Avoid common names like "login" or "admin".', 'fuerte-wp'))
                     ->set_conditional_logic([
                         'relation' => 'AND',
-                        ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true]
+                        ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true],
                     ]),
 
                 Field::make(
@@ -643,7 +648,7 @@ class Fuerte_Wp_Admin
                     ->set_help_text(__('Query Parameter: https://yoursite.com/?your-slug | Pretty URL: https://yoursite.com/your-slug/', 'fuerte-wp'))
                     ->set_conditional_logic([
                         'relation' => 'AND',
-                        ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true]
+                        ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true],
                     ]),
 
                 Field::make(
@@ -710,14 +715,14 @@ class Fuerte_Wp_Admin
                 </script>')
                 ->set_conditional_logic([
                     'relation' => 'AND',
-                    ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true]
+                    ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true],
                 ]),
 
             Field::make(
-                    'select',
-                    'fuertewp_redirect_invalid_logins',
-                    __('Invalid Login Redirect', 'fuerte-wp'),
-                )
+                'select',
+                'fuertewp_redirect_invalid_logins',
+                __('Invalid Login Redirect', 'fuerte-wp'),
+            )
                     ->add_options([
                         'home_404' => __('Home Page with 404 Error', 'fuerte-wp'),
                         'custom_page' => __('Custom URL Redirect', 'fuerte-wp'),
@@ -726,20 +731,20 @@ class Fuerte_Wp_Admin
                     ->set_help_text(__('Where to redirect users who try to access the login page directly.', 'fuerte-wp'))
                     ->set_conditional_logic([
                         'relation' => 'AND',
-                        ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true]
+                        ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true],
                     ]),
 
             Field::make(
-                    'text',
-                    'fuertewp_redirect_invalid_logins_url',
-                    __('Custom Redirect URL', 'fuerte-wp'),
-                )
+                'text',
+                'fuertewp_redirect_invalid_logins_url',
+                __('Custom Redirect URL', 'fuerte-wp'),
+            )
                     ->set_attribute('placeholder', 'https://example.com/custom-page')
                     ->set_help_text(__('Enter the full URL where invalid login attempts should be redirected. Can be any internal or external URL.', 'fuerte-wp'))
                     ->set_conditional_logic([
                         'relation' => 'AND',
                         ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true],
-                        ['field' => 'fuertewp_redirect_invalid_logins', 'value' => 'custom_page']
+                        ['field' => 'fuertewp_redirect_invalid_logins', 'value' => 'custom_page'],
                     ]),
             ])
 
@@ -1149,6 +1154,57 @@ updraft_admin_node',
                     __('Failed Login Attempts', 'fuerte-wp'),
                 )
                     ->set_html($this->render_login_logs_viewer()),
+            ])
+
+            ->add_tab(__('Deferred Updates', 'fuerte-wp'), [
+                Field::make(
+                    'html',
+                    'fuertewp_deferred_header',
+                    __('Deferred Updates Information', 'fuerte-wp'),
+                )->set_html(
+                    '<p>' . __(
+                        'Prevent specific plugins or themes from auto-updating. When auto-updates are enabled, selected items will be deferred until manually updated.',
+                        'fuerte-wp',
+                    ) . '</p>'
+                ),
+
+                Field::make(
+                    'separator',
+                    'fuertewp_deferred_plugins_sep',
+                    __('Deferred Plugins', 'fuerte-wp'),
+                ),
+
+                Field::make(
+                    'multiselect',
+                    'fuertewp_deferred_plugins',
+                    __('Plugins to Defer', 'fuerte-wp'),
+                )
+                    ->add_options('fuertewp_get_installed_plugins')
+                    ->set_help_text(
+                        __(
+                            'Selected plugins will NOT auto-update. Useful for plugins that may have compatibility issues with newer versions.',
+                            'fuerte-wp',
+                        ),
+                    ),
+
+                Field::make(
+                    'separator',
+                    'fuertewp_deferred_themes_sep',
+                    __('Deferred Themes', 'fuerte-wp'),
+                ),
+
+                Field::make(
+                    'multiselect',
+                    'fuertewp_deferred_themes',
+                    __('Themes to Defer', 'fuerte-wp'),
+                )
+                    ->add_options('fuertewp_get_installed_themes')
+                    ->set_help_text(
+                        __(
+                            'Selected themes will NOT auto-update. Useful for themes with customizations that might be affected by updates.',
+                            'fuerte-wp',
+                        ),
+                    ),
             ]);
     }
 
@@ -1156,6 +1212,7 @@ updraft_admin_node',
      * Render login logs viewer HTML.
      *
      * @since 1.7.0
+     *
      * @return string HTML content
      */
     private function render_login_logs_viewer()
@@ -1192,19 +1249,19 @@ updraft_admin_node',
             <div class="fuertewp-stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
                 <div class="stat-box" style="padding: 15px; background: #fff; border: 1px solid #ccd0d4; border-radius: 4px;">
                     <h4 style="margin: 0 0 5px 0;"><?php esc_html_e('Total Lockouts', 'fuerte-wp'); ?></h4>
-                    <p style="font-size: 24px; font-weight: bold; margin: 0;"><?php echo (int)$stats['total_lockouts']; ?></p>
+                    <p style="font-size: 24px; font-weight: bold; margin: 0;"><?php echo (int) $stats['total_lockouts']; ?></p>
                 </div>
                 <div class="stat-box" style="padding: 15px; background: #fff; border: 1px solid #ccd0d4; border-radius: 4px;">
                     <h4 style="margin: 0 0 5px 0;"><?php esc_html_e('Active Lockouts', 'fuerte-wp'); ?></h4>
-                    <p style="font-size: 24px; font-weight: bold; margin: 0; color: #d63638;"><?php echo (int)$stats['active_lockouts']; ?></p>
+                    <p style="font-size: 24px; font-weight: bold; margin: 0; color: #d63638;"><?php echo (int) $stats['active_lockouts']; ?></p>
                 </div>
                 <div class="stat-box" style="padding: 15px; background: #fff; border: 1px solid #ccd0d4; border-radius: 4px;">
                     <h4 style="margin: 0 0 5px 0;"><?php esc_html_e('Failed Today', 'fuerte-wp'); ?></h4>
-                    <p style="font-size: 24px; font-weight: bold; margin: 0;"><?php echo (int)$stats['failed_today']; ?></p>
+                    <p style="font-size: 24px; font-weight: bold; margin: 0;"><?php echo (int) $stats['failed_today']; ?></p>
                 </div>
                 <div class="stat-box" style="padding: 15px; background: #fff; border: 1px solid #ccd0d4; border-radius: 4px;">
                     <h4 style="margin: 0 0 5px 0;"><?php esc_html_e('Failed This Week', 'fuerte-wp'); ?></h4>
-                    <p style="font-size: 24px; font-weight: bold; margin: 0;"><?php echo (int)$stats['failed_week']; ?></p>
+                    <p style="font-size: 24px; font-weight: bold; margin: 0;"><?php echo (int) $stats['failed_week']; ?></p>
                 </div>
             </div>
 
@@ -1259,6 +1316,7 @@ updraft_admin_node',
 
         // Validate and ensure custom login slug is never empty
         $custom_login_slug = Fuerte_Wp_Config::get_field('custom_login_slug', 'secure-login');
+
         if (empty($custom_login_slug) || trim($custom_login_slug) === '') {
             Fuerte_Wp_Config::set_field('custom_login_slug', 'secure-login');
         }
@@ -1317,15 +1375,19 @@ updraft_admin_node',
                 if (strpos($key, 'login') !== false) {
                     $changed_sections[] = 'login';
                 }
+
                 if (strpos($key, 'restriction') !== false || strpos($key, 'disable') !== false) {
                     $changed_sections[] = 'restrictions';
                 }
+
                 if (strpos($key, 'tweak') !== false || strpos($key, 'hide') !== false) {
                     $changed_sections[] = 'tweaks';
                 }
+
                 if (strpos($key, 'email') !== false || strpos($key, 'sender') !== false) {
                     $changed_sections[] = 'emails';
                 }
+
                 if (strpos($key, 'login_url') !== false) {
                     $changed_sections[] = 'login_url_hiding';
                 }

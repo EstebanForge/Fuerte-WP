@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Simple Configuration Manager for Fuerte-WP
+ * Simple Configuration Manager for Fuerte-WP.
  *
  * Uses WordPress transients for configuration storage and caching.
  * Much simpler than the previous complex config cache system.
@@ -26,6 +26,7 @@ class Fuerte_Wp_Config
      * Transient key for configuration cache.
      *
      * @since 1.7.0
+     *
      * @var string
      */
     private static $transient_key = 'fuertewp_config';
@@ -34,6 +35,7 @@ class Fuerte_Wp_Config
      * Cache expiration time in seconds (12 hours).
      *
      * @since 1.7.0
+     *
      * @var int
      */
     private static $cache_expiration = 12 * HOUR_IN_SECONDS;
@@ -42,8 +44,10 @@ class Fuerte_Wp_Config
      * Get configuration value.
      *
      * @since 1.7.0
+     *
      * @param string $key Configuration key (dot notation supported)
      * @param mixed $default Default value if key doesn't exist
+     *
      * @return mixed Configuration value
      */
     public static function get($key, $default = null)
@@ -65,14 +69,16 @@ class Fuerte_Wp_Config
             return $value;
         }
 
-        return isset($config[$key]) ? $config[$key] : $default;
+        return $config[$key] ?? $default;
     }
 
     /**
      * Get the entire configuration array.
      *
      * @since 1.7.0
+     *
      * @param bool $bypass_cache Force loading from database, bypassing transient cache
+     *
      * @return array Configuration array
      */
     public static function get_config($bypass_cache = false)
@@ -83,6 +89,7 @@ class Fuerte_Wp_Config
         // Try to get from transient first (unless bypassing)
         if (!$force_bypass) {
             $cached_config = get_transient(self::$transient_key);
+
             if ($cached_config !== false) {
                 return $cached_config;
             }
@@ -90,6 +97,7 @@ class Fuerte_Wp_Config
 
         // Load from file first if it exists (file takes priority)
         $config = self::load_from_file();
+
         if (empty($config)) {
             // Fallback to database if no file config
             $config = self::load_from_database();
@@ -107,6 +115,7 @@ class Fuerte_Wp_Config
      * Load configuration from wp-config-fuerte.php file.
      *
      * @since 1.7.0
+     *
      * @return array Configuration array from file, empty array if file doesn't exist
      */
     private static function load_from_file()
@@ -138,7 +147,9 @@ class Fuerte_Wp_Config
      * Save configuration to transient.
      *
      * @since 1.7.0
+     *
      * @param array $config Configuration array
+     *
      * @return bool Success status
      */
     public static function save_config($config)
@@ -150,7 +161,6 @@ class Fuerte_Wp_Config
      * Invalidate configuration cache.
      *
      * @since 1.7.0
-     * @return void
      */
     public static function invalidate_cache()
     {
@@ -162,11 +172,13 @@ class Fuerte_Wp_Config
      * Useful for debugging cache issues.
      *
      * @since 1.7.2
+     *
      * @return array Fresh configuration from database
      */
     public static function force_refresh()
     {
         self::invalidate_cache();
+
         return self::get_config(true);
     }
 
@@ -175,6 +187,7 @@ class Fuerte_Wp_Config
      * Only works for admin users and when WP_DEBUG is enabled.
      *
      * @since 1.7.2
+     *
      * @return array Debug information
      */
     public static function debug_cache()
@@ -189,8 +202,8 @@ class Fuerte_Wp_Config
         return [
             'cache_key' => self::$transient_key,
             'cache_exists' => $cached !== false,
-            'cache_super_users' => isset($cached['super_users']) ? $cached['super_users'] : 'not_set',
-            'fresh_super_users' => isset($fresh['super_users']) ? $fresh['super_users'] : 'not_set',
+            'cache_super_users' => $cached['super_users'] ?? 'not_set',
+            'fresh_super_users' => $fresh['super_users'] ?? 'not_set',
             'cache_match' => json_encode($cached) === json_encode($fresh),
             'current_url' => $_SERVER['REQUEST_URI'] ?? 'unknown',
             'current_screen' => (function_exists('get_current_screen') && get_current_screen()) ? get_current_screen()->id : 'function_not_available_or_no_screen',
@@ -201,6 +214,7 @@ class Fuerte_Wp_Config
      * Load configuration from database.
      *
      * @since 1.7.0
+     *
      * @return array Configuration from database
      */
     private static function load_from_database()
@@ -214,7 +228,7 @@ class Fuerte_Wp_Config
         $config['super_users'] = self::load_multiselect_field('fuertewp_super_users');
 
         // Load general settings
-        $config['general'] = array(
+        $config['general'] = [
             'access_denied_message' => get_option('_fuertewp_access_denied_message', 'Access denied.'),
             'recovery_email' => get_option('_fuertewp_recovery_email', ''),
             'sender_email_enable' => get_option('_fuertewp_sender_email_enable', true),
@@ -224,10 +238,10 @@ class Fuerte_Wp_Config
             'autoupdate_themes' => get_option('_fuertewp_autoupdate_themes', false),
             'autoupdate_translations' => get_option('_fuertewp_autoupdate_translations', false),
             'autoupdate_frequency' => get_option('_fuertewp_autoupdate_frequency', 'daily'),
-        );
+        ];
 
         // Load login security settings
-        $config['login_security'] = array(
+        $config['login_security'] = [
             'login_enable' => get_option('_fuertewp_login_enable', 'enabled'),
             'registration_enable' => get_option('_fuertewp_registration_enable', 'enabled'),
             'login_max_attempts' => intval(get_option('_fuertewp_login_max_attempts', 5)),
@@ -241,10 +255,10 @@ class Fuerte_Wp_Config
             'login_url_type' => get_option('_fuertewp_login_url_type', 'query_param'),
             'redirect_invalid_logins' => get_option('_fuertewp_redirect_invalid_logins', 'home_404'),
             'redirect_invalid_logins_url' => get_option('_fuertewp_redirect_invalid_logins_url', ''),
-        );
+        ];
 
         // Load restrictions
-        $config['restrictions'] = array(
+        $config['restrictions'] = [
             'restapi_loggedin_only' => get_option('_fuertewp_restrictions_restapi_loggedin_only', false),
             'restapi_disable_app_passwords' => get_option('_fuertewp_restrictions_restapi_disable_app_passwords', true),
             'disable_xmlrpc' => get_option('_fuertewp_restrictions_disable_xmlrpc', true),
@@ -252,7 +266,7 @@ class Fuerte_Wp_Config
             'disable_admin_create_edit' => get_option('_fuertewp_restrictions_disable_admin_create_edit', true),
             'disable_weak_passwords' => get_option('_fuertewp_restrictions_disable_weak_passwords', true),
             'force_strong_passwords' => get_option('_fuertewp_restrictions_force_strong_passwords', false),
-            'disable_admin_bar_roles' => get_option('_fuertewp_restrictions_disable_admin_bar_roles', array('subscriber', 'customer')),
+            'disable_admin_bar_roles' => get_option('_fuertewp_restrictions_disable_admin_bar_roles', ['subscriber', 'customer']),
             'restrict_permalinks' => get_option('_fuertewp_restrictions_restrict_permalinks', true),
             'restrict_acf' => get_option('_fuertewp_restrictions_restrict_acf', true),
             'disable_theme_editor' => get_option('_fuertewp_restrictions_disable_theme_editor', true),
@@ -260,10 +274,10 @@ class Fuerte_Wp_Config
             'disable_theme_install' => get_option('_fuertewp_restrictions_disable_theme_install', true),
             'disable_plugin_install' => get_option('_fuertewp_restrictions_disable_plugin_install', true),
             'disable_customizer_css' => get_option('_fuertewp_restrictions_disable_customizer_css', true),
-        );
+        ];
 
         // Load email settings
-        $config['emails'] = array(
+        $config['emails'] = [
             'fatal_error' => get_option('_fuertewp_emails_fatal_error', true),
             'automatic_updates' => get_option('_fuertewp_emails_automatic_updates', false),
             'comment_awaiting_moderation' => get_option('_fuertewp_emails_comment_awaiting_moderation', false),
@@ -274,12 +288,26 @@ class Fuerte_Wp_Config
             'network_new_site_created' => get_option('_fuertewp_emails_network_new_site_created', false),
             'network_new_user_site_registered' => get_option('_fuertewp_emails_network_new_user_site_registered', false),
             'network_new_site_activated' => get_option('_fuertewp_emails_network_new_site_activated', false),
-        );
+        ];
 
         // Load tweaks
-        $config['tweaks'] = array(
+        $config['tweaks'] = [
             'use_site_logo_login' => get_option('_fuertewp_tweaks_use_site_logo_login', false),
-        );
+        ];
+
+        // Load deferred updates
+        $config['deferred_plugins'] = self::load_multiselect_field('fuertewp_deferred_plugins');
+        $config['deferred_themes'] = self::load_multiselect_field('fuertewp_deferred_themes');
+
+        // Normalize deferred_plugins and deferred_themes from file config if they exist at top level
+        // This handles both file config and database config formats
+        if (isset($config['deferred_plugins']) && !is_array($config['deferred_plugins'])) {
+            $config['deferred_plugins'] = [];
+        }
+
+        if (isset($config['deferred_themes']) && !is_array($config['deferred_themes'])) {
+            $config['deferred_themes'] = [];
+        }
 
         return $config;
     }
@@ -289,6 +317,7 @@ class Fuerte_Wp_Config
      * Bypasses cache for admin users on settings pages to ensure fresh data.
      *
      * @since 1.7.2
+     *
      * @return bool True if cache should be bypassed
      */
     private static function should_bypass_cache()
@@ -311,6 +340,7 @@ class Fuerte_Wp_Config
         // Only check screen if we're in admin area and function exists
         if (function_exists('get_current_screen')) {
             $current_screen = get_current_screen();
+
             if ($current_screen) {
                 // Bypass for Fuerte-WP settings pages
                 if ($current_screen->id === 'settings_page_fuerte-wp-options' ||
@@ -328,9 +358,11 @@ class Fuerte_Wp_Config
      * Handles both direct options and Carbon Fields multiselect patterns automatically.
      *
      * @since 1.7.2
+     *
      * @param string $key Configuration key (without _fuertewp prefix)
      * @param mixed $default Default value if option doesn't exist
      * @param bool $is_multiselect Whether this field uses Carbon Fields multiselect pattern
+     *
      * @return mixed Configuration value
      */
     public static function get_field($key, $default = null, $is_multiselect = false)
@@ -348,9 +380,11 @@ class Fuerte_Wp_Config
      * Standardized method to set any configuration value.
      *
      * @since 1.7.2
+     *
      * @param string $key Configuration key (without _fuertewp prefix)
      * @param mixed $value Value to set
      * @param bool $is_multiselect Whether this field uses Carbon Fields multiselect pattern
+     *
      * @return bool Success status
      */
     public static function set_field($key, $value, $is_multiselect = false)
@@ -368,8 +402,10 @@ class Fuerte_Wp_Config
      * Save multiselect field values using Carbon Fields compatible pattern.
      *
      * @since 1.7.2
+     *
      * @param string $field_name Base field name without prefix
      * @param array $values Array of values to save
+     *
      * @return bool Success status
      */
     public static function save_multiselect_field($field_name, $values)
@@ -385,9 +421,11 @@ class Fuerte_Wp_Config
 
         // Now insert the new values
         $success = true;
+
         foreach ($values as $index => $value) {
             $option_name = "_{$field_name}|||{$index}|value";
             $result = update_option($option_name, $value);
+
             if (!$result) {
                 $success = false;
             }
@@ -401,17 +439,18 @@ class Fuerte_Wp_Config
      * Removes old Carbon Fields storage patterns while preserving _fuertewp_* data.
      *
      * @since 1.7.2
+     *
      * @return array Cleanup results
      */
     public static function cleanup_duplicate_patterns()
     {
         global $wpdb;
 
-        $cleanup_results = array(
+        $cleanup_results = [
             'deleted_fuertewp_options' => 0,
             'deleted_carbon_fields_options' => 0,
-            'preserved_fuertewp_options' => 0
-        );
+            'preserved_fuertewp_options' => 0,
+        ];
 
         // Only proceed if user has admin capabilities
         if (!current_user_can('manage_options')) {
@@ -434,6 +473,7 @@ class Fuerte_Wp_Config
                 // Special handling for login_db_version migration
                 if ($option_name === 'fuertewp_login_db_version') {
                     $underscored_name = '_fuertewp_login_db_version';
+
                     if (!get_option($underscored_name)) {
                         $current_version = defined('FUERTEWP_VERSION') ? FUERTEWP_VERSION : '1.0.0';
                         update_option($underscored_name, $current_version); // Set to current plugin version
@@ -442,6 +482,7 @@ class Fuerte_Wp_Config
                 } else {
                     // First, migrate data to _fuertewp_ version if it doesn't exist
                     $underscored_name = '_' . $option_name;
+
                     if (!get_option($underscored_name)) {
                         update_option($underscored_name, $option->option_value);
                         $cleanup_results['preserved_fuertewp_options']++;
@@ -465,6 +506,7 @@ class Fuerte_Wp_Config
             if (strpos($option_name, '__fuertewp_') === 0) {
                 // First, migrate data to single underscore version if it doesn't exist
                 $single_underscore_name = '_' . substr($option_name, 2); // Remove one underscore
+
                 if (!get_option($single_underscore_name)) {
                     update_option($single_underscore_name, $option->option_value);
                     $cleanup_results['preserved_fuertewp_options']++;
@@ -488,11 +530,12 @@ class Fuerte_Wp_Config
      * Replaces all direct get_option/carbon_get_theme_option calls.
      *
      * @since 1.7.2
+     *
      * @return array Configuration options array
      */
     public static function get_enforcer_config()
     {
-        return array(
+        return [
             // Status and core settings
             'fuertewp_status' => self::get_field('status', 'enabled'),
             'fuertewp_super_users' => self::get_field('super_users', [], true),
@@ -558,7 +601,11 @@ class Fuerte_Wp_Config
             'fuertewp_removed_menus' => self::get_field('removed_menus', [], true),
             'fuertewp_removed_submenus' => self::get_field('removed_submenus', [], true),
             'fuertewp_removed_adminbar_menus' => self::get_field('removed_adminbar_menus', [], true),
-        );
+
+            // Deferred updates
+            'fuertewp_deferred_plugins' => self::get_field('deferred_plugins', [], true),
+            'fuertewp_deferred_themes' => self::get_field('deferred_themes', [], true),
+        ];
     }
 
     /**
@@ -566,7 +613,9 @@ class Fuerte_Wp_Config
      * Handles the Carbon Fields _field_name|||index|value pattern.
      *
      * @since 1.7.2
+     *
      * @param string $field_name Base field name without prefix
+     *
      * @return array Array of field values
      */
     private static function load_multiselect_field($field_name)
@@ -574,7 +623,7 @@ class Fuerte_Wp_Config
         global $wpdb;
 
         $option_name_prefix = "_{$field_name}|||";
-        $values = array();
+        $values = [];
 
         // Get all options matching the multiselect pattern
         $results = $wpdb->get_results($wpdb->prepare(
@@ -595,6 +644,7 @@ class Fuerte_Wp_Config
 
         // Sort by index and re-index array
         ksort($values);
+
         return array_values($values);
     }
 }

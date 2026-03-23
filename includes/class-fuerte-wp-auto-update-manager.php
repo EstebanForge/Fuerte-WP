@@ -21,6 +21,7 @@ class Fuerte_Wp_Auto_Update_Manager
      * Plugin instance.
      *
      * @see get_instance()
+     *
      * @type object
      */
     protected static $instance = null;
@@ -51,13 +52,16 @@ class Fuerte_Wp_Auto_Update_Manager
     {
         // Add action hook for the cron event
         add_action('fuertewp_trigger_updates', [$this, 'trigger_updates']);
+
+        // Add filters for deferred updates (must run before global __return_true filters)
+        add_filter('auto_update_plugin', [$this, 'exclude_deferred_plugins'], 10, 2);
+        add_filter('auto_update_theme', [$this, 'exclude_deferred_themes'], 10, 2);
     }
 
     /**
      * Manage auto-update configuration.
      *
      * @param array $fuertewp The Fuerte-WP configuration
-     * @return void
      */
     public function manage_updates($fuertewp)
     {
@@ -94,7 +98,6 @@ class Fuerte_Wp_Auto_Update_Manager
      * with configurable frequency.
      *
      * @param string $frequency The update frequency (six_hours, twelve_hours, daily, twodays)
-     * @return void
      */
     protected function register_autoupdate_cron($frequency = 'twelve_hours')
     {
@@ -114,8 +117,6 @@ class Fuerte_Wp_Auto_Update_Manager
 
     /**
      * Remove autoupdate cron.
-     *
-     * @return void
      */
     protected function remove_autoupdate_cron()
     {
@@ -125,8 +126,6 @@ class Fuerte_Wp_Auto_Update_Manager
     /**
      * Do the updates
      * This method is called by the cronjob to perform scheduled updates.
-     *
-     * @return void
      */
     public function trigger_updates()
     {
@@ -188,5 +187,49 @@ class Fuerte_Wp_Auto_Update_Manager
         if (function_exists('write_log')) {
             write_log('Fuerte-WP trigger_updates completed at ' . date('Y-m-d H:i:s'));
         }
+    }
+
+    /**
+     * Exclude deferred plugins from auto-updates.
+     *
+     * @since 1.8.0
+     *
+     * @param bool $update Whether to update the plugin
+     * @param object $item The plugin's update data object
+     *
+     * @return bool False if plugin is deferred, original value otherwise
+     */
+    public function exclude_deferred_plugins($update, $item)
+    {
+        $fuertewp = Fuerte_Wp_Config::get_config();
+        $deferred = $fuertewp['deferred_plugins'] ?? [];
+
+        if (!empty($deferred) && isset($item->plugin) && in_array($item->plugin, $deferred)) {
+            return false; // Don't auto-update this plugin
+        }
+
+        return $update; // Let other filters decide
+    }
+
+    /**
+     * Exclude deferred themes from auto-updates.
+     *
+     * @since 1.8.0
+     *
+     * @param bool $update Whether to update the theme
+     * @param object $item The theme's update data object
+     *
+     * @return bool False if theme is deferred, original value otherwise
+     */
+    public function exclude_deferred_themes($update, $item)
+    {
+        $fuertewp = Fuerte_Wp_Config::get_config();
+        $deferred = $fuertewp['deferred_themes'] ?? [];
+
+        if (!empty($deferred) && isset($item->theme) && in_array($item->theme, $deferred)) {
+            return false; // Don't auto-update this theme
+        }
+
+        return $update; // Let other filters decide
     }
 } // Class Fuerte_Wp_Auto_Update_Manager

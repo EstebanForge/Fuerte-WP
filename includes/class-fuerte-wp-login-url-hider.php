@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Login URL Hider for Fuerte-WP Security Plugin
+ * Login URL Hider for Fuerte-WP Security Plugin.
  *
  * Handles hiding the default wp-login.php URL and replacing it with a custom slug.
  * Uses WordPress URL filtering and direct access blocking for enhanced security.
@@ -26,6 +26,7 @@ class Fuerte_Wp_Login_URL_Hider
      * Singleton instance.
      *
      * @since 1.7.0
+     *
      * @var Fuerte_Wp_Login_URL_Hider
      */
     private static $instance = null;
@@ -34,6 +35,7 @@ class Fuerte_Wp_Login_URL_Hider
      * WordPress database instance.
      *
      * @since 1.7.0
+     *
      * @var wpdb
      */
     private $wpdb;
@@ -42,6 +44,7 @@ class Fuerte_Wp_Login_URL_Hider
      * Configuration cache.
      *
      * @since 1.7.0
+     *
      * @var array
      */
     private $config_cache = [];
@@ -50,6 +53,7 @@ class Fuerte_Wp_Login_URL_Hider
      * WordPress request path.
      *
      * @since 1.7.0
+     *
      * @var string
      */
     private $request_path = '';
@@ -58,6 +62,7 @@ class Fuerte_Wp_Login_URL_Hider
      * Whether this is a valid login request.
      *
      * @since 1.7.0
+     *
      * @var bool
      */
     private $is_valid_login_request = false;
@@ -66,6 +71,7 @@ class Fuerte_Wp_Login_URL_Hider
      * Get singleton instance.
      *
      * @since 1.7.0
+     *
      * @return Fuerte_Wp_Login_URL_Hider
      */
     public static function get_instance()
@@ -73,6 +79,7 @@ class Fuerte_Wp_Login_URL_Hider
         if (self::$instance === null) {
             self::$instance = new self();
         }
+
         return self::$instance;
     }
 
@@ -98,7 +105,6 @@ class Fuerte_Wp_Login_URL_Hider
      * Initialize WordPress hooks.
      *
      * @since 1.7.0
-     * @return void
      */
     private function init_hooks()
     {
@@ -146,6 +152,7 @@ class Fuerte_Wp_Login_URL_Hider
      * Check if login URL hiding is enabled.
      *
      * @since 1.7.0
+     *
      * @return bool True if enabled, false otherwise
      */
     public function is_login_url_hiding_enabled()
@@ -180,6 +187,7 @@ class Fuerte_Wp_Login_URL_Hider
      * Get invalid login redirect configuration.
      *
      * @since 1.7.0
+     *
      * @return array Redirect configuration with 'type' and 'url' keys
      */
     public function get_invalid_login_redirect_config()
@@ -210,10 +218,11 @@ class Fuerte_Wp_Login_URL_Hider
 
         $config = [
             'type' => $redirect_type,
-            'url' => $redirect_url
+            'url' => $redirect_url,
         ];
 
         $this->config_cache['redirect_config'] = $config;
+
         return $config;
     }
 
@@ -221,6 +230,7 @@ class Fuerte_Wp_Login_URL_Hider
      * Get custom login slug.
      *
      * @since 1.7.0
+     *
      * @return string Custom login slug
      */
     public function get_custom_login_slug()
@@ -241,6 +251,7 @@ class Fuerte_Wp_Login_URL_Hider
         $slug = sanitize_title_with_dashes($slug);
 
         $this->config_cache['slug'] = $slug;
+
         return $slug;
     }
 
@@ -248,6 +259,7 @@ class Fuerte_Wp_Login_URL_Hider
      * Get login URL type.
      *
      * @since 1.7.0
+     *
      * @return string 'query_param' or 'pretty_url'
      */
     public function get_login_url_type()
@@ -268,6 +280,7 @@ class Fuerte_Wp_Login_URL_Hider
         $url_type = in_array($url_type, ['query_param', 'pretty_url']) ? $url_type : 'query_param';
 
         $this->config_cache['url_type'] = $url_type;
+
         return $url_type;
     }
 
@@ -275,6 +288,7 @@ class Fuerte_Wp_Login_URL_Hider
      * Check if WP-Admin protection is enabled.
      *
      * @since 1.7.0
+     *
      * @return bool True if protection is enabled
      */
     public function is_wp_admin_protection_enabled()
@@ -287,6 +301,7 @@ class Fuerte_Wp_Login_URL_Hider
         $protect = $this->is_login_url_hiding_enabled();
 
         $this->config_cache['protect_admin'] = $protect;
+
         return $protect;
     }
 
@@ -294,6 +309,7 @@ class Fuerte_Wp_Login_URL_Hider
      * Check if current user should bypass restrictions.
      *
      * @since 1.7.0
+     *
      * @return bool True if user should bypass, false otherwise
      */
     public function should_bypass_restrictions()
@@ -301,6 +317,7 @@ class Fuerte_Wp_Login_URL_Hider
         // Allow super users to bypass
         if (class_exists('Fuerte_Wp_Enforcer')) {
             $enforcer = Fuerte_Wp_Enforcer::get_instance();
+
             if (method_exists($enforcer, 'should_bypass_restrictions')) {
                 return $enforcer->should_bypass_restrictions();
             }
@@ -313,7 +330,9 @@ class Fuerte_Wp_Login_URL_Hider
      * Generate custom login URL.
      *
      * @since 1.7.0
+     *
      * @param string $scheme URL scheme
+     *
      * @return string Custom login URL
      */
     public function generate_custom_login_url($scheme = null)
@@ -337,10 +356,12 @@ class Fuerte_Wp_Login_URL_Hider
      * Filter site URLs to replace login URLs.
      *
      * @since 1.7.0
+     *
      * @param string $url The complete site URL
      * @param string $path Path relative to the site URL
      * @param string|null $scheme Scheme to give the site URL context
      * @param int|null $blog_id Site ID
+     *
      * @return string Filtered URL
      */
     public function filter_site_url($url, $path, $scheme, $blog_id)
@@ -361,9 +382,11 @@ class Fuerte_Wp_Login_URL_Hider
      * Filter network site URLs.
      *
      * @since 1.7.0
+     *
      * @param string $url The complete network site URL
      * @param string $path Path relative to the network site URL
      * @param string|null $scheme Scheme to give the network site URL context
+     *
      * @return string Filtered URL
      */
     public function filter_network_site_url($url, $path, $scheme)
@@ -383,8 +406,10 @@ class Fuerte_Wp_Login_URL_Hider
      * Filter wp redirects.
      *
      * @since 1.7.0
+     *
      * @param string $location The redirect URL
      * @param int $status HTTP status code
+     *
      * @return string Filtered location
      */
     public function filter_wp_redirect($location, $status)
@@ -404,9 +429,11 @@ class Fuerte_Wp_Login_URL_Hider
      * Filter login URL.
      *
      * @since 1.7.0
+     *
      * @param string $login_url Login URL
      * @param string $redirect URL to redirect to after login
      * @param bool $force_reauth Whether to force reauthentication
+     *
      * @return string Filtered login URL
      */
     public function filter_login_url($login_url, $redirect, $force_reauth)
@@ -422,8 +449,10 @@ class Fuerte_Wp_Login_URL_Hider
      * Filter logout URL.
      *
      * @since 1.7.0
+     *
      * @param string $logout_url Logout URL
      * @param string $redirect URL to redirect to after logout
+     *
      * @return string Filtered logout URL
      */
     public function filter_logout_url($logout_url, $redirect)
@@ -439,8 +468,10 @@ class Fuerte_Wp_Login_URL_Hider
      * Filter lost password URL.
      *
      * @since 1.7.0
+     *
      * @param string $lostpassword_url Lost password URL
      * @param string $redirect URL to redirect to after password reset
+     *
      * @return string Filtered lost password URL
      */
     public function filter_lostpassword_url($lostpassword_url, $redirect)
@@ -456,7 +487,9 @@ class Fuerte_Wp_Login_URL_Hider
      * Filter registration URL.
      *
      * @since 1.7.0
+     *
      * @param string $register_url Registration URL
+     *
      * @return string Filtered registration URL
      */
     public function filter_register_url($register_url)
@@ -472,7 +505,6 @@ class Fuerte_Wp_Login_URL_Hider
      * Add hidden field to login form.
      *
      * @since 1.7.0
-     * @return void
      */
     public function add_hidden_field_to_login_form()
     {
@@ -484,9 +516,11 @@ class Fuerte_Wp_Login_URL_Hider
      * Validate hidden field during authentication.
      *
      * @since 1.7.0
+     *
      * @param WP_User|WP_Error|null $user User object or error
      * @param string $username Username
      * @param string $password Password
+     *
      * @return WP_User|WP_Error|null Filtered user result
      */
     public function validate_hidden_login_field($user, $username, $password)
@@ -511,8 +545,10 @@ class Fuerte_Wp_Login_URL_Hider
                     $logger->log_attempt('blocked', $ip, 'blocked', 'Invalid login form submission - missing or incorrect hidden field', $_SERVER['HTTP_USER_AGENT'] ?? '');
                 }
 
-                return new WP_Error('invalid_login_form',
-                    '<strong>Error:</strong> Invalid login form submission. Please use the proper login page.');
+                return new WP_Error(
+                    'invalid_login_form',
+                    '<strong>Error:</strong> Invalid login form submission. Please use the proper login page.'
+                );
             }
         }
 
@@ -523,7 +559,6 @@ class Fuerte_Wp_Login_URL_Hider
      * Handle login initialization.
      *
      * @since 1.7.0
-     * @return void
      */
     public function handle_login_init()
     {
@@ -544,7 +579,6 @@ class Fuerte_Wp_Login_URL_Hider
      * Protect WP-Admin access.
      *
      * @since 1.7.0
-     * @return void
      */
     public function protect_wp_admin_access()
     {
@@ -589,13 +623,12 @@ class Fuerte_Wp_Login_URL_Hider
         }
     }
 
-
     /**
      * Handle custom login URL requests via parse_request.
      *
      * @since 1.7.0
+     *
      * @param WP $wp WordPress request object
-     * @return void
      */
     public function handle_parse_request($wp)
     {
@@ -616,13 +649,14 @@ class Fuerte_Wp_Login_URL_Hider
             // Tell WordPress this is a login request
             $wp->query_vars = array_merge($wp->query_vars, [
                 'pagename' => 'wp-login',
-                'action' => isset($_GET['action']) ? $_GET['action'] : 'login'
+                'action' => $_GET['action'] ?? 'login',
             ]);
 
             Fuerte_Wp_Logger::debug('Parse request - Including wp-login.php directly');
 
             // Include the login file directly
             $login_file = ABSPATH . 'wp-login.php';
+
             if (file_exists($login_file)) {
                 include_once $login_file;
                 exit;
@@ -634,7 +668,6 @@ class Fuerte_Wp_Login_URL_Hider
      * Display the login form directly.
      *
      * @since 1.7.0
-     * @return void
      */
     private function display_login_form()
     {
@@ -644,8 +677,8 @@ class Fuerte_Wp_Login_URL_Hider
         }
 
         // Set up the login form
-        $action = isset($_GET['action']) ? $_GET['action'] : 'login';
-        $redirect_to = isset($_GET['redirect_to']) ? $_GET['redirect_to'] : admin_url();
+        $action = $_GET['action'] ?? 'login';
+        $redirect_to = $_GET['redirect_to'] ?? admin_url();
 
         // Include WordPress login functions
         if (!function_exists('login_header')) {
@@ -653,7 +686,7 @@ class Fuerte_Wp_Login_URL_Hider
         }
 
         // Show the login form
-        login_form(array(
+        login_form([
             'redirect' => $redirect_to,
             'form_id' => 'loginform',
             'label_username' => __('Username or Email Address'),
@@ -666,8 +699,8 @@ class Fuerte_Wp_Login_URL_Hider
             'id_submit' => 'wp-submit',
             'remember' => true,
             'value_username' => '',
-            'value_remember' => false
-        ));
+            'value_remember' => false,
+        ]);
 
         exit;
     }
@@ -676,7 +709,9 @@ class Fuerte_Wp_Login_URL_Hider
      * Check if URL is login related.
      *
      * @since 1.7.0
+     *
      * @param string $url URL to check
+     *
      * @return bool True if login related
      */
     private function is_login_related_url($url)
@@ -688,8 +723,10 @@ class Fuerte_Wp_Login_URL_Hider
      * Replace login URL in given URL.
      *
      * @since 1.7.0
+     *
      * @param string $url Original URL
      * @param string|null $scheme URL scheme
+     *
      * @return string Modified URL
      */
     private function replace_login_url($url, $scheme = null)
@@ -700,12 +737,14 @@ class Fuerte_Wp_Login_URL_Hider
 
         // Parse the URL to extract query parameters
         $parsed_url = parse_url($url);
+
         if (!$parsed_url) {
             return $url;
         }
 
         // Extract existing query parameters
         $query_params = [];
+
         if (isset($parsed_url['query'])) {
             parse_str($parsed_url['query'], $query_params);
         }
@@ -728,7 +767,9 @@ class Fuerte_Wp_Login_URL_Hider
      * Check if this is a custom login URL request.
      *
      * @since 1.7.0
+     *
      * @param array $request Parsed request array
+     *
      * @return bool True if custom login URL
      */
     private function is_custom_login_url_request($request)
@@ -742,11 +783,11 @@ class Fuerte_Wp_Login_URL_Hider
         if ($url_type === 'pretty_url') {
             // Check for pretty URL: /custom-slug/
             $expected_path = '/' . $slug . '/';
-            $request_path = isset($request['path']) ? $request['path'] : '';
+            $request_path = $request['path'] ?? '';
             $normalized_request_path = untrailingslashit($request_path);
             $normalized_expected_path = untrailingslashit($expected_path);
 
-            return ($normalized_request_path === $normalized_expected_path);
+            return $normalized_request_path === $normalized_expected_path;
         } else {
             // Check for query parameter: ?custom-slug (empty value indicates login request)
             $result = isset($_GET[$slug]);
@@ -763,6 +804,7 @@ class Fuerte_Wp_Login_URL_Hider
      * Check if this is a WP-Admin request.
      *
      * @since 1.7.0
+     *
      * @return bool True if WP-Admin request
      */
     private function is_wp_admin_request()
@@ -775,7 +817,6 @@ class Fuerte_Wp_Login_URL_Hider
      * Redirect invalid login attempts.
      *
      * @since 1.7.0
-     * @return void
      */
     private function redirect_invalid_login()
     {
@@ -803,6 +844,7 @@ class Fuerte_Wp_Login_URL_Hider
      * Get client IP address.
      *
      * @since 1.7.0
+     *
      * @return string Client IP address
      */
     private function get_client_ip()
@@ -813,6 +855,7 @@ class Fuerte_Wp_Login_URL_Hider
             if (array_key_exists($key, $_SERVER) === true) {
                 foreach (explode(',', $_SERVER[$key]) as $ip) {
                     $ip = trim($ip);
+
                     if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
                         return $ip;
                     }
@@ -827,7 +870,6 @@ class Fuerte_Wp_Login_URL_Hider
      * Early WP-Admin access check before WordPress core redirects.
      *
      * @since 1.7.0
-     * @return void
      */
     public function early_wp_admin_check()
     {
@@ -860,6 +902,7 @@ class Fuerte_Wp_Login_URL_Hider
      * Check if current request is valid.
      *
      * @since 1.7.0
+     *
      * @return bool True if valid login request
      */
     public function is_valid_login_request()
@@ -871,7 +914,6 @@ class Fuerte_Wp_Login_URL_Hider
      * Clear configuration cache.
      *
      * @since 1.7.0
-     * @return void
      */
     public function clear_config_cache()
     {

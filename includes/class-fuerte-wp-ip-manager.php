@@ -32,6 +32,7 @@ class Fuerte_Wp_IP_Manager
      * Custom IP headers from config.
      *
      * @since 1.7.0
+     *
      * @var array
      */
     private $custom_ip_headers = [];
@@ -55,6 +56,7 @@ class Fuerte_Wp_IP_Manager
     private function load_custom_ip_headers()
     {
         $custom_headers = carbon_get_theme_option('fuertewp_login_ip_headers');
+
         if (!empty($custom_headers)) {
             // Use optimized string operations if available
             if (class_exists('Fuerte_Wp_String_Optimizer')) {
@@ -73,6 +75,7 @@ class Fuerte_Wp_IP_Manager
      * Enhanced with better IP validation and fallback handling.
      *
      * @since 1.7.0
+     *
      * @return string IP address
      */
     public function get_client_ip()
@@ -98,8 +101,10 @@ class Fuerte_Wp_IP_Manager
 
         foreach ($ip_headers as $header) {
             $value = $this->get_header_value($header);
+
             if (!empty($value)) {
                 $ip = $this->extract_ip_from_header($value);
+
                 if ($this->is_valid_ip($ip)) {
                     return $ip;
                 }
@@ -108,6 +113,7 @@ class Fuerte_Wp_IP_Manager
 
         // Fallback to REMOTE_ADDR - use it directly if it's valid
         $remote_addr = $_SERVER['REMOTE_ADDR'] ?? '';
+
         if ($this->is_valid_ip($remote_addr)) {
             return $remote_addr;
         }
@@ -119,7 +125,9 @@ class Fuerte_Wp_IP_Manager
      * Get header value safely.
      *
      * @since 1.7.0
+     *
      * @param string $header Header name
+     *
      * @return string Header value or empty string
      */
     private function get_header_value($header)
@@ -145,7 +153,9 @@ class Fuerte_Wp_IP_Manager
      * Uses Fuerte_Wp_IP_Helper for normalization.
      *
      * @since 1.7.0
+     *
      * @param string $header_value Header value containing IP(s)
+     *
      * @return string First valid IP found
      */
     private function extract_ip_from_header($header_value)
@@ -174,14 +184,15 @@ class Fuerte_Wp_IP_Manager
         return '';
     }
 
-    
     /**
      * Validate IP address format.
      *
      * Checks for IPv4 and IPv6 validity.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address to validate
+     *
      * @return bool True if valid, false otherwise
      */
     public function is_valid_ip($ip)
@@ -192,6 +203,7 @@ class Fuerte_Wp_IP_Manager
 
         // Filter for IP
         $filtered = filter_var($ip, FILTER_VALIDATE_IP);
+
         return $filtered !== false;
     }
 
@@ -199,7 +211,9 @@ class Fuerte_Wp_IP_Manager
      * Check if IP is IPv6.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
+     *
      * @return bool True if IPv6, false if IPv4
      */
     public function is_ipv6($ip)
@@ -213,7 +227,9 @@ class Fuerte_Wp_IP_Manager
      * Uses Fuerte_Wp_IP_Helper for validation.
      *
      * @since 1.7.0
+     *
      * @param string $range CIDR range (e.g., 192.168.1.0/24 or 2001:db8::/32)
+     *
      * @return bool True if valid, false otherwise
      */
     public function validate_cidr($range)
@@ -221,7 +237,6 @@ class Fuerte_Wp_IP_Manager
         return Fuerte_Wp_Helper::validate_cidr($range);
     }
 
-    
     /**
      * Check if IP is within a CIDR range.
      *
@@ -229,8 +244,10 @@ class Fuerte_Wp_IP_Manager
      * Uses the Fuerte_Wp_IP_Helper for calculations.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $range Range (IP, CIDR, dash range, or wildcard)
+     *
      * @return bool True if in range, false otherwise
      */
     public function ip_in_range($ip, $range)
@@ -294,13 +311,14 @@ class Fuerte_Wp_IP_Manager
         return false;
     }
 
-    
     /**
      * Check if IP is in dash-separated range.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $range Range (e.g., 192.168.1.1-192.168.1.10)
+     *
      * @return bool True if in range, false otherwise
      */
     private function ip_in_dash_range($ip, $range)
@@ -308,6 +326,7 @@ class Fuerte_Wp_IP_Manager
         $parts = class_exists('Fuerte_Wp_String_Optimizer')
             ? Fuerte_Wp_String_Optimizer::explode_cached('-', $range, 2)
             : explode('-', $range, 2);
+
         if (count($parts) !== 2) {
             return false;
         }
@@ -338,8 +357,10 @@ class Fuerte_Wp_IP_Manager
      * Check if IP matches wildcard pattern.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $range Wildcard range (e.g., 192.168.1.*)
+     *
      * @return bool True if matches, false otherwise
      */
     private function ip_in_wildcard_range($ip, $range)
@@ -354,12 +375,14 @@ class Fuerte_Wp_IP_Manager
             $pattern = Fuerte_Wp_String_Optimizer::replace_optimized('*', '\d+', $range);
             $pattern = Fuerte_Wp_String_Optimizer::replace_optimized('.', '\.', $pattern);
             $pattern = '/^' . $pattern . '$/';
+
             return Fuerte_Wp_String_Optimizer::preg_match_cached($pattern, $ip) === 1;
         } else {
             // Fallback to original regex
             $pattern = str_replace('*', '\d+', $range);
             $pattern = str_replace('.', '\.', $pattern);
             $pattern = '/^' . $pattern . '$/';
+
             return preg_match($pattern, $ip) === 1;
         }
     }
@@ -368,8 +391,10 @@ class Fuerte_Wp_IP_Manager
      * Check if IP is in partial range.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $range Partial range (e.g., 192.168.1)
+     *
      * @return bool True if matches, false otherwise
      */
     private function ip_in_partial_range($ip, $range)
@@ -390,7 +415,9 @@ class Fuerte_Wp_IP_Manager
      * Check if IP is whitelisted.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
+     *
      * @return bool True if whitelisted, false otherwise
      */
     public function is_whitelisted($ip)
@@ -402,7 +429,9 @@ class Fuerte_Wp_IP_Manager
      * Check if IP is blacklisted.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
+     *
      * @return bool True if blacklisted, false otherwise
      */
     public function is_blacklisted($ip)
@@ -414,8 +443,10 @@ class Fuerte_Wp_IP_Manager
      * Check IP against whitelist or blacklist.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $type List type (whitelist or blacklist)
+     *
      * @return bool True if found in list, false otherwise
      */
     private function check_ip_list($ip, $type)
@@ -444,7 +475,9 @@ class Fuerte_Wp_IP_Manager
      * Get all IPs from whitelist or blacklist.
      *
      * @since 1.7.0
+     *
      * @param string $type List type (whitelist or blacklist)
+     *
      * @return array Array of IP entries
      */
     public function get_ip_list($type)
@@ -465,9 +498,11 @@ class Fuerte_Wp_IP_Manager
      * Add IP to whitelist or blacklist.
      *
      * @since 1.7.0
+     *
      * @param string $ip_or_range IP or range
      * @param string $type List type (whitelist or blacklist)
      * @param string $note Optional note
+     *
      * @return bool|WP_Error True on success, WP_Error on failure
      */
     public function add_ip_to_list($ip_or_range, $type, $note = '')
@@ -482,6 +517,7 @@ class Fuerte_Wp_IP_Manager
 
         // Determine range type
         $range_type = 'single';
+
         if (strpos($ip_or_range, '/') !== false) {
             $range_type = 'cidr';
         } elseif (strpos($ip_or_range, '-') !== false) {
@@ -520,7 +556,9 @@ class Fuerte_Wp_IP_Manager
      * Remove IP from whitelist or blacklist.
      *
      * @since 1.7.0
+     *
      * @param int $id IP entry ID
+     *
      * @return bool True on success, false on failure
      */
     public function remove_ip_from_list($id)
@@ -531,7 +569,7 @@ class Fuerte_Wp_IP_Manager
 
         return $wpdb->delete(
             $table,
-            ['id' => (int)$id],
+            ['id' => (int) $id],
             ['%d']
         ) !== false;
     }

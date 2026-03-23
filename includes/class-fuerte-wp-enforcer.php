@@ -24,6 +24,7 @@ class Fuerte_Wp_Enforcer
      * Plugin instance.
      *
      * @see get_instance()
+     *
      * @type object
      */
     protected static $instance = null;
@@ -34,12 +35,14 @@ class Fuerte_Wp_Enforcer
     public $config;
     /**
      * Auto-update manager instance.
+     *
      * @var Fuerte_Wp_Auto_Update_Manager|null
      */
     public $auto_update_manager = null;
 
     /**
      * Login manager instance.
+     *
      * @var Fuerte_Wp_Login_Manager|null
      */
     public $login_manager = null;
@@ -65,7 +68,6 @@ class Fuerte_Wp_Enforcer
      * if no super users are configured yet.
      *
      * @since 1.7.0
-     * @return void
      */
     public function ensure_super_user_exists()
     {
@@ -94,18 +96,21 @@ class Fuerte_Wp_Enforcer
                 // Import super users from file to database as array to match multiselect field
                 carbon_set_theme_option('fuertewp_super_users', $file_config['super_users']);
                 Fuerte_Wp_Logger::info('Super users imported from file: ' . implode(', ', $file_config['super_users']));
+
                 return;
             }
         }
 
         // No super users found - auto-configure current admin user
         $current_user = wp_get_current_user();
+
         if ($current_user && $current_user->ID > 0 && current_user_can('manage_options')) {
             // Store as array to match the multiselect field type
             carbon_set_theme_option('fuertewp_super_users', [$current_user->user_email]);
 
             // Also set plugin status if not already set using Carbon Fields
             $status = carbon_get_theme_option('fuertewp_status');
+
             if (empty($status)) {
                 carbon_set_theme_option('fuertewp_status', 'enabled');
             }
@@ -118,7 +123,6 @@ class Fuerte_Wp_Enforcer
      * Load required classes.
      *
      * @since 1.7.0
-     * @return void
      */
     private function load_optimization_classes()
     {
@@ -209,7 +213,6 @@ class Fuerte_Wp_Enforcer
      * Clean up old login logs (cron job).
      *
      * @since 1.7.0
-     * @return void
      */
     public function cleanup_login_logs()
     {
@@ -221,7 +224,6 @@ class Fuerte_Wp_Enforcer
      * AJAX handler to clear all login logs.
      *
      * @since 1.7.0
-     * @return void
      */
     public function ajax_clear_login_logs()
     {
@@ -243,7 +245,6 @@ class Fuerte_Wp_Enforcer
      * AJAX handler to reset all lockouts.
      *
      * @since 1.7.0
-     * @return void
      */
     public function ajax_reset_lockouts()
     {
@@ -265,7 +266,6 @@ class Fuerte_Wp_Enforcer
      * AJAX handler to export login attempts.
      *
      * @since 1.7.0
-     * @return void
      */
     public function ajax_export_attempts()
     {
@@ -294,7 +294,6 @@ class Fuerte_Wp_Enforcer
      * AJAX handler to export IP list.
      *
      * @since 1.7.0
-     * @return void
      */
     public function ajax_export_ips()
     {
@@ -320,7 +319,6 @@ class Fuerte_Wp_Enforcer
      * AJAX handler to add IP to list.
      *
      * @since 1.7.0
-     * @return void
      */
     public function ajax_add_ip()
     {
@@ -358,7 +356,6 @@ class Fuerte_Wp_Enforcer
      * AJAX handler to remove IP from list.
      *
      * @since 1.7.0
-     * @return void
      */
     public function ajax_remove_ip()
     {
@@ -368,7 +365,7 @@ class Fuerte_Wp_Enforcer
             wp_die(__('Insufficient permissions', 'fuerte-wp'));
         }
 
-        $id = (int)($_POST['id'] ?? 0);
+        $id = (int) ($_POST['id'] ?? 0);
 
         if ($id <= 0) {
             wp_send_json_error(__('Invalid ID', 'fuerte-wp'));
@@ -390,7 +387,6 @@ class Fuerte_Wp_Enforcer
      * AJAX handler to get login logs table.
      *
      * @since 1.7.0
-     * @return void
      */
     public function ajax_get_login_logs()
     {
@@ -400,7 +396,7 @@ class Fuerte_Wp_Enforcer
             wp_die(__('Insufficient permissions', 'fuerte-wp'));
         }
 
-        $page = (int)($_POST['page'] ?? 1);
+        $page = (int) ($_POST['page'] ?? 1);
         $per_page = 50;
         $offset = ($page - 1) * $per_page;
 
@@ -444,6 +440,7 @@ class Fuerte_Wp_Enforcer
 
                 // Actions column
                 $html .= '<td>';
+
                 if ($attempt->status === 'blocked') {
                     // Check if there's an active lockout for this IP/username combination
                     $active_lockout = $logger->get_active_lockout($attempt->ip_address, $attempt->username);
@@ -452,7 +449,7 @@ class Fuerte_Wp_Enforcer
                         $html .= '<button type="button" class="button button-small button-secondary fuertewp-unblock-single" ';
                         $html .= 'data-ip="' . esc_attr($attempt->ip_address) . '" ';
                         $html .= 'data-username="' . esc_attr($attempt->username) . '" ';
-                        $html .= 'data-id="' . (int)$attempt->id . '">';
+                        $html .= 'data-id="' . (int) $attempt->id . '">';
                         $html .= esc_html__('Unblock', 'fuerte-wp');
                         $html .= '</button>';
                     }
@@ -490,6 +487,7 @@ class Fuerte_Wp_Enforcer
                         if (preg_match('/class="current"/', $link)) {
                             $link = str_replace('class="current"', 'class="current" data-page="' . $page . '"', $link);
                         }
+
                         // Handle disabled links (prev/next when no more pages)
                         if (preg_match('/class="[^"]*disabled[^"]*"/', $link)) {
                             continue; // Skip disabled links
@@ -510,7 +508,6 @@ class Fuerte_Wp_Enforcer
         ]);
     }
 
-    
     /**
      * Get cached configuration section with granular caching.
      */
@@ -547,6 +544,7 @@ class Fuerte_Wp_Enforcer
      * Replaces all direct get_option/carbon_get_theme_option calls with a single standardized method.
      *
      * @since 1.7.2
+     *
      * @return array Configuration options
      */
     private function get_config_options_batch()
@@ -558,7 +556,9 @@ class Fuerte_Wp_Enforcer
      * Normalize configuration structure to handle both old and new config formats.
      *
      * @since 1.7.0
+     *
      * @param array $config Configuration array
+     *
      * @return array Normalized configuration array
      */
     private function normalize_config_structure($config)
@@ -571,15 +571,19 @@ class Fuerte_Wp_Enforcer
             if (isset($advanced['restricted_scripts'])) {
                 $config['restricted_scripts'] = $advanced['restricted_scripts'];
             }
+
             if (isset($advanced['restricted_pages'])) {
                 $config['restricted_pages'] = $advanced['restricted_pages'];
             }
+
             if (isset($advanced['removed_menus'])) {
                 $config['removed_menus'] = $advanced['removed_menus'];
             }
+
             if (isset($advanced['removed_submenus'])) {
                 $config['removed_submenus'] = $advanced['removed_submenus'];
             }
+
             if (isset($advanced['removed_adminbar_menus'])) {
                 $config['removed_adminbar_menus'] = $advanced['removed_adminbar_menus'];
             }
@@ -593,24 +597,31 @@ class Fuerte_Wp_Enforcer
             if (isset($login['login_enable'])) {
                 $config['login_enable'] = $login['login_enable'];
             }
+
             if (isset($login['registration_enable'])) {
                 $config['registration_enable'] = $login['registration_enable'];
             }
+
             if (isset($login['login_max_attempts'])) {
                 $config['login_max_attempts'] = $login['login_max_attempts'];
             }
+
             if (isset($login['login_lockout_duration'])) {
                 $config['login_lockout_duration'] = $login['login_lockout_duration'];
             }
+
             if (isset($login['login_increasing_lockout'])) {
                 $config['login_increasing_lockout'] = $login['login_increasing_lockout'];
             }
+
             if (isset($login['login_ip_headers'])) {
                 $config['login_ip_headers'] = $login['login_ip_headers'];
             }
+
             if (isset($login['login_gdpr_message'])) {
                 $config['login_gdpr_message'] = $login['login_gdpr_message'];
             }
+
             if (isset($login['login_data_retention'])) {
                 $config['login_data_retention'] = $login['login_data_retention'];
             }
@@ -623,9 +634,11 @@ class Fuerte_Wp_Enforcer
             if (isset($usernames['whitelist'])) {
                 $config['username_whitelist'] = $usernames['whitelist'];
             }
+
             if (isset($usernames['block_default_users'])) {
                 $config['block_default_users'] = $usernames['block_default_users'];
             }
+
             if (isset($usernames['blacklist'])) {
                 $config['username_blacklist'] = $usernames['blacklist'];
             }
@@ -665,6 +678,7 @@ class Fuerte_Wp_Enforcer
 
             // Load default sample config and sets defaults
             $fuertewp_pre = $fuertewp;
+
             if (
                 file_exists(
                     FUERTEWP_PATH . 'config-sample/wp-config-fuerte.php',
@@ -850,6 +864,7 @@ class Fuerte_Wp_Enforcer
 
         // Only register email notification hooks if any email features are disabled
         $email_hooks_needed = false;
+
         foreach ($fuertewp['emails'] as $key => $value) {
             if (false === $value) {
                 $email_hooks_needed = true;
@@ -1265,8 +1280,8 @@ class Fuerte_Wp_Enforcer
      * Apply core restrictions that don't need hook registration.
      *
      * @since 1.7.0
+     *
      * @param array $fuertewp Configuration array
-     * @return void
      */
     private function apply_core_restrictions($fuertewp)
     {
@@ -1295,8 +1310,8 @@ class Fuerte_Wp_Enforcer
      * Apply immediate restrictions (no hooks needed).
      *
      * @since 1.7.0
+     *
      * @param array $fuertewp Configuration array
-     * @return void
      */
     private function apply_immediate_restrictions($fuertewp)
     {
@@ -1319,9 +1334,9 @@ class Fuerte_Wp_Enforcer
      * Apply page-based restrictions.
      *
      * @since 1.7.0
+     *
      * @param array $fuertewp Configuration array
      * @param string $pagenow Current page
-     * @return void
      */
     private function apply_page_restrictions($fuertewp, $pagenow)
     {
@@ -1423,9 +1438,9 @@ class Fuerte_Wp_Enforcer
      * Apply user protection restrictions.
      *
      * @since 1.7.0
+     *
      * @param array $fuertewp Configuration array
      * @param string $pagenow Current page
-     * @return void
      */
     private function apply_user_protection($fuertewp, $pagenow)
     {
@@ -1434,6 +1449,7 @@ class Fuerte_Wp_Enforcer
         // No protected users editing
         if ($pagenow == 'user-edit.php' && isset($_REQUEST['user_id']) && !empty($_REQUEST['user_id'])) {
             $user_info = get_userdata($_REQUEST['user_id']);
+
             if ($user_info && in_array(strtolower($user_info->user_email), $super_users)) {
                 $this->access_denied();
             }
@@ -1451,6 +1467,7 @@ class Fuerte_Wp_Enforcer
 
             foreach ($users_to_check as $user_id) {
                 $user_info = get_userdata($user_id);
+
                 if ($user_info && in_array(strtolower($user_info->user_email), $super_users)) {
                     $this->access_denied();
                 }
@@ -1462,7 +1479,6 @@ class Fuerte_Wp_Enforcer
      * Apply htaccess security rules.
      *
      * @since 1.7.0
-     * @return void
      */
     private function apply_htaccess_rules()
     {
@@ -1495,6 +1511,7 @@ class Fuerte_Wp_Enforcer
      * Check if current request is REST API request.
      *
      * @since 1.7.0
+     *
      * @return bool
      */
     private static function is_rest_request()
@@ -1510,7 +1527,6 @@ class Fuerte_Wp_Enforcer
     {
         global $pagenow;
 
-        
         // Prevent direct deactivation for non-super users only
         if (
             isset($_REQUEST['action'])
@@ -1569,6 +1585,7 @@ class Fuerte_Wp_Enforcer
                 if (plugin_basename(FUERTEWP_PLUGIN_BASE) === $plugin_file) {
                     // Check if current user is a super user
                     $is_super_user = false;
+
                     if (isset($current_user) && isset($fuertewp['super_users'])) {
                         $is_super_user = in_array(
                             strtolower($current_user->user_email),
@@ -1611,7 +1628,7 @@ class Fuerte_Wp_Enforcer
     /**
      * Set WP sender email address.
      *
-     * @return string    Email address
+     * @return string Email address
      */
     public static function sender_email_address(): string
     {
@@ -1628,7 +1645,7 @@ class Fuerte_Wp_Enforcer
     /**
      * Set WP sender email name.
      *
-     * @return string    Email name
+     * @return string Email name
      */
     public static function sender_email_name(): string
     {
@@ -1640,7 +1657,7 @@ class Fuerte_Wp_Enforcer
     /**
      * Change WP recovery email adresss.
      *
-     * @return string    Email address
+     * @return string Email address
      */
     public static function recovery_email_address(): array
     {
@@ -1689,6 +1706,7 @@ class Fuerte_Wp_Enforcer
             && !empty($fuertewp['removed_submenus'])
         ) {
             $submenu_parts = [];
+
             foreach ($fuertewp['removed_submenus'] as $item) {
                 $submenu_parts = explode('|', $item);
                 $submenu_parts = array_map('trim', $submenu_parts);
@@ -1720,7 +1738,7 @@ class Fuerte_Wp_Enforcer
     /**
      * Check if a role can be created/edited.
      *
-     * @return array    Roles array, without administrator role
+     * @return array Roles array, without administrator role
      */
     public static function create_edit_role_check($roles): array
     {
@@ -1733,7 +1751,7 @@ class Fuerte_Wp_Enforcer
      * Check current user role
      * https://wordpress.org/support/article/roles-and-capabilities/.
      *
-     * @return bool    True if it has the role
+     * @return bool True if it has the role
      */
     public static function has_role($role = 'subscriber'): bool
     {
@@ -1787,6 +1805,7 @@ class Fuerte_Wp_Enforcer
 			}
 
 			<?php endif;
+
         // Hides ACF cog that allow users access ACF editable meta boxes UI
         if (
             isset($fuertewp['restrictions']['restrict_acf'])
@@ -1833,7 +1852,7 @@ class Fuerte_Wp_Enforcer
     /**
      * WP Login custom logo URL.
      *
-     * @return string    Blog URL
+     * @return string Blog URL
      */
     public static function custom_login_url()
     {
@@ -1850,7 +1869,7 @@ class Fuerte_Wp_Enforcer
     /**
      * WP Login custom logo title.
      *
-     * @return string    Blog name
+     * @return string Blog name
      */
     public static function custom_login_title()
     {
@@ -1917,7 +1936,7 @@ class Fuerte_Wp_Enforcer
             session_start();
         }
 
-        $remaining = isset($_SESSION['fuertewp_login_attempts_left']) ? (int)$_SESSION['fuertewp_login_attempts_left'] : 0;
+        $remaining = isset($_SESSION['fuertewp_login_attempts_left']) ? (int) $_SESSION['fuertewp_login_attempts_left'] : 0;
 
         if ($remaining > 0) {
             $message = sprintf(
@@ -1944,6 +1963,7 @@ class Fuerte_Wp_Enforcer
         }
 
         $ip = isset($_POST['ip']) ? sanitize_text_field($_POST['ip']) : '';
+
         if (empty($ip)) {
             wp_send_json_error(__('IP address is required.', 'fuertewp'));
         }
@@ -1967,7 +1987,6 @@ class Fuerte_Wp_Enforcer
      * AJAX handler for unblocking individual login attempts.
      *
      * @since 1.7.0
-     * @return void
      */
     public function ajax_unblock_single()
     {
@@ -1979,7 +1998,7 @@ class Fuerte_Wp_Enforcer
 
         $ip = sanitize_text_field($_POST['ip'] ?? '');
         $username = sanitize_text_field($_POST['username'] ?? '');
-        $attempt_id = (int)($_POST['id'] ?? 0);
+        $attempt_id = (int) ($_POST['id'] ?? 0);
 
         if (empty($ip) || empty($attempt_id)) {
             wp_send_json_error(__('Invalid parameters', 'fuerte-wp'));
@@ -2011,7 +2030,7 @@ class Fuerte_Wp_Enforcer
                     __('Unblocked IP %s for user %s', 'fuerte-wp'),
                     esc_html($ip),
                     esc_html($username)
-                )
+                ),
             ]);
         } else {
             wp_send_json_error(__('No active lockout found for this entry', 'fuerte-wp'));

@@ -23,6 +23,7 @@ defined('ABSPATH') || die();
  * version of the plugin.
  *
  * @since      1.3.0
+ *
  * @author     Esteban Cuevas <esteban@attitude.cl>
  */
 class Fuerte_Wp
@@ -32,7 +33,8 @@ class Fuerte_Wp
      * the plugin.
      *
      * @since    1.3.0
-     * @var      Fuerte_Wp_Loader       Maintains and registers all hooks for the plugin.
+     *
+     * @var Fuerte_Wp_Loader Maintains and registers all hooks for the plugin.
      */
     protected $loader;
 
@@ -40,7 +42,8 @@ class Fuerte_Wp
      * The unique identifier of this plugin.
      *
      * @since    1.3.0
-     * @var      string       The string used to uniquely identify this plugin.
+     *
+     * @var string The string used to uniquely identify this plugin.
      */
     protected $plugin_name;
 
@@ -48,7 +51,8 @@ class Fuerte_Wp
      * The current version of the plugin.
      *
      * @since    1.3.0
-     * @var      string       The current version of the plugin.
+     *
+     * @var string The current version of the plugin.
      */
     protected $version;
 
@@ -225,7 +229,8 @@ class Fuerte_Wp
      * Check if current user can manage options, safely.
      *
      * @since    1.6.0
-     * @return   bool
+     *
+     * @return bool
      */
     private function can_manage_options()
     {
@@ -333,7 +338,7 @@ class Fuerte_Wp
     }
 
     /**
-     * Register all of the hooks related to Elementor compatibility
+     * Register all of the hooks related to Elementor compatibility.
      *
      * @since    1.7.5
      */
@@ -363,7 +368,8 @@ class Fuerte_Wp
      * WordPress and to define internationalization functionality.
      *
      * @since     1.3.0
-     * @return    string    The name of the plugin.
+     *
+     * @return string The name of the plugin.
      */
     public function get_plugin_name()
     {
@@ -374,7 +380,8 @@ class Fuerte_Wp
      * The reference to the class that orchestrates the hooks with the plugin.
      *
      * @since     1.3.0
-     * @return    Fuerte_Wp_Loader    Orchestrates the hooks of the plugin.
+     *
+     * @return Fuerte_Wp_Loader Orchestrates the hooks of the plugin.
      */
     public function get_loader()
     {
@@ -385,7 +392,8 @@ class Fuerte_Wp
      * Retrieve the version number of the plugin.
      *
      * @since     1.3.0
-     * @return    string    The version number of the plugin.
+     *
+     * @return string The version number of the plugin.
      */
     public function get_version()
     {
@@ -409,11 +417,11 @@ class Fuerte_Wp
 
         if ($is_gutenberg) {
             // Prevent Carbon Fields styles from being enqueued in block editor
-            $blocked_styles = array(
+            $blocked_styles = [
                 'carbon-fields-core',
                 'carbon-fields-metaboxes',
-                'carbon-fields-blocks'
-            );
+                'carbon-fields-blocks',
+            ];
 
             foreach ($blocked_styles as $style) {
                 if (isset($wp_styles->registered[$style])) {
@@ -428,21 +436,24 @@ class Fuerte_Wp
      * Prevent Carbon Fields styles from being registered in the first place.
      *
      * @since    1.7.5
-     * @param    string    $tag     The style tag.
-     * @param    string    $handle  The style handle.
-     * @param    string    $src     The style source.
-     * @return   string    Modified tag or original.
+     *
+     * @param string $tag The style tag.
+     * @param string $handle The style handle.
+     * @param string $src The style source.
+     *
+     * @return string Modified tag or original.
      */
     public function prevent_carbon_fields_styles($tag, $handle, $src)
     {
-        $blocked_handles = array(
+        $blocked_handles = [
             'carbon-fields-core',
             'carbon-fields-metaboxes',
-            'carbon-fields-blocks'
-        );
+            'carbon-fields-blocks',
+        ];
 
         if (in_array($handle, $blocked_handles)) {
             $screen = get_current_screen();
+
             if ($screen && $screen->is_block_editor()) {
                 return ''; // Don't output the style tag
             }
@@ -458,7 +469,8 @@ class Fuerte_Wp
      * Note: get_current_screen() is not available during early bootstrap
      *
      * @since    1.7.5
-     * @return   bool   True if in Elementor editor context
+     *
+     * @return bool True if in Elementor editor context
      */
     private function is_elementor_editor_context()
     {
@@ -474,6 +486,7 @@ class Fuerte_Wp
 
         // Must be on a post/edit screen
         global $pagenow;
+
         if ($pagenow !== 'post.php') {
             return false;
         }
@@ -487,7 +500,7 @@ class Fuerte_Wp
     }
 
     /**
-     * Handle Elementor conflicts by preventing Carbon Fields assets from being enqueued
+     * Handle Elementor conflicts by preventing Carbon Fields assets from being enqueued.
      *
      * @since    1.7.5
      */
@@ -518,7 +531,7 @@ class Fuerte_Wp
             'carbon-fields-vendor',
             'carbon-fields-core',
             'carbon-fields-metaboxes',
-            'carbon-fields-blocks'
+            'carbon-fields-blocks',
         ];
 
         foreach ($carbon_assets as $asset) {

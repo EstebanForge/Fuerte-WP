@@ -20,6 +20,7 @@ defined('ABSPATH') || die();
  * so that it is ready for translation.
  *
  * @since      1.3.0
+ *
  * @author     Esteban Cuevas <esteban@attitude.cl>
  */
 class Fuerte_Wp_i18n

@@ -26,7 +26,9 @@ class Serialized_Theme_Options_Datastore extends Datastore
     /**
      * Initialization tasks for concrete datastores.
      **/
-    public function init() {}
+    public function init()
+    {
+    }
 
     protected function get_key_for_field(Field $field)
     {
@@ -58,6 +60,7 @@ class Serialized_Theme_Options_Datastore extends Datastore
      * Load the field value(s).
      *
      * @param Field $field The field to load value(s) in.
+     *
      * @return array
      */
     public function load(Field $field)
@@ -80,6 +83,7 @@ class Serialized_Theme_Options_Datastore extends Datastore
         }
         $key = $this->get_key_for_field($field);
         $value = $field->get_full_value();
+
         if (is_a($field, '\\FuerteWpDep\\Carbon_Fields\\Field\\Complex_Field')) {
             $value = $field->get_value_tree();
         }

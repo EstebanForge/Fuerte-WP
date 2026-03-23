@@ -28,8 +28,10 @@ class Fuerte_Wp_Helper
      * Efficient IPv4 CIDR matching with IPv6 support.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $cidr CIDR notation (e.g., 192.168.1.0/24)
+     *
      * @return bool True if in range, false otherwise
      */
     public static function ip_in_cidr($ip, $cidr)
@@ -58,7 +60,7 @@ class Fuerte_Wp_Helper
         }
 
         // IPv4 handling
-        return self::ipv4_cidr_match($ip, $subnet, (int)$mask);
+        return self::ipv4_cidr_match($ip, $subnet, (int) $mask);
     }
 
     /**
@@ -67,9 +69,11 @@ class Fuerte_Wp_Helper
      * Based on the Limit Login Attempts Reloaded approach.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $subnet Subnet address
      * @param int $mask Subnet mask (0-32)
+     *
      * @return bool True if matches, false otherwise
      */
     public static function ipv4_cidr_match($ip, $subnet, $mask)
@@ -77,7 +81,7 @@ class Fuerte_Wp_Helper
         // Validate inputs
         if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ||
             !filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ||
-            $mask === null || $mask === "" || $mask < 0 || $mask > 32) {
+            $mask === null || $mask === '' || $mask < 0 || $mask > 32) {
             return false;
         }
 
@@ -98,15 +102,17 @@ class Fuerte_Wp_Helper
      * Check if IPv6 is in CIDR range.
      *
      * @since 1.7.0
+     *
      * @param string $ip IPv6 address
      * @param string $cidr IPv6 CIDR notation
+     *
      * @return bool True if in range, false otherwise
      */
     public static function ipv6_in_cidr($ip, $cidr)
     {
         $parts = explode('/', $cidr, 2);
         $subnet = trim($parts[0]);
-        $mask = (int)trim($parts[1]);
+        $mask = (int) trim($parts[1]);
 
         if ($mask < 0 || $mask > 128) {
             return false;
@@ -123,7 +129,9 @@ class Fuerte_Wp_Helper
      * Convert IPv6 address to binary string.
      *
      * @since 1.7.0
+     *
      * @param string $ipv6 IPv6 address
+     *
      * @return string Binary representation (128 bits)
      */
     public static function ipv6_to_binary($ipv6)
@@ -146,7 +154,9 @@ class Fuerte_Wp_Helper
      * Expand compressed IPv6 notation.
      *
      * @since 1.7.0
+     *
      * @param string $ipv6 IPv6 address
+     *
      * @return string Expanded IPv6 address
      */
     public static function expand_ipv6($ipv6)
@@ -182,7 +192,9 @@ class Fuerte_Wp_Helper
      * Validate CIDR notation.
      *
      * @since 1.7.0
+     *
      * @param string $range CIDR range (e.g., 192.168.1.0/24 or 2001:db8::/32)
+     *
      * @return bool True if valid, false otherwise
      */
     public static function validate_cidr($range)
@@ -205,7 +217,7 @@ class Fuerte_Wp_Helper
             return false;
         }
 
-        $mask = (int)$mask;
+        $mask = (int) $mask;
 
         // IPv4 validation
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
@@ -220,8 +232,10 @@ class Fuerte_Wp_Helper
      * Check if IP matches wildcard pattern.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $pattern Wildcard pattern (e.g., 192.168.1.*)
+     *
      * @return bool True if matches, false otherwise
      */
     public static function ip_matches_wildcard($ip, $pattern)
@@ -242,8 +256,10 @@ class Fuerte_Wp_Helper
      * Check if IP is in dash-separated range.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param string $range Range (e.g., 192.168.1.1-192.168.1.10)
+     *
      * @return bool True if in range, false otherwise
      */
     public static function ip_in_dash_range($ip, $range)
@@ -281,7 +297,9 @@ class Fuerte_Wp_Helper
      * Check if IP is in reserved/private range.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
+     *
      * @return bool True if reserved, false otherwise
      */
     public static function is_reserved_ip($ip)
@@ -314,7 +332,9 @@ class Fuerte_Wp_Helper
      * Normalize IP address by removing port and cleaning whitespace.
      *
      * @since 1.7.0
+     *
      * @param string $ip Raw IP address
+     *
      * @return string Normalized IP address
      */
     public static function normalize_ip($ip)
@@ -339,8 +359,10 @@ class Fuerte_Wp_Helper
      * Get network address for IP and mask.
      *
      * @since 1.7.0
+     *
      * @param string $ip IP address
      * @param int $mask CIDR mask
+     *
      * @return string|false Network address or false on failure
      */
     public static function get_network_address($ip, $mask)
@@ -355,6 +377,7 @@ class Fuerte_Wp_Helper
 
         // IPv4 calculation
         $ip_long = ip2long($ip);
+
         if ($ip_long === false) {
             return false;
         }
@@ -369,8 +392,10 @@ class Fuerte_Wp_Helper
      * Get IPv6 network address.
      *
      * @since 1.7.0
+     *
      * @param string $ip IPv6 address
      * @param int $mask CIDR mask
+     *
      * @return string IPv6 network address
      */
     private static function get_ipv6_network($ip, $mask)

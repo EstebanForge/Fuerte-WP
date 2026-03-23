@@ -16,6 +16,7 @@ defined('ABSPATH') || die();
  * This class defines all code necessary to run during the plugin's deactivation.
  *
  * @since      1.3.0
+ *
  * @author     Esteban Cuevas <esteban@attitude.cl>
  */
 class Fuerte_Wp_Deactivator

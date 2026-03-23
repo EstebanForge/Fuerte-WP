@@ -1,15 +1,13 @@
 <?php
 
 /**
- * Conditional Hook Manager for Fuerte-WP
+ * Conditional Hook Manager for Fuerte-WP.
  *
  * This class provides intelligent hook registration based on configuration
  * and context to minimize unnecessary hook overhead.
  *
  * @since 1.7.0
- * @package Fuerte_Wp
  */
-
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -41,7 +39,6 @@ class Fuerte_Wp_Hook_Manager
      * Initialize the hook manager.
      *
      * @since 1.7.0
-     * @return void
      */
     public static function init()
     {
@@ -59,7 +56,6 @@ class Fuerte_Wp_Hook_Manager
      * Determine current request context.
      *
      * @since 1.7.0
-     * @return void
      */
     private static function determine_context()
     {
@@ -80,7 +76,6 @@ class Fuerte_Wp_Hook_Manager
      * Load configuration for hook decisions.
      *
      * @since 1.7.0
-     * @return void
      */
     private static function load_config()
     {
@@ -105,7 +100,6 @@ class Fuerte_Wp_Hook_Manager
      * Register core hooks that are always needed.
      *
      * @since 1.7.0
-     * @return void
      */
     private static function register_core_hooks()
     {
@@ -120,7 +114,6 @@ class Fuerte_Wp_Hook_Manager
      * Register conditional hooks based on context and configuration.
      *
      * @since 1.7.0
-     * @return void
      */
     private static function register_conditional_hooks()
     {
@@ -172,7 +165,6 @@ class Fuerte_Wp_Hook_Manager
      * Register login-related hooks.
      *
      * @since 1.7.0
-     * @return void
      */
     private static function register_login_hooks()
     {
@@ -183,6 +175,7 @@ class Fuerte_Wp_Hook_Manager
         if (self::is_login_url_hiding_enabled()) {
             // Use singleton instance for Login URL Hider
             $login_url_hider = Fuerte_Wp_Login_URL_Hider::get_instance();
+
             if ($login_url_hider) {
                 self::add_hook('parse_request', [$login_url_hider, 'handle_parse_request'], '', 1, true);
                 self::add_hook('login_init', [$login_url_hider, 'handle_login_init'], '', 10, true);
@@ -201,7 +194,6 @@ class Fuerte_Wp_Hook_Manager
      * Register admin-related hooks.
      *
      * @since 1.7.0
-     * @return void
      */
     private static function register_admin_hooks()
     {
@@ -228,7 +220,6 @@ class Fuerte_Wp_Hook_Manager
      * Register frontend-related hooks.
      *
      * @since 1.7.0
-     * @return void
      */
     private static function register_frontend_hooks()
     {
@@ -252,7 +243,6 @@ class Fuerte_Wp_Hook_Manager
      * Register AJAX-related hooks.
      *
      * @since 1.7.0
-     * @return void
      */
     private static function register_ajax_hooks()
     {
@@ -279,7 +269,6 @@ class Fuerte_Wp_Hook_Manager
      * Register REST API related hooks.
      *
      * @since 1.7.0
-     * @return void
      */
     private static function register_rest_hooks()
     {
@@ -292,7 +281,6 @@ class Fuerte_Wp_Hook_Manager
      * Register security-related hooks.
      *
      * @since 1.7.0
-     * @return void
      */
     private static function register_security_hooks()
     {
@@ -317,7 +305,6 @@ class Fuerte_Wp_Hook_Manager
      * Register email-related hooks.
      *
      * @since 1.7.0
-     * @return void
      */
     private static function register_email_hooks()
     {
@@ -353,7 +340,6 @@ class Fuerte_Wp_Hook_Manager
      * Register auto-update related hooks.
      *
      * @since 1.7.0
-     * @return void
      */
     private static function register_autoupdate_hooks()
     {
@@ -367,13 +353,13 @@ class Fuerte_Wp_Hook_Manager
      * Add hook with tracking.
      *
      * @since 1.7.0
+     *
      * @param string $hook Hook name
      * @param string $callback Class or function name
      * @param string $method Method name (if callback is a class)
      * @param int $priority Priority
      * @param bool $conditional Whether this is a conditional hook
      * @param int $accepted_args Number of accepted arguments
-     * @return void
      */
     private static function add_hook($hook, $callback, $method = '', $priority = 10, $conditional = false, $accepted_args = 1)
     {
@@ -412,7 +398,7 @@ class Fuerte_Wp_Hook_Manager
             'authenticate', 'wp_authenticate_user', 'registration_errors',
             'rest_authentication_errors', 'xmlrpc_enabled', 'xmlrpc_methods',
             'wp_is_application_passwords_available', 'editable_roles',
-            'recovery_mode_email', 'wp_mail_from', 'wp_mail_from_name'
+            'recovery_mode_email', 'wp_mail_from', 'wp_mail_from_name',
         ])) {
             add_filter($hook, $final_callback, $priority, $accepted_args);
         } else {
@@ -435,6 +421,7 @@ class Fuerte_Wp_Hook_Manager
      * Check if login security is enabled.
      *
      * @since 1.7.0
+     *
      * @return bool
      */
     private static function is_login_security_enabled()
@@ -447,6 +434,7 @@ class Fuerte_Wp_Hook_Manager
      * Check if login URL hiding is enabled.
      *
      * @since 1.7.0
+     *
      * @return bool
      */
     private static function is_login_url_hiding_enabled()
@@ -459,6 +447,7 @@ class Fuerte_Wp_Hook_Manager
      * Check if email hooks should be registered.
      *
      * @since 1.7.0
+     *
      * @return bool
      */
     private static function should_register_email_hooks()
@@ -484,6 +473,7 @@ class Fuerte_Wp_Hook_Manager
      * Check if restriction hooks should be registered.
      *
      * @since 1.7.0
+     *
      * @return bool
      */
     private static function should_register_restriction_hooks()
@@ -505,6 +495,7 @@ class Fuerte_Wp_Hook_Manager
      * Check if auto-update hooks should be registered.
      *
      * @since 1.7.0
+     *
      * @return bool
      */
     private static function should_register_autoupdate_hooks()
@@ -520,12 +511,14 @@ class Fuerte_Wp_Hook_Manager
      * Check if current page is login page.
      *
      * @since 1.7.0
+     *
      * @return bool
      */
     private static function is_login_page()
     {
         // Use simple context detection
         global $pagenow;
+
         return in_array($pagenow, ['wp-login.php', 'wp-register.php']) ||
                (isset($_GET['action']) && in_array($_GET['action'], ['login', 'register', 'lostpassword', 'resetpass']));
     }
@@ -534,6 +527,7 @@ class Fuerte_Wp_Hook_Manager
      * Check if current page is registration page.
      *
      * @since 1.7.0
+     *
      * @return bool
      */
     private static function is_registration_page()
@@ -546,6 +540,7 @@ class Fuerte_Wp_Hook_Manager
      * Check if current request is REST API request.
      *
      * @since 1.7.0
+     *
      * @return bool
      */
     private static function is_rest_request()
@@ -559,6 +554,7 @@ class Fuerte_Wp_Hook_Manager
      * Get hook registration statistics.
      *
      * @since 1.7.0
+     *
      * @return array Hook statistics
      */
     public static function get_hook_stats()
@@ -593,7 +589,6 @@ class Fuerte_Wp_Hook_Manager
      * Clear hook manager cache.
      *
      * @since 1.7.0
-     * @return void
      */
     public static function clear_cache()
     {

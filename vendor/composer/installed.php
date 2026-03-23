@@ -1,19 +1,19 @@
 <?php return array(
     'root' => array(
         'name' => 'estebanforge/fuerte-wp',
-        'pretty_version' => 'dev-master',
-        'version' => 'dev-master',
-        'reference' => 'd22ffe575e94a25e6aa5065fa0f65d41981a038b',
+        'pretty_version' => '1.8.0',
+        'version' => '1.8.0.0',
+        'reference' => null,
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'dev' => true,
+        'dev' => false,
     ),
     'versions' => array(
         'estebanforge/fuerte-wp' => array(
-            'pretty_version' => 'dev-master',
-            'version' => 'dev-master',
-            'reference' => 'd22ffe575e94a25e6aa5065fa0f65d41981a038b',
+            'pretty_version' => '1.8.0',
+            'version' => '1.8.0.0',
+            'reference' => null,
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
