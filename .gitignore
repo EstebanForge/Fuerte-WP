@@ -1,10 +1,6 @@
 .wp-org-assets/fuerte-wp-logo.afdesign
 .wp-org-assets/fuerte-wp-logo.png
 .config-tcattd/*
-deploy.sh
-deploy-notag.sh
 TODO.md
-update-readme-only.sh
-deploy-readme-only.sh
 .php-cs-fixer.cache
 /.phpunit.cache
