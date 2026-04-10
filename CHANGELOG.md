@@ -1,5 +1,16 @@
 # Changelog
 
+# 1.8.1 / 2026-04-10
+- Migrated entire configuration system from Carbon Fields to the new HyperFields library.
+- Implemented `Fuerte_Wp_Config` as a centralized, thread-safe configuration manager.
+- Introduced single-array storage pattern (`fuertewp_settings`) for improved performance and cleaner database footprint.
+- Added recursive legacy configuration fallback to ensure 0-downtime migrations.
+- Integrated HyperFields Data Tools for settings maintenance and migration.
+- Removed legacy dependency on `htmlburger/carbon-fields`.
+- Purged technical debt: removed manual Carbon Fields asset injection and Elementor conflict workarounds.
+- Full PHP 8.2+ compatibility audit and strict types implementation.
+- Added comprehensive unit tests for the new configuration and storage logic.
+
 # 1.7.5 / 2025-11-18
 - Prevent Carbon Fields from booting in Elementor editor to avoid JS conflicts.
 
