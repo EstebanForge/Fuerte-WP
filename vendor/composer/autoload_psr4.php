@@ -6,5 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Carbon_Fields\\' => array($vendorDir . '/htmlburger/carbon-fields/core'),
+    'HyperFields\\' => array($vendorDir . '/estebanforge/hyperfields/src'),
 );

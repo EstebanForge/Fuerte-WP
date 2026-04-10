@@ -15,9 +15,6 @@
 // No access outside WP
 defined('ABSPATH') || die();
 
-// Ensure Carbon Fields functions are available
-require_once FUERTEWP_PATH . 'vendor/htmlburger/carbon-fields/core/functions.php';
-
 /**
  * Login Manager class for authentication handling.
  *
@@ -529,108 +526,31 @@ class Fuerte_Wp_Login_Manager
      */
     private function is_enabled()
     {
-        // Batch operations removed - using simple approach now
-
-        // Ensure simple config class is loaded
-        if (!class_exists('Fuerte_Wp_Config')) {
-            require_once plugin_dir_path(__FILE__) . 'class-fuerte-wp-config.php';
-        }
-
         // Get login setting using simple configuration
-        $enabled = Fuerte_Wp_Config::get('login_security.login_enable', 'enabled');
+        $enabled = Fuerte_Wp_Config::get_field('login_enable', 'enabled');
 
-        // Handle different Carbon Fields return formats
-        $is_enabled = false;
-
-        if ($enabled === 'enabled' || $enabled === true || $enabled === 1) {
-            $is_enabled = true;
-        }
-
-        // Login Security Enabled status determined
-        return $is_enabled;
+        return $enabled === 'enabled' || $enabled === true || $enabled === 1 || $enabled === '1';
     }
 
-    /**
-     * Ensure Carbon Fields is properly loaded and containers are registered.
-     *
-     * @since 1.7.0
-     */
-    private function ensure_carbon_fields_loaded()
-    {
-        static $loaded = false;
-
-        if ($loaded) {
-            return;
-        }
-
-        // ensure_carbon_fields_loaded() called
-
-        // Check if Carbon Fields function exists
-        if (!function_exists('carbon_get_theme_option')) {
-            // Carbon Fields function does not exist
-            return;
-        }
-
-        // Carbon Fields function exists
-
-        // Check if containers have been registered
-        if (!did_action('carbon_fields_fields_registered')) {
-            // Carbon Fields containers not registered, attempting to load
-
-            // Try to load the admin class to register containers
-            if (class_exists('Fuerte_Wp_Admin')) {
-                // Fuerte_Wp_Admin class exists, loading containers
-                $admin = new Fuerte_Wp_Admin();
-                $admin->fuertewp_plugin_options();
-                do_action('carbon_fields_fields_registered');
-                // Carbon Fields containers loaded
-            } else {
-                // Fuerte_Wp_Admin class does not exist
-            }
-        } else {
-            // Carbon Fields containers already registered
-        }
-
-        $loaded = true;
-    }
-
-    /**
-     * Check if registration protection is enabled.
-     *
-     * @since 1.7.0
-     *
-     * @return bool True if registration protection is enabled, false otherwise
-     */
     private function is_registration_enabled()
     {
-        // Use the correct container ID ('Fuerte-WP') since we're using compact input
         $enabled = Fuerte_Wp_Config::get_field('registration_enable', 'enabled');
 
-        // Handle different Carbon Fields return formats
-        $is_enabled = false;
-
-        if ($enabled === 'enabled' || $enabled === true || $enabled === 1) {
-            $is_enabled = true;
-        }
-
-        // Registration Protection Enabled status determined
-        return $is_enabled;
+        return $enabled === 'enabled' || $enabled === true || $enabled === 1 || $enabled === '1';
     }
 
-    /**
-     * Check if username is blacklisted.
-     *
-     * @since 1.7.0
-     *
-     * @param string $username Username to check
-     *
-     * @return bool True if blacklisted, false otherwise
-     */
     private function is_username_blacklisted($username)
     {
-        $blacklisted = carbon_get_theme_option('fuertewp_username_blacklist', []);
+        $blacklisted_raw = Fuerte_Wp_Config::get_field('username_blacklist', '');
 
-        if (empty($blacklisted) || !is_array($blacklisted)) {
+        if (empty($blacklisted_raw)) {
+            return false;
+        }
+
+        // Parse textarea (one per line)
+        $blacklisted = array_filter(array_map('trim', explode("\n", $blacklisted_raw)));
+
+        if (empty($blacklisted)) {
             return false;
         }
 

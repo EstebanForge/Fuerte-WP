@@ -15,9 +15,6 @@
 // No access outside WP
 defined('ABSPATH') || die();
 
-// Ensure Carbon Fields functions are available
-require_once FUERTEWP_PATH . 'vendor/htmlburger/carbon-fields/core/functions.php';
-
 /**
  * Login Logger class for database operations.
  *
@@ -81,8 +78,8 @@ class Fuerte_Wp_Login_Logger
         if (self::$cached_settings === null) {
             // Get settings using centralized cache
             self::$cached_settings = [
-                'max_attempts' => (int) Fuerte_Wp_Config::get('login_security.login_max_attempts', 5),
-                'lockout_duration' => (int) Fuerte_Wp_Config::get('login_security.login_lockout_duration', 60),
+                'max_attempts' => (int) Fuerte_Wp_Config::get_field('login_max_attempts', 5),
+                'lockout_duration' => (int) Fuerte_Wp_Config::get_field('login_lockout_duration', 60),
             ];
         }
 
@@ -502,7 +499,7 @@ class Fuerte_Wp_Login_Logger
      */
     public function cleanup_old_records()
     {
-        $retention_days = (int) carbon_get_theme_option('fuertewp_login_data_retention', 30);
+        $retention_days = (int) Fuerte_Wp_Config::get_field('login_data_retention', 30);
 
         if ($retention_days <= 0) {
             return 0;

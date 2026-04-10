@@ -71,26 +71,24 @@ add_action('after_setup_theme', 'fuertewp_includes_autoload', 100);
  *
  * @since 1.7.0
  */
-function fuertewp_load_carbon_fields()
+/**
+ * Load HyperFields early on plugins_loaded hook.
+ *
+ * @since 1.8.0
+ */
+function fuertewp_load_hyperfields()
 {
     if (file_exists(FUERTEWP_PATH . 'vendor/autoload.php')) {
-        // Carbon Fields configuration
-        // https://github.com/htmlburger/carbon-fields/issues/805#issuecomment-680959592
-        // https://docs.carbonfields.net/learn/advanced-topics/compacting-input-vars.html
-        define(
-            'Carbon_Fields\\URL',
-            FUERTEWP_URL . 'vendor/htmlburger/carbon-fields/',
-        );
-        define('Carbon_Fields\\COMPACT_INPUT', true);
-        define('Carbon_Fields\\COMPACT_INPUT_KEY', 'fuertewp_carbonfields');
-
         require_once FUERTEWP_PATH . 'vendor/autoload.php';
+    }
 
-        // Initialize Carbon Fields
-        Carbon_Fields\Carbon_Fields::boot();
+    // Run migration if needed
+    if (is_admin()) {
+        require_once FUERTEWP_PATH . 'includes/class-fuerte-wp-migrator.php';
+        Fuerte_Wp_Migrator::migrate();
     }
 }
-add_action('plugins_loaded', 'fuertewp_load_carbon_fields', 0);
+add_action('plugins_loaded', 'fuertewp_load_hyperfields', 0);
 
 /**
  * The code that runs during plugin activation.
@@ -149,20 +147,19 @@ function fuertewp_ensure_super_user()
         return;
     }
 
-    // Check if Carbon Fields functions are available
-    if (!function_exists('carbon_get_theme_option')) {
-        return;
-    }
+    // Use Fuerte_Wp_Config instead of direct Carbon Fields calls
+    require_once FUERTEWP_PATH . 'includes/class-fuerte-wp-config.php';
 
     // Check if super_users option exists and is not empty
-    $super_users = carbon_get_theme_option('fuertewp_super_users');
+    $super_users = Fuerte_Wp_Config::get_field('super_users', [], true);
 
     if (empty($super_users)) {
         $current_user = wp_get_current_user();
 
         if ($current_user && $current_user->ID > 0 && current_user_can('manage_options')) {
-            // Add current user as super user - store as array for consistency
-            carbon_set_theme_option('fuertewp_super_users', [$current_user->user_email]);
+            // Add current user as super user
+            Fuerte_Wp_Config::set_field('super_users', [$current_user->user_email], true);
+            Fuerte_Wp_Config::invalidate_cache();
         }
     }
 }

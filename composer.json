@@ -16,17 +16,12 @@
 	},
 	"require": {
 		"php": ">=8.1",
-		"htmlburger/carbon-fields": "^3"
+		"estebanforge/hyperfields": "^1"
 	},
 	"require-dev": {
 		"pestphp/pest": "^4",
 		"brain/monkey": "^2",
 		"phpunit/phpunit": "^12"
-	},
-	"config": {
-		"allow-plugins": {
-			"pestphp/pest-plugin": true
-		}
 	},
 	"scripts": {
 		"post-install-cmd": [
@@ -69,9 +64,7 @@
 			"classmap_prefix": "FuerteWpDep_",
 			"constant_prefix": "FuerteWpDep_",
 			"exclude_from_prefix": {
-				"packages": [
-					"htmlburger/carbon-fields"
-				]
+				"packages": []
 			}
 		}
 	}

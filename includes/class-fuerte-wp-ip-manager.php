@@ -18,9 +18,6 @@ defined('ABSPATH') || die();
 // Load the helper class
 require_once FUERTEWP_PATH . 'includes/class-fuerte-wp-helper.php';
 
-// Ensure Carbon Fields functions are available
-require_once FUERTEWP_PATH . 'vendor/htmlburger/carbon-fields/core/functions.php';
-
 /**
  * IP Manager class for handling IP address operations.
  *
@@ -55,7 +52,7 @@ class Fuerte_Wp_IP_Manager
      */
     private function load_custom_ip_headers()
     {
-        $custom_headers = carbon_get_theme_option('fuertewp_login_ip_headers');
+        $custom_headers = Fuerte_Wp_Config::get_field('login_ip_headers');
 
         if (!empty($custom_headers)) {
             // Use optimized string operations if available

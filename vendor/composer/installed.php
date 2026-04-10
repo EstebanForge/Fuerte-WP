@@ -19,12 +19,12 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
-        'htmlburger/carbon-fields' => array(
-            'pretty_version' => 'v3.6.9',
-            'version' => '3.6.9.0',
-            'reference' => 'f82e80e3e3469d6e86cc17a8950b918ad448a059',
+        'estebanforge/hyperfields' => array(
+            'pretty_version' => '1.1.11',
+            'version' => '1.1.11.0',
+            'reference' => 'b9e5d54f59b25835bb11f6c6e8acfec75dab935f',
             'type' => 'library',
-            'install_path' => __DIR__ . '/../htmlburger/carbon-fields',
+            'install_path' => __DIR__ . '/../estebanforge/hyperfields',
             'aliases' => array(),
             'dev_requirement' => false,
         ),

@@ -12,9 +12,6 @@
 // No access outside WP
 defined('ABSPATH') || die();
 
-// Ensure Carbon Fields functions are available
-require_once FUERTEWP_PATH . 'vendor/htmlburger/carbon-fields/core/functions.php';
-
 /**
  * Main Fuerte-WP Class.
  */
@@ -76,43 +73,34 @@ class Fuerte_Wp_Enforcer
             return;
         }
 
-        // Check if super users are already configured (check this first to avoid unnecessary work)
-        $existing_super_users = carbon_get_theme_option('fuertewp_super_users');
+        // Check if super users are already configured
+        $existing_super_users = Fuerte_Wp_Config::get_field('super_users', [], true);
 
         if (!empty($existing_super_users)) {
             return; // Super users already configured
         }
 
         // Check if file configuration exists and has super users
-        if (file_exists(ABSPATH . 'wp-config-fuerte.php')) {
-            global $fuertewp;
-            $original_fuertewp = $fuertewp ?? [];
-            $fuertewp = [];
-            require_once ABSPATH . 'wp-config-fuerte.php';
-            $file_config = is_array($fuertewp) ? $fuertewp : [];
-            $fuertewp = $original_fuertewp;
+        $file_config = Fuerte_Wp_Config::get_config(true); // Bypass cache to check fresh
 
-            if (!empty($file_config['super_users'])) {
-                // Import super users from file to database as array to match multiselect field
-                carbon_set_theme_option('fuertewp_super_users', $file_config['super_users']);
-                Fuerte_Wp_Logger::info('Super users imported from file: ' . implode(', ', $file_config['super_users']));
+        if (!empty($file_config['super_users'])) {
+            Fuerte_Wp_Config::set_field('super_users', $file_config['super_users'], true);
+            Fuerte_Wp_Logger::info('Super users imported from configuration: ' . implode(', ', $file_config['super_users']));
 
-                return;
-            }
+            return;
         }
 
         // No super users found - auto-configure current admin user
         $current_user = wp_get_current_user();
 
         if ($current_user && $current_user->ID > 0 && current_user_can('manage_options')) {
-            // Store as array to match the multiselect field type
-            carbon_set_theme_option('fuertewp_super_users', [$current_user->user_email]);
+            Fuerte_Wp_Config::set_field('super_users', [$current_user->user_email], true);
 
-            // Also set plugin status if not already set using Carbon Fields
-            $status = carbon_get_theme_option('fuertewp_status');
+            // Also set plugin status if not already set
+            $status = Fuerte_Wp_Config::get_field('status');
 
             if (empty($status)) {
-                carbon_set_theme_option('fuertewp_status', 'enabled');
+                Fuerte_Wp_Config::set_field('status', 'enabled');
             }
 
             Fuerte_Wp_Logger::info('Self-healing: Set super user to ' . $current_user->user_email);
@@ -552,267 +540,11 @@ class Fuerte_Wp_Enforcer
         return Fuerte_Wp_Config::get_enforcer_config();
     }
 
-    /**
-     * Normalize configuration structure to handle both old and new config formats.
-     *
-     * @since 1.7.0
-     *
-     * @param array $config Configuration array
-     *
-     * @return array Normalized configuration array
-     */
-    private function normalize_config_structure($config)
-    {
-        // If advanced_restrictions exists, extract those sections to top level
-        if (isset($config['advanced_restrictions'])) {
-            $advanced = $config['advanced_restrictions'];
-
-            // Extract advanced restriction sections to top level for backward compatibility
-            if (isset($advanced['restricted_scripts'])) {
-                $config['restricted_scripts'] = $advanced['restricted_scripts'];
-            }
-
-            if (isset($advanced['restricted_pages'])) {
-                $config['restricted_pages'] = $advanced['restricted_pages'];
-            }
-
-            if (isset($advanced['removed_menus'])) {
-                $config['removed_menus'] = $advanced['removed_menus'];
-            }
-
-            if (isset($advanced['removed_submenus'])) {
-                $config['removed_submenus'] = $advanced['removed_submenus'];
-            }
-
-            if (isset($advanced['removed_adminbar_menus'])) {
-                $config['removed_adminbar_menus'] = $advanced['removed_adminbar_menus'];
-            }
-        }
-
-        // If login_security exists, extract sections to old structure
-        if (isset($config['login_security'])) {
-            $login = $config['login_security'];
-
-            // Map new login_security structure to old field names
-            if (isset($login['login_enable'])) {
-                $config['login_enable'] = $login['login_enable'];
-            }
-
-            if (isset($login['registration_enable'])) {
-                $config['registration_enable'] = $login['registration_enable'];
-            }
-
-            if (isset($login['login_max_attempts'])) {
-                $config['login_max_attempts'] = $login['login_max_attempts'];
-            }
-
-            if (isset($login['login_lockout_duration'])) {
-                $config['login_lockout_duration'] = $login['login_lockout_duration'];
-            }
-
-            if (isset($login['login_increasing_lockout'])) {
-                $config['login_increasing_lockout'] = $login['login_increasing_lockout'];
-            }
-
-            if (isset($login['login_ip_headers'])) {
-                $config['login_ip_headers'] = $login['login_ip_headers'];
-            }
-
-            if (isset($login['login_gdpr_message'])) {
-                $config['login_gdpr_message'] = $login['login_gdpr_message'];
-            }
-
-            if (isset($login['login_data_retention'])) {
-                $config['login_data_retention'] = $login['login_data_retention'];
-            }
-        }
-
-        // If username_lists exists, extract sections
-        if (isset($config['username_lists'])) {
-            $usernames = $config['username_lists'];
-
-            if (isset($usernames['whitelist'])) {
-                $config['username_whitelist'] = $usernames['whitelist'];
-            }
-
-            if (isset($usernames['block_default_users'])) {
-                $config['block_default_users'] = $usernames['block_default_users'];
-            }
-
-            if (isset($usernames['blacklist'])) {
-                $config['username_blacklist'] = $usernames['blacklist'];
-            }
-        }
-
-        // If registration exists, extract registration_protect
-        if (isset($config['registration'])) {
-            $config['registration_protect'] = $config['registration']['registration_protect'] ?? true;
-        }
-
-        // Ensure rest_api section exists for backward compatibility
-        if (!isset($config['rest_api']) && isset($config['restrictions'])) {
-            $config['rest_api'] = [
-                'loggedin_only' => $config['restrictions']['restapi_loggedin_only'] ?? false,
-                'disable_app_passwords' => $config['restrictions']['restapi_disable_app_passwords'] ?? true,
-            ];
-        }
-
-        return $config;
-    }
-
-    /**
-     * Config Setup.
-     */
     private function config_setup()
     {
-        global $fuertewp, $current_user;
-
-        // Configuration loading is now handled by Fuerte_Wp_Config::get_config()
-        // which automatically loads from file if wp-config-fuerte.php exists
-
-        // If Fuerte-WP hasn't been init yet
-        if (!fuertewp_option_exists('_fuertewp_status')) {
-            if (!isset($current_user) || empty($current_user)) {
-                $current_user = wp_get_current_user();
-            }
-
-            // Load default sample config and sets defaults
-            $fuertewp_pre = $fuertewp;
-
-            if (
-                file_exists(
-                    FUERTEWP_PATH . 'config-sample/wp-config-fuerte.php',
-                )
-            ) {
-                require_once FUERTEWP_PATH
-                    . 'config-sample/wp-config-fuerte.php';
-                $defaults = $fuertewp;
-                $fuertewp = $fuertewp_pre;
-
-                // Normalize the default structure for backward compatibility
-                $defaults = $this->normalize_config_structure($defaults);
-
-                // Only set Carbon Fields options if functions are available
-                if (function_exists('carbon_set_theme_option')) {
-                    $seed_defaults = function () use (
-                        $current_user,
-                        $defaults,
-                        &$fuertewp_pre,
-                    ) {
-                        // status
-                        carbon_set_theme_option('fuertewp_status', 'enabled');
-
-                        // super_users
-                        carbon_set_theme_option(
-                            'fuertewp_super_users',
-                            $current_user->user_email,
-                        );
-
-                        // general
-                        foreach ($defaults['general'] as $key => $value) {
-                            carbon_set_theme_option('fuertewp_' . $key, $value);
-                        }
-
-                        // tweaks
-                        foreach ($defaults['tweaks'] as $key => $value) {
-                            carbon_set_theme_option(
-                                'fuertewp_tweaks_' . $key,
-                                $value,
-                            );
-                        }
-
-                        // emails
-                        foreach ($defaults['emails'] as $key => $value) {
-                            carbon_set_theme_option(
-                                'fuertewp_emails_' . $key,
-                                $value,
-                            );
-                        }
-
-                        // restrictions
-                        foreach ($defaults['restrictions'] as $key => $value) {
-                            carbon_set_theme_option(
-                                'fuertewp_restrictions_' . $key,
-                                $value,
-                            );
-                        }
-
-                        // restricted_scripts
-                        $value = implode(
-                            PHP_EOL,
-                            $defaults['restricted_scripts'],
-                        );
-                        carbon_set_theme_option(
-                            'fuertewp_restricted_scripts',
-                            $value,
-                        );
-
-                        // restricted_pages
-                        $value = implode(
-                            PHP_EOL,
-                            $defaults['restricted_pages'],
-                        );
-                        carbon_set_theme_option(
-                            'fuertewp_restricted_pages',
-                            $value,
-                        );
-
-                        // removed_menus
-                        $value = implode(PHP_EOL, $defaults['removed_menus']);
-                        carbon_set_theme_option(
-                            'fuertewp_removed_menus',
-                            $value,
-                        );
-
-                        // removed_submenus
-                        $value = implode(
-                            PHP_EOL,
-                            $defaults['removed_submenus'],
-                        );
-                        carbon_set_theme_option(
-                            'fuertewp_removed_submenus',
-                            $value,
-                        );
-
-                        // removed_adminbar_menus
-                        $value = implode(
-                            PHP_EOL,
-                            $defaults['removed_adminbar_menus'],
-                        );
-                        carbon_set_theme_option(
-                            'fuertewp_removed_adminbar_menus',
-                            $value,
-                        );
-
-                        unset($fuertewp_pre, $value);
-                    };
-
-                    if (did_action('carbon_fields_fields_registered')) {
-                        $seed_defaults();
-                    } else {
-                        add_action(
-                            'carbon_fields_fields_registered',
-                            $seed_defaults,
-                            1,
-                        );
-                    }
-                }
-
-                unset($defaults, $fuertewp_pre);
-            }
-        }
-
         // Get options from simple configuration
-        $fuertewp = Fuerte_Wp_Config::get_config();
-
-        // Extract commonly used values for backward compatibility
-        // Configuration is already loaded from centralized cache
-        // All values are now available directly in the $fuertewp array
-        // Configuration is already loaded from centralized cache
-        // All values are now available directly in the $fuertewp array
-
-        // Normalize the structure for backward compatibility (for database configs)
-        return $this->normalize_config_structure($fuertewp);
+        // Fuerte_Wp_Config handles file/database priority and fallback logic
+        return Fuerte_Wp_Config::get_config();
     }
 
     /**

@@ -219,6 +219,127 @@ class Fuerte_Wp_Config
      */
     private static function load_from_database()
     {
+        // Get settings from HyperFields storage
+        $fuertewp_settings = get_option('fuertewp_settings', []);
+
+        // Load legacy settings
+        $legacy_settings = self::load_from_legacy_database();
+
+        if (!empty($fuertewp_settings) && is_array($fuertewp_settings)) {
+            $normalized_hf = self::normalize_settings($fuertewp_settings);
+
+            // Remove null values recursively to avoid overwriting defaults
+            $normalized_hf = self::array_filter_recursive($normalized_hf);
+
+            // Merge: HyperFields takes precedence
+            return array_replace_recursive($legacy_settings, $normalized_hf);
+        }
+
+        return $legacy_settings;
+    }
+
+    /**
+     * Normalize settings from HyperFields to the internal config structure.
+     *
+     * @since 1.7.0
+     *
+     * @param array $settings Settings from fuertewp_settings option
+     *
+     * @return array Normalized config array
+     */
+    private static function normalize_settings($settings)
+    {
+        return [
+            'status' => $settings['fuertewp_status'] ?? 'enabled',
+            'super_users' => $settings['fuertewp_super_users'] ?? [],
+            'general' => [
+                'access_denied_message' => $settings['fuertewp_access_denied_message'] ?? 'Access denied.',
+                'recovery_email' => $settings['fuertewp_recovery_email'] ?? '',
+                'sender_email_enable' => $settings['fuertewp_sender_email_enable'] ?? true,
+                'sender_email' => $settings['fuertewp_sender_email'] ?? '',
+                'autoupdate_core' => $settings['fuertewp_autoupdate_core'] ?? false,
+                'autoupdate_plugins' => $settings['fuertewp_autoupdate_plugins'] ?? false,
+                'autoupdate_themes' => $settings['fuertewp_autoupdate_themes'] ?? false,
+                'autoupdate_translations' => $settings['fuertewp_autoupdate_translations'] ?? false,
+                'autoupdate_frequency' => $settings['fuertewp_autoupdate_frequency'] ?? 'daily',
+            ],
+            'restrictions' => [
+                'restapi_loggedin_only' => $settings['fuertewp_restrictions_restapi_loggedin_only'] ?? null,
+                'restapi_disable_app_passwords' => $settings['fuertewp_restrictions_restapi_disable_app_passwords'] ?? null,
+                'disable_xmlrpc' => $settings['fuertewp_restrictions_disable_xmlrpc'] ?? null,
+                'htaccess_security_rules' => $settings['fuertewp_restrictions_htaccess_security_rules'] ?? null,
+                'disable_admin_create_edit' => $settings['fuertewp_restrictions_disable_admin_create_edit'] ?? null,
+                'disable_weak_passwords' => $settings['fuertewp_restrictions_disable_weak_passwords'] ?? null,
+                'force_strong_passwords' => $settings['fuertewp_restrictions_force_strong_passwords'] ?? null,
+                'disable_admin_bar_roles' => $settings['fuertewp_restrictions_disable_admin_bar_roles'] ?? null,
+                'restrict_permalinks' => $settings['fuertewp_restrictions_restrict_permalinks'] ?? null,
+                'restrict_acf' => $settings['fuertewp_restrictions_restrict_acf'] ?? null,
+                'disable_theme_editor' => $settings['fuertewp_restrictions_disable_theme_editor'] ?? null,
+                'disable_plugin_editor' => $settings['fuertewp_restrictions_disable_plugin_editor'] ?? null,
+                'disable_theme_install' => $settings['fuertewp_restrictions_disable_theme_install'] ?? null,
+                'disable_plugin_install' => $settings['fuertewp_restrictions_disable_plugin_install'] ?? null,
+                'disable_customizer_css' => $settings['fuertewp_restrictions_disable_customizer_css'] ?? null,
+            ],
+            'advanced_restrictions' => [
+                'restricted_scripts' => self::parse_textarea($settings['fuertewp_restricted_scripts'] ?? null),
+                'restricted_pages' => self::parse_textarea($settings['fuertewp_restricted_pages'] ?? null),
+                'removed_menus' => self::parse_textarea($settings['fuertewp_removed_menus'] ?? null),
+                'removed_submenus' => self::parse_textarea($settings['fuertewp_removed_submenus'] ?? null),
+                'removed_adminbar_menus' => self::parse_textarea($settings['fuertewp_removed_adminbar_menus'] ?? null),
+            ],
+            'ip_lists' => [
+                'username_whitelist' => self::parse_textarea($settings['fuertewp_username_whitelist'] ?? null),
+                'block_default_users' => $settings['fuertewp_block_default_users'] ?? null,
+                'username_blacklist' => self::parse_textarea($settings['fuertewp_username_blacklist'] ?? null),
+                'registration_protect' => $settings['fuertewp_registration_protect'] ?? null,
+            ],
+            'login_security' => [
+                'login_enable' => $settings['fuertewp_login_enable'] ?? null,
+                'registration_enable' => $settings['fuertewp_registration_enable'] ?? null,
+                'login_max_attempts' => $settings['fuertewp_login_max_attempts'] ?? null,
+                'login_lockout_duration' => $settings['fuertewp_login_lockout_duration'] ?? null,
+                'login_increasing_lockout' => $settings['fuertewp_login_increasing_lockout'] ?? null,
+                'login_ip_headers' => self::parse_textarea($settings['fuertewp_login_ip_headers'] ?? null),
+                'login_gdpr_message' => $settings['fuertewp_login_gdpr_message'] ?? null,
+                'login_data_retention' => $settings['fuertewp_login_data_retention'] ?? null,
+                'login_url_hiding_enabled' => $settings['fuertewp_login_url_hiding_enabled'] ?? null,
+                'custom_login_slug' => $settings['fuertewp_custom_login_slug'] ?? null,
+                'login_url_type' => $settings['fuertewp_login_url_type'] ?? null,
+                'redirect_invalid_logins' => $settings['fuertewp_redirect_invalid_logins'] ?? null,
+                'redirect_invalid_logins_url' => $settings['fuertewp_redirect_invalid_logins_url'] ?? null,
+            ],
+            'deferred_updates' => [
+                'plugins' => $settings['fuertewp_deferred_plugins'] ?? null,
+                'themes' => $settings['fuertewp_deferred_themes'] ?? null,
+            ],
+        ];
+    }
+
+    /**
+     * Parse textarea string to array.
+     *
+     * @param mixed $value Textarea value
+     *
+     * @return mixed Array if string, original value otherwise
+     */
+    private static function parse_textarea($value)
+    {
+        if (is_string($value)) {
+            return array_filter(array_map('trim', explode("\n", $value)));
+        }
+
+        return $value;
+    }
+
+    /**
+     * Load configuration from legacy database structure.
+     *
+     * @since 1.7.0
+     *
+     * @return array Configuration from database
+     */
+    private static function load_from_legacy_database()
+    {
         $config = [];
 
         // Load status from _fuertewp_status option
@@ -299,15 +420,12 @@ class Fuerte_Wp_Config
         $config['deferred_plugins'] = self::load_multiselect_field('fuertewp_deferred_plugins');
         $config['deferred_themes'] = self::load_multiselect_field('fuertewp_deferred_themes');
 
-        // Normalize deferred_plugins and deferred_themes from file config if they exist at top level
-        // This handles both file config and database config formats
-        if (isset($config['deferred_plugins']) && !is_array($config['deferred_plugins'])) {
-            $config['deferred_plugins'] = [];
-        }
-
-        if (isset($config['deferred_themes']) && !is_array($config['deferred_themes'])) {
-            $config['deferred_themes'] = [];
-        }
+        // Load restricted lists
+        $config['restricted_scripts'] = self::load_multiselect_field('fuertewp_restricted_scripts');
+        $config['restricted_pages'] = self::load_multiselect_field('fuertewp_restricted_pages');
+        $config['removed_menus'] = self::load_multiselect_field('fuertewp_removed_menus');
+        $config['removed_submenus'] = self::load_multiselect_field('fuertewp_removed_submenus');
+        $config['removed_adminbar_menus'] = self::load_multiselect_field('fuertewp_removed_adminbar_menus');
 
         return $config;
     }
@@ -367,6 +485,33 @@ class Fuerte_Wp_Config
      */
     public static function get_field($key, $default = null, $is_multiselect = false)
     {
+        // Try HyperFields storage first
+        $settings = get_option('fuertewp_settings', []);
+        $hf_key = "fuertewp_{$key}";
+
+        if (isset($settings[$hf_key])) {
+            $value = $settings[$hf_key];
+
+            // Handle textarea format if it's one of the known textarea fields
+            $textarea_fields = [
+                'username_blacklist',
+                'username_whitelist',
+                'restricted_scripts',
+                'restricted_pages',
+                'removed_menus',
+                'removed_submenus',
+                'removed_adminbar_menus',
+                'login_ip_headers',
+            ];
+
+            if (in_array($key, $textarea_fields)) {
+                return self::parse_textarea($value);
+            }
+
+            return $value;
+        }
+
+        // Fallback to legacy structure
         $option_name = "_fuertewp_{$key}";
 
         if ($is_multiselect) {
@@ -389,13 +534,22 @@ class Fuerte_Wp_Config
      */
     public static function set_field($key, $value, $is_multiselect = false)
     {
+        // Save to HyperFields storage
+        $settings = get_option('fuertewp_settings', []);
+        $hf_key = "fuertewp_{$key}";
+        $settings[$hf_key] = $value;
+        $result = update_option('fuertewp_settings', $settings);
+
+        // Also update legacy if needed for backwards compatibility during migration
         $option_name = "_fuertewp_{$key}";
 
         if ($is_multiselect && is_array($value)) {
-            return self::save_multiselect_field("fuertewp_{$key}", $value);
+            self::save_multiselect_field("fuertewp_{$key}", $value);
+        } else {
+            update_option($option_name, $value);
         }
 
-        return update_option($option_name, $value);
+        return $result;
     }
 
     /**
@@ -535,76 +689,73 @@ class Fuerte_Wp_Config
      */
     public static function get_enforcer_config()
     {
+        $config = self::get_config();
+
+        // Map internal config to enforcer expected keys
         return [
-            // Status and core settings
-            'fuertewp_status' => self::get_field('status', 'enabled'),
-            'fuertewp_super_users' => self::get_field('super_users', [], true),
+            'fuertewp_status' => $config['status'] ?? 'enabled',
+            'fuertewp_super_users' => $config['super_users'] ?? [],
 
-            // General settings
-            'fuertewp_access_denied_message' => self::get_field('access_denied_message', 'Access denied.'),
-            'fuertewp_recovery_email' => self::get_field('recovery_email', ''),
-            'fuertewp_sender_email_enable' => self::get_field('sender_email_enable', true),
-            'fuertewp_sender_email' => self::get_field('sender_email', ''),
-            'fuertewp_autoupdate_core' => self::get_field('autoupdate_core', false),
-            'fuertewp_autoupdate_plugins' => self::get_field('autoupdate_plugins', false),
-            'fuertewp_autoupdate_themes' => self::get_field('autoupdate_themes', false),
-            'fuertewp_autoupdate_translations' => self::get_field('autoupdate_translations', false),
-            'fuertewp_autoupdate_frequency' => self::get_field('autoupdate_frequency', 'daily'),
+            'fuertewp_access_denied_message' => $config['general']['access_denied_message'] ?? 'Access denied.',
+            'fuertewp_recovery_email' => $config['general']['recovery_email'] ?? '',
+            'fuertewp_sender_email_enable' => $config['general']['sender_email_enable'] ?? true,
+            'fuertewp_sender_email' => $config['general']['sender_email'] ?? '',
+            'fuertewp_autoupdate_core' => $config['general']['autoupdate_core'] ?? false,
+            'fuertewp_autoupdate_plugins' => $config['general']['autoupdate_plugins'] ?? false,
+            'fuertewp_autoupdate_themes' => $config['general']['autoupdate_themes'] ?? false,
+            'fuertewp_autoupdate_translations' => $config['general']['autoupdate_translations'] ?? false,
+            'fuertewp_autoupdate_frequency' => $config['general']['autoupdate_frequency'] ?? 'daily',
 
-            // Login security settings
-            'fuertewp_login_enable' => self::get_field('login_enable', 'enabled'),
-            'fuertewp_registration_enable' => self::get_field('registration_enable', 'enabled'),
-            'fuertewp_login_max_attempts' => self::get_field('login_max_attempts', 5),
-            'fuertewp_login_lockout_duration' => self::get_field('login_lockout_duration', 60),
-            'fuertewp_login_increasing_lockout' => self::get_field('login_increasing_lockout', false),
-            'fuertewp_login_ip_headers' => self::get_field('login_ip_headers', ''),
-            'fuertewp_login_gdpr_message' => self::get_field('login_gdpr_message', ''),
-            'fuertewp_login_data_retention' => self::get_field('login_data_retention', 30),
-            'fuertewp_login_url_hiding_enabled' => self::get_field('login_url_hiding_enabled', false),
-            'fuertewp_custom_login_slug' => self::get_field('custom_login_slug', 'secure-login'),
-            'fuertewp_login_url_type' => self::get_field('login_url_type', 'query_param'),
-            'fuertewp_redirect_invalid_logins' => self::get_field('redirect_invalid_logins', 'home_404'),
-            'fuertewp_redirect_invalid_logins_url' => self::get_field('redirect_invalid_logins_url', ''),
+            'fuertewp_login_enable' => $config['login_security']['login_enable'] ?? 'enabled',
+            'fuertewp_registration_enable' => $config['login_security']['registration_enable'] ?? 'enabled',
+            'fuertewp_login_max_attempts' => $config['login_security']['login_max_attempts'] ?? 5,
+            'fuertewp_login_lockout_duration' => $config['login_security']['login_lockout_duration'] ?? 60,
+            'fuertewp_login_increasing_lockout' => $config['login_security']['login_increasing_lockout'] ?? false,
+            'fuertewp_login_ip_headers' => $config['login_security']['login_ip_headers'] ?? '',
+            'fuertewp_login_gdpr_message' => $config['login_security']['login_gdpr_message'] ?? '',
+            'fuertewp_login_data_retention' => $config['login_security']['login_data_retention'] ?? 30,
+            'fuertewp_login_url_hiding_enabled' => $config['login_security']['login_url_hiding_enabled'] ?? false,
+            'fuertewp_custom_login_slug' => $config['login_security']['custom_login_slug'] ?? 'secure-login',
+            'fuertewp_login_url_type' => $config['login_security']['login_url_type'] ?? 'query_param',
+            'fuertewp_redirect_invalid_logins' => $config['login_security']['redirect_invalid_logins'] ?? 'home_404',
+            'fuertewp_redirect_invalid_logins_url' => $config['login_security']['redirect_invalid_logins_url'] ?? '',
 
-            // Email settings
-            'fuertewp_emails_fatal_error' => self::get_field('emails_fatal_error', true),
-            'fuertewp_emails_automatic_updates' => self::get_field('emails_automatic_updates', false),
-            'fuertewp_emails_comment_awaiting_moderation' => self::get_field('emails_comment_awaiting_moderation', false),
-            'fuertewp_emails_comment_has_been_published' => self::get_field('emails_comment_has_been_published', false),
-            'fuertewp_emails_user_reset_their_password' => self::get_field('emails_user_reset_their_password', false),
-            'fuertewp_emails_user_confirm_personal_data_export_request' => self::get_field('emails_user_confirm_personal_data_export_request', false),
-            'fuertewp_emails_new_user_created' => self::get_field('emails_new_user_created', true),
-            'fuertewp_emails_network_new_site_created' => self::get_field('emails_network_new_site_created', false),
-            'fuertewp_emails_network_new_user_site_registered' => self::get_field('emails_network_new_user_site_registered', false),
-            'fuertewp_emails_network_new_site_activated' => self::get_field('emails_network_new_site_activated', false),
+            'fuertewp_emails_fatal_error' => $config['emails']['fatal_error'] ?? true,
+            'fuertewp_emails_automatic_updates' => $config['emails']['automatic_updates'] ?? false,
+            'fuertewp_emails_comment_awaiting_moderation' => $config['emails']['comment_awaiting_moderation'] ?? false,
+            'fuertewp_emails_comment_has_been_published' => $config['emails']['comment_has_been_published'] ?? false,
+            'fuertewp_emails_user_reset_their_password' => $config['emails']['user_reset_their_password'] ?? false,
+            'fuertewp_emails_user_confirm_personal_data_export_request' => $config['emails']['user_confirm_personal_data_export_request'] ?? false,
+            'fuertewp_emails_new_user_created' => $config['emails']['new_user_created'] ?? true,
+            'fuertewp_emails_network_new_site_created' => $config['emails']['network_new_site_created'] ?? false,
+            'fuertewp_emails_network_new_user_site_registered' => $config['emails']['network_new_user_site_registered'] ?? false,
+            'fuertewp_emails_network_new_site_activated' => $config['emails']['network_new_site_activated'] ?? false,
 
-            // Restrictions
-            'fuertewp_restrictions_restapi_loggedin_only' => self::get_field('restrictions_restapi_loggedin_only', false),
-            'fuertewp_restrictions_restapi_disable_app_passwords' => self::get_field('restrictions_restapi_disable_app_passwords', true),
-            'fuertewp_restrictions_disable_xmlrpc' => self::get_field('restrictions_disable_xmlrpc', true),
-            'fuertewp_restrictions_htaccess_security_rules' => self::get_field('restrictions_htaccess_security_rules', true),
-            'fuertewp_restrictions_disable_admin_create_edit' => self::get_field('restrictions_disable_admin_create_edit', true),
-            'fuertewp_restrictions_disable_weak_passwords' => self::get_field('restrictions_disable_weak_passwords', true),
-            'fuertewp_restrictions_force_strong_passwords' => self::get_field('restrictions_force_strong_passwords', false),
-            'fuertewp_restrictions_disable_admin_bar_roles' => self::get_field('restrictions_disable_admin_bar_roles', ['subscriber', 'customer'], true),
-            'fuertewp_restrictions_restrict_permalinks' => self::get_field('restrictions_restrict_permalinks', true),
-            'fuertewp_restrictions_restrict_acf' => self::get_field('restrictions_restrict_acf', true),
-            'fuertewp_restrictions_disable_theme_editor' => self::get_field('restrictions_disable_theme_editor', true),
-            'fuertewp_restrictions_disable_plugin_editor' => self::get_field('restrictions_disable_plugin_editor', true),
-            'fuertewp_restrictions_disable_theme_install' => self::get_field('restrictions_disable_theme_install', true),
-            'fuertewp_restrictions_disable_plugin_install' => self::get_field('restrictions_disable_plugin_install', true),
-            'fuertewp_restrictions_disable_customizer_css' => self::get_field('restrictions_disable_customizer_css', true),
+            'fuertewp_restrictions_restapi_loggedin_only' => $config['restrictions']['restapi_loggedin_only'] ?? false,
+            'fuertewp_restrictions_restapi_disable_app_passwords' => $config['restrictions']['restapi_disable_app_passwords'] ?? true,
+            'fuertewp_restrictions_disable_xmlrpc' => $config['restrictions']['disable_xmlrpc'] ?? true,
+            'fuertewp_restrictions_htaccess_security_rules' => $config['restrictions']['htaccess_security_rules'] ?? true,
+            'fuertewp_restrictions_disable_admin_create_edit' => $config['restrictions']['disable_admin_create_edit'] ?? true,
+            'fuertewp_restrictions_disable_weak_passwords' => $config['restrictions']['disable_weak_passwords'] ?? true,
+            'fuertewp_restrictions_force_strong_passwords' => $config['restrictions']['force_strong_passwords'] ?? false,
+            'fuertewp_restrictions_disable_admin_bar_roles' => $config['restrictions']['disable_admin_bar_roles'] ?? ['subscriber', 'customer'],
+            'fuertewp_restrictions_restrict_permalinks' => $config['restrictions']['restrict_permalinks'] ?? true,
+            'fuertewp_restrictions_restrict_acf' => $config['restrictions']['restrict_acf'] ?? true,
+            'fuertewp_restrictions_disable_theme_editor' => $config['restrictions']['disable_theme_editor'] ?? true,
+            'fuertewp_restrictions_disable_plugin_editor' => $config['restrictions']['disable_plugin_editor'] ?? true,
+            'fuertewp_restrictions_disable_theme_install' => $config['restrictions']['disable_theme_install'] ?? true,
+            'fuertewp_restrictions_disable_plugin_install' => $config['restrictions']['disable_plugin_install'] ?? true,
+            'fuertewp_restrictions_disable_customizer_css' => $config['restrictions']['disable_customizer_css'] ?? true,
 
-            // Advanced restrictions (arrays)
-            'fuertewp_restricted_scripts' => self::get_field('restricted_scripts', [], true),
-            'fuertewp_restricted_pages' => self::get_field('restricted_pages', [], true),
-            'fuertewp_removed_menus' => self::get_field('removed_menus', [], true),
-            'fuertewp_removed_submenus' => self::get_field('removed_submenus', [], true),
-            'fuertewp_removed_adminbar_menus' => self::get_field('removed_adminbar_menus', [], true),
+            'fuertewp_tweaks_use_site_logo_login' => $config['tweaks']['use_site_logo_login'] ?? false,
 
-            // Deferred updates
-            'fuertewp_deferred_plugins' => self::get_field('deferred_plugins', [], true),
-            'fuertewp_deferred_themes' => self::get_field('deferred_themes', [], true),
+            'fuertewp_restricted_scripts' => $config['restricted_scripts'] ?? [],
+            'fuertewp_restricted_pages' => $config['restricted_pages'] ?? [],
+            'fuertewp_removed_menus' => $config['removed_menus'] ?? [],
+            'fuertewp_removed_submenus' => $config['removed_submenus'] ?? [],
+            'fuertewp_removed_adminbar_menus' => $config['removed_adminbar_menus'] ?? [],
+            'fuertewp_deferred_plugins' => $config['deferred_plugins'] ?? [],
+            'fuertewp_deferred_themes' => $config['deferred_themes'] ?? [],
         ];
     }
 
@@ -646,5 +797,28 @@ class Fuerte_Wp_Config
         ksort($values);
 
         return array_values($values);
+    }
+    /**
+     * Remove null values from array recursively.
+     *
+     * @param array $array Array to filter
+     *
+     * @return array Filtered array
+     */
+    private static function array_filter_recursive($array)
+    {
+        foreach ($array as $key => &$value) {
+            if (is_array($value)) {
+                $value = self::array_filter_recursive($value);
+
+                if (empty($value)) {
+                    unset($array[$key]);
+                }
+            } elseif ($value === null) {
+                unset($array[$key]);
+            }
+        }
+
+        return $array;
     }
 }
