@@ -1,0 +1,71 @@
+{
+	"name": "estebanforge/fuerte-wp",
+	"description": "Stronger & Safer WordPress",
+	"version": "1.8.1",
+	"license": "GPL-2.0",
+	"type": "wordpress-plugin",
+	"homepage": "https://github.com/EstebanForge/Fuerte-WP",
+	"authors": [
+		{
+			"name": "Esteban Cuevas",
+			"email": "esteban@attitude.cl"
+		}
+	],
+	"support": {
+		"issues": "https://github.com/EstebanForge/Fuerte-WP/issues"
+	},
+	"require": {
+		"php": ">=8.1",
+		"estebanforge/hyperfields": "^1"
+	},
+	"require-dev": {
+		"pestphp/pest": "^4",
+		"brain/monkey": "^2",
+		"phpunit/phpunit": "^12"
+	},
+	"scripts": {
+		"post-install-cmd": [
+			"composer dump-autoload"
+		],
+		"post-update-cmd": [
+			"composer dump-autoload"
+		],
+		"cs:fix": [
+			"php-cs-fixer fix"
+		],
+		"test": [
+			"@php vendor/bin/pest"
+		],
+		"test:coverage": [
+			"@php vendor/bin/pest --coverage"
+		],
+		"production": [
+			"@cs:fix",
+			"composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction",
+			"@composer dump-autoload --optimize --classmap-authoritative"
+		],
+		"version-bump": [
+			"bash scripts/bump-version.sh"
+		],
+		"deploy": [
+			"@production",
+			"bash scripts/deploy.sh"
+		]
+	},
+	"config": {
+		"allow-plugins": {
+			"pestphp/pest-plugin": true
+		}
+	},
+	"extra": {
+		"strauss": {
+			"target_directory": "vendor-prefixed",
+			"namespace_prefix": "FuerteWpDep\\",
+			"classmap_prefix": "FuerteWpDep_",
+			"constant_prefix": "FuerteWpDep_",
+			"exclude_from_prefix": {
+				"packages": []
+			}
+		}
+	}
+}
