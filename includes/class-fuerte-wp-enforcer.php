@@ -1403,6 +1403,67 @@ class Fuerte_Wp_Enforcer
         ) {
             $this->access_denied();
         }
+    }
+
+    /**
+     * Use helper to restrict REST API access.
+     *
+     * @since 1.7.0
+     *
+     * @param mixed $result REST audit result
+     *
+     * @return mixed Original result or WP_Error
+     */
+    public static function restrict_rest_api($result)
+    {
+        return fuertewp_restapi_loggedin_only($result);
+    }
+
+    /**
+     * Restrict plugin installation.
+     *
+     * @since 1.7.0
+     */
+    public static function restrict_plugin_installation()
+    {
+        wp_die(esc_html__('Plugin installation is restricted on this site.', 'fuerte-wp'));
+    }
+
+    /**
+     * Restrict theme installation.
+     *
+     * @since 1.7.0
+     */
+    public static function restrict_theme_installation()
+    {
+        wp_die(esc_html__('Theme installation is restricted on this site.', 'fuerte-wp'));
+    }
+
+    /**
+     * Filter email notifications.
+     *
+     * @since 1.7.0
+     *
+     * @param mixed $value Original value
+     *
+     * @return bool False to disable notification
+     */
+    public static function filter_email_notifications($value)
+    {
+        return false;
+    }
+
+    /**
+     * User protection restrictions.
+     *
+     * @since 1.7.0
+     *
+     * @param array $fuertewp Configuration array
+     * @param string $pagenow Current page
+     */
+    private function apply_user_protection($fuertewp, $pagenow)
+    {
+        $super_users = $fuertewp['super_users'] ?? [];
 
         // User switching
         if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'switch_to_user') {
@@ -1432,19 +1493,6 @@ class Fuerte_Wp_Enforcer
         ) {
             add_action('customize_register', 'fuertewp_customizer_remove_css_editor');
         }
-    }
-
-    /**
-     * Apply user protection restrictions.
-     *
-     * @since 1.7.0
-     *
-     * @param array $fuertewp Configuration array
-     * @param string $pagenow Current page
-     */
-    private function apply_user_protection($fuertewp, $pagenow)
-    {
-        $super_users = $fuertewp['super_users'] ?? [];
 
         // No protected users editing
         if ($pagenow == 'user-edit.php' && isset($_REQUEST['user_id']) && !empty($_REQUEST['user_id'])) {

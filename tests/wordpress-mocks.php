@@ -135,6 +135,10 @@ function __($text, $domain = 'default') {
     return $text;
 }
 
+function esc_html__($text, $domain = 'default') {
+    return $text;
+}
+
 function _e($text, $domain = 'default') {
     echo $text;
 }
