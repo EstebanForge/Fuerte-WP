@@ -82,6 +82,11 @@ function fuertewp_load_hyperfields()
         require_once FUERTEWP_PATH . 'vendor/autoload.php';
     }
 
+    // Bootstrap HyperFields
+    if (file_exists(FUERTEWP_PATH . 'vendor/estebanforge/hyperfields/bootstrap.php')) {
+        require_once FUERTEWP_PATH . 'vendor/estebanforge/hyperfields/bootstrap.php';
+    }
+
     // Run migration if needed
     if (is_admin()) {
         require_once FUERTEWP_PATH . 'includes/class-fuerte-wp-migrator.php';

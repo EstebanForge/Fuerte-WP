@@ -273,6 +273,13 @@ class Fuerte_Wp
                 $this->plugin_admin,
                 'add_action_links',
             );
+
+            // Register HyperFields options page
+            $this->loader->add_action(
+                'admin_menu',
+                $this->plugin_admin,
+                'fuertewp_plugin_options',
+            );
         }
     }
 

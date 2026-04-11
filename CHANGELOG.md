@@ -1,6 +1,6 @@
 # Changelog
 
-# 1.8.1 / 2026-04-10
+# 1.8.1 / 2026-04-11
 - Migrated entire configuration system from Carbon Fields to the new HyperFields library.
 - Implemented `Fuerte_Wp_Config` as a centralized, thread-safe configuration manager.
 - Introduced single-array storage pattern (`fuertewp_settings`) for improved performance and cleaner database footprint.

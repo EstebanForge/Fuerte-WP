@@ -53,6 +53,8 @@ class Fuerte_Wp_Admin
         if (!$screen || !strpos($screen->id, 'fuerte-wp')) {
             return;
         }
+
+        // HyperFields native CSS is loaded automatically
     }
 
     /**
@@ -68,6 +70,9 @@ class Fuerte_Wp_Admin
         if (!$screen || !strpos($screen->id, 'fuerte-wp')) {
             return;
         }
+
+        // HyperFields native JS is loaded automatically
+        // No need for custom enhancement scripts
     }
 
     public function fuertewp_plugin_options()
@@ -144,16 +149,30 @@ class Fuerte_Wp_Admin
             ->setParentSlug('options-general.php')
             ->setOptionName('fuertewp_settings');
 
-        $page->addTab('main', __('Main Options', 'fuerte-wp'))
+        // Define tabs with proper titles
+        $page->addTab('main', __('Main', 'fuerte-wp'));
+        $page->addTab('emails', __('E-mails', 'fuerte-wp'));
+        $page->addTab('login_security', __('Login Security', 'fuerte-wp'));
+        $page->addTab('rest_api', __('REST API', 'fuerte-wp'));
+        $page->addTab('restrictions', __('Restrictions', 'fuerte-wp'));
+        $page->addTab('advanced_restrictions', __('Advanced', 'fuerte-wp'));
+        $page->addTab('ip_lists', __('IP Lists', 'fuerte-wp'));
+        $page->addTab('failed_logins', __('Logins', 'fuerte-wp'));
+        $page->addTab('deferred_updates', __('Updates', 'fuerte-wp'));
+
+        // Main Options Tab
+        $main_section = $page->addSectionToTab('main', 'main_section', __('Main Options', 'fuerte-wp'));
+        $main_section
             ->addField(
                 Field::make('checkbox', 'fuertewp_status', __('Enable Fuerte-WP.', 'fuerte-wp'))
-                    ->setDefault('enabled')
+                    ->setDefault(true)
                     ->setHelp(__('Check the option to enable Fuerte-WP.', 'fuerte-wp'))
             )
             ->addField(
                 Field::make('multiselect', 'fuertewp_super_users', __('Super Administrators.', 'fuerte-wp'))
                     ->setOptions(fuertewp_get_admin_users())
-                    ->setHelp(__('Users that will not be affected by Fuerte-WP rules. Only administrators emails are listed here.', 'fuerte-wp'))
+                    ->setEnhanced(true)
+                    ->setHelp(__('Users that will not be affected by Fuerte-WP rules. Format: Username [email]. Search to find users, then click to select.', 'fuerte-wp'))
             )
             ->addField(
                 Field::make('heading', 'fuertewp_separator_general', __('General', 'fuerte-wp'))
@@ -167,6 +186,7 @@ class Fuerte_Wp_Admin
                 Field::make('text', 'fuertewp_recovery_email', __('Recovery email.', 'fuerte-wp'))
                     ->setDefault('')
                     ->addArg('type', 'email')
+                    ->addArg('help_is_html', true)
                     ->setHelp(sprintf(
                         __('Admin recovery email. If empty, dev@%s will be used.<br/>This email will receive fatal errors from WP, and not the administration email in the General Settings. Check <a href="https://make.wordpress.org/core/2019/04/16/fatal-error-recovery-mode-in-5-2/" target="_blank">fatal error recovery mode</a>.', 'fuerte-wp'),
                         $domain
@@ -175,6 +195,7 @@ class Fuerte_Wp_Admin
             ->addField(
                 Field::make('checkbox', 'fuertewp_sender_email_enable', __('Use a different sender email.', 'fuerte-wp'))
                     ->setDefault(true)
+                    ->addArg('help_is_html', true)
                     ->setHelp(sprintf(
                         __('Use a different email (than the <a href="%s">administrator one</a>) for all emails that WordPress sends.', 'fuerte-wp'),
                         admin_url('options-general.php')
@@ -192,6 +213,7 @@ class Fuerte_Wp_Admin
                     ])
                     ->setDefault('')
                     ->addArg('type', 'email')
+                    ->addArg('help_is_html', true)
                     ->setHelp(sprintf(
                         __('Default site sender email. If empty, no-reply@%1$s will be used.<br/>Emails sent by WP will use this email address. Make sure to check your <a href="https://mxtoolbox.com/SPFRecordGenerator.aspx?domain=%1$s&prefill=true" target="_blank">SPF Records</a> to avoid WP emails going to spam.', 'fuerte-wp'),
                         $domain
@@ -237,14 +259,18 @@ class Fuerte_Wp_Admin
             ->addField(
                 Field::make('checkbox', 'fuertewp_tweaks_use_site_logo_login', __('Use site logo at login.', 'fuerte-wp'))
                     ->setDefault(true)
+                    ->addArg('help_is_html', true)
                     ->setHelp(sprintf(
                         __('Use your site logo, uploaded via <a href="%s" target="_blank">Customizer > Site Identity</a>, for WordPress login page.', 'fuerte-wp'),
                         admin_url('customize.php?return=%2Fwp-admin%2Foptions-general.php%3Fpage%3Dfuerte-wp-options')
                     ))
-            )
-            ->addTab('emails', __('E-mails', 'fuerte-wp'))
+            );
+        // Emails Tab
+        $emails_section = $page->addSectionToTab('emails', 'emails_section', __('E-mails', 'fuerte-wp'));
+        $emails_section
             ->addField(
                 Field::make('html', 'fuertewp_emails_header', __('Note:', 'fuerte-wp'))
+                    ->addArg('help_is_html', true)
                     ->setHtml(__(
                         '<p>Here you can enable or disable several WordPress built in emails. <strong>Mark</strong> the ones you want to be <strong>enabled</strong>.</p><p><a href="https://github.com/johnbillion/wp_mail" target="_blank">Check here</a> for full documentation of all automated emails WordPress sends.</p>',
                         'fuerte-wp'
@@ -299,21 +325,23 @@ class Fuerte_Wp_Admin
                 Field::make('checkbox', 'fuertewp_emails_network_new_site_activated', __('Network: new site activated.', 'fuerte-wp'))
                     ->setDefault(false)
                     ->setHelp(__('Receipt: network admin.', 'fuerte-wp'))
-            )
+            );
 
-            ->addTab('login_security', __('Login Security', 'fuerte-wp'))
+        // Login Security Tab
+        $login_section = $page->addSectionToTab('login_security', 'login_section', __('Login Security', 'fuerte-wp'));
+        $login_section
             ->addField(
                 Field::make('html', 'fuertewp_login_security_header', __('Login Security Information', 'fuerte-wp'))
                     ->setHtml('<p>' . __('Enable login attempt limiting to protect your site from brute force attacks.', 'fuerte-wp') . '</p>')
             )
             ->addField(
                 Field::make('checkbox', 'fuertewp_login_enable', __('Enable Login Security', 'fuerte-wp'))
-                    ->setDefault('enabled')
+                    ->setDefault(true)
                     ->setHelp(__('Enable login attempt limiting and IP blocking.', 'fuerte-wp'))
             )
             ->addField(
                 Field::make('checkbox', 'fuertewp_registration_enable', __('Enable Registration Protection', 'fuerte-wp'))
-                    ->setDefault('enabled')
+                    ->setDefault(true)
                     ->setHelp(__('Enable registration attempt limiting and bot blocking. Uses same settings as login security.', 'fuerte-wp'))
             )
             ->addField(
@@ -477,33 +505,42 @@ class Fuerte_Wp_Admin
                         ['field' => 'fuertewp_login_url_hiding_enabled', 'value' => true, 'compare' => '='],
                         ['field' => 'fuertewp_redirect_invalid_logins', 'value' => 'custom_page', 'compare' => '='],
                     ])
-            )
+            );
 
-            ->addTab('rest_api', __('REST API', 'fuerte-wp'))
+        // REST API Tab
+        $restapi_section = $page->addSectionToTab('rest_api', 'restapi_section', __('REST API', 'fuerte-wp'));
+        $restapi_section
             ->addField(
                 Field::make('html', 'fuertewp_restapi_restrictions_header', __('Note:', 'fuerte-wp'))
+                    ->addArg('help_is_html', true)
                     ->setHtml(__('<p>REST API restrictions.</p>', 'fuerte-wp'))
             )
             ->addField(
                 Field::make('checkbox', 'fuertewp_restrictions_restapi_loggedin_only', __('Restrict REST API usage to logged in users only.', 'fuerte-wp'))
                     ->setDefault(false)
+                    ->addArg('help_is_html', true)
                     ->setHelp(__('Modern WordPress depends on his REST API. The entire new editor, Gutenberg, uses it. And many more usage instances are common the WP core. You should not disable the REST API entirely, or WordPress will brake. This is the second best option: limit his usage to only logged in users. <a href="https://developer.wordpress.org/rest-api/frequently-asked-questions/" target="_blank">Learn more</a>.', 'fuerte-wp'))
             )
             ->addField(
                 Field::make('checkbox', 'fuertewp_restrictions_restapi_disable_app_passwords', __('Disable app passwords.', 'fuerte-wp'))
                     ->setDefault(true)
+                    ->addArg('help_is_html', true)
                     ->setHelp(__('Disable generation of App Passwords, used for the REST API. <a href="https://make.wordpress.org/core/2020/11/05/application-passwords-integration-guide/" target="_blank">Check here</a> for more info.', 'fuerte-wp'))
-            )
+            );
 
-            ->addTab('restrictions', __('Restrictions', 'fuerte-wp'))
+        // Restrictions Tab
+        $restrictions_section = $page->addSectionToTab('restrictions', 'restrictions_section', __('Restrictions', 'fuerte-wp'));
+        $restrictions_section
             ->addField(
                 Field::make('checkbox', 'fuertewp_restrictions_disable_xmlrpc', __('Disable XML-RPC API.', 'fuerte-wp'))
                     ->setDefault(true)
+                    ->addArg('help_is_html', true)
                     ->setHelp(__('Disable the old and insecure XML-RPC API in WordPress. <a href="https://blog.wpscan.com/is-wordpress-xmlrpc-a-security-problem/" target="_blank">Learn more</a>.', 'fuerte-wp'))
             )
             ->addField(
                 Field::make('checkbox', 'fuertewp_restrictions_htaccess_security_rules', __('Enable htaccess security rules', 'fuerte-wp'))
                     ->setDefault(true)
+                    ->addArg('help_is_html', true)
                     ->setHelp(__('Disable the usage of /wp-admin/install.php wizard, and the execution of php files inside /wp-content/uploads/ folder, by adding restrictions on the htaccess file on the server. If you are using Nginx, please, <a href="https://github.com/EstebanForge/Fuerte-WP/blob/master/FAQ.md" target="_blank">Add them manually</a>.', 'fuerte-wp'))
             )
             ->addField(
@@ -561,47 +598,58 @@ class Fuerte_Wp_Admin
                 Field::make('checkbox', 'fuertewp_restrictions_disable_customizer_css', __('Disable Customizer CSS Editor.', 'fuerte-wp'))
                     ->setDefault(true)
                     ->setHelp(__('Disables Customizer Additional CSS Editor.', 'fuerte-wp'))
-            )
+            );
 
-            ->addTab('advanced_restrictions', __('Advanced Restrictions', 'fuerte-wp'))
+        // Advanced Restrictions Tab
+        $advanced_section = $page->addSectionToTab('advanced_restrictions', 'advanced_section', __('Advanced Restrictions', 'fuerte-wp'));
+        $advanced_section
             ->addField(
                 Field::make('html', 'fuertewp_advanced_restrictions_header', __('Note:', 'fuerte-wp'))
+                    ->addArg('help_is_html', true)
                     ->setHtml(__('<p>Only for power users. Leave a field blank to not use those restrictions.</p>', 'fuerte-wp'))
             )
             ->addField(
                 Field::make('textarea', 'fuertewp_restricted_scripts', __('Restricted Scripts.', 'fuerte-wp'))
                     ->addArg('rows', 4)
+                    ->addArg('help_is_html', true)
                     ->setDefault("export.php\n//plugins.php\nupdate.php\nupdate-core.php")
                     ->setHelp(__('One per line. Restricted scripts by file name.<br>These file names will be checked against <a href="https://codex.wordpress.org/Global_Variables" target="_blank">$pagenow</a>, and also will be thrown into <a href="https://developer.wordpress.org/reference/functions/remove_menu_page/" target="_blank">remove_menu_page</a>.<br/>You can comment a line with // to not use it.', 'fuerte-wp'))
             )
             ->addField(
                 Field::make('textarea', 'fuertewp_restricted_pages', __('Restricted Pages.', 'fuerte-wp'))
                     ->addArg('rows', 4)
+                    ->addArg('help_is_html', true)
                     ->setDefault("wprocket\nupdraftplus\nbetter-search-replace\nbackwpup\nbackwpupjobs\nbackwpupeditjob\nbackwpuplogs\nbackwpupbackups\nbackwpupsettings\nlimit-login-attempts\nwp_stream_settings\ntransients-manager\npw-transients-manager\nenvato-market\nelementor-license")
                     ->setHelp(__('One per line. Restricted pages by "page" URL variable.<br/>In wp-admin, checks for URLs like: <i>admin.php?page=</i>', 'fuerte-wp'))
             )
             ->addField(
                 Field::make('textarea', 'fuertewp_removed_menus', __('Removed Menus.', 'fuerte-wp'))
                     ->addArg('rows', 4)
+                    ->addArg('help_is_html', true)
                     ->setDefault("backwpup\ncheck-email-status\nlimit-login-attempts\nenvato-market")
                     ->setHelp(__('One per line. Menus to be removed. Use menu <i>slug</i>.<br/>These slugs will be thrown into <a href="https://developer.wordpress.org/reference/functions/remove_menu_page/" target="_blank">remove_menu_page</a>.', 'fuerte-wp'))
             )
             ->addField(
                 Field::make('textarea', 'fuertewp_removed_submenus', __('Removed Submenus.', 'fuerte-wp'))
                     ->addArg('rows', 4)
+                    ->addArg('help_is_html', true)
                     ->setDefault("options-general.php|updraftplus\noptions-general.php|limit-login-attempts\noptions-general.php|mainwp_child_tab\noptions-general.php|wprocket\ntools.php|export.php\ntools.php|transients-manager\ntools.php|pw-transients-manager\ntools.php|better-search-replace")
                     ->setHelp(__('One per line. Submenus to be removed. Use: <i>parent-menu-slug<strong>|</strong>submenu-slug</i>, separared with a pipe.<br/>These will be thrown into <a href="https://developer.wordpress.org/reference/functions/remove_submenu_page/" target="_blank">remove_submenu_page</a>.', 'fuerte-wp'))
             )
             ->addField(
                 Field::make('textarea', 'fuertewp_removed_adminbar_menus', __('Removed Admin Bar menus.', 'fuerte-wp'))
                     ->addArg('rows', 4)
+                    ->addArg('help_is_html', true)
                     ->setDefault("wp-logo\ntm-suspend\nupdraft_admin_node")
                     ->setHelp(__('One per line. Admin bar menus to be removed. Use: <i>adminbar-item-node-id</i>.<br/>These nodes will be thrown into <a href="https://developer.wordpress.org/reference/classes/wp_admin_bar/remove_node/#finding-toolbar-node-ids" target="_blank">remove_node</a>. Check the docs on how to find an admin bar node id.', 'fuerte-wp'))
-            )
+            );
 
-            ->addTab('ip_lists', __('IP & User Lists', 'fuerte-wp'))
+        // IP & User Lists Tab
+        $ip_section = $page->addSectionToTab('ip_lists', 'ip_section', __('IP & User Lists', 'fuerte-wp'));
+        $ip_section
             ->addField(
                 Field::make('html', 'fuertewp_ip_lists_header', __('IP Whitelist & Blacklist', 'fuerte-wp'))
+                    ->addArg('help_is_html', true)
                     ->setHtml('<p>' . __('Manage IP addresses and ranges that are allowed or blocked.', 'fuerte-wp') . '</p><p>' . __('Supports single IPs, IPv4/IPv6 addresses, and CIDR notation (e.g., 192.168.1.0/24).', 'fuerte-wp') . '</p>')
             )
             ->addField(
@@ -629,17 +677,22 @@ class Fuerte_Wp_Admin
                 Field::make('checkbox', 'fuertewp_registration_protect', __('Enable Registration Protection', 'fuerte-wp'))
                     ->setDefault(true)
                     ->setHelp(__('Apply username blacklist to user registrations.', 'fuerte-wp'))
-            )
+            );
 
-            ->addTab('failed_logins', __('Failed Logins', 'fuerte-wp'))
+        // Failed Logins Tab
+        $logins_section = $page->addSectionToTab('failed_logins', 'logins_section', __('Failed Logins', 'fuerte-wp'));
+        $logins_section
             ->addField(
                 Field::make('html', 'fuertewp_login_logs_viewer', __('Failed Login Attempts', 'fuerte-wp'))
                     ->setHtml($this->render_login_logs_viewer())
-            )
+            );
 
-            ->addTab('deferred_updates', __('Deferred Updates', 'fuerte-wp'))
+        // Deferred Updates Tab
+        $deferred_section = $page->addSectionToTab('deferred_updates', 'deferred_section', __('Deferred Updates', 'fuerte-wp'));
+        $deferred_section
             ->addField(
                 Field::make('html', 'fuertewp_deferred_header', __('Deferred Updates Information', 'fuerte-wp'))
+                    ->addArg('help_is_html', true)
                     ->setHtml('<p>' . __('Prevent specific plugins or themes from auto-updating. When auto-updates are enabled, selected items will be deferred until manually updated.', 'fuerte-wp') . '</p>')
             )
             ->addField(
