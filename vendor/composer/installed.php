@@ -22,7 +22,7 @@
         'estebanforge/hyperfields' => array(
             'pretty_version' => '1.2.0',
             'version' => '1.2.0.0',
-            'reference' => '65a7f6dc331268d10b34d38f00dff995464b8b1a',
+            'reference' => '4f5a7b9d584d56ebedebfaffe33d16d2f07832bb',
             'type' => 'library',
             'install_path' => __DIR__ . '/../estebanforge/hyperfields',
             'aliases' => array(),

@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/EstebanForge/HyperFields.git",
-                "reference": "65a7f6dc331268d10b34d38f00dff995464b8b1a"
+                "reference": "4f5a7b9d584d56ebedebfaffe33d16d2f07832bb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/EstebanForge/HyperFields/zipball/65a7f6dc331268d10b34d38f00dff995464b8b1a",
-                "reference": "65a7f6dc331268d10b34d38f00dff995464b8b1a",
+                "url": "https://api.github.com/repos/EstebanForge/HyperFields/zipball/4f5a7b9d584d56ebedebfaffe33d16d2f07832bb",
+                "reference": "4f5a7b9d584d56ebedebfaffe33d16d2f07832bb",
                 "shasum": ""
             },
             "require": {
@@ -56,7 +56,7 @@
                 "issues": "https://github.com/EstebanForge/HyperFields/issues",
                 "source": "https://github.com/EstebanForge/HyperFields/tree/1.2.0"
             },
-            "time": "2026-04-13T23:54:18+00:00"
+            "time": "2026-04-14T00:02:46+00:00"
         }
     ],
     "packages-dev": [
