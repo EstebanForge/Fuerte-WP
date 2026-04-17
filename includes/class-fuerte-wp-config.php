@@ -420,6 +420,10 @@ class Fuerte_Wp_Config
         $config['deferred_plugins'] = self::load_multiselect_field('fuertewp_deferred_plugins');
         $config['deferred_themes'] = self::load_multiselect_field('fuertewp_deferred_themes');
 
+        // Load blocked updates
+        $config['blocked_plugins'] = self::load_multiselect_field('fuertewp_blocked_plugins');
+        $config['blocked_themes'] = self::load_multiselect_field('fuertewp_blocked_themes');
+
         // Load restricted lists
         $config['restricted_scripts'] = self::load_multiselect_field('fuertewp_restricted_scripts');
         $config['restricted_pages'] = self::load_multiselect_field('fuertewp_restricted_pages');
@@ -756,6 +760,8 @@ class Fuerte_Wp_Config
             'fuertewp_removed_adminbar_menus' => $config['removed_adminbar_menus'] ?? [],
             'fuertewp_deferred_plugins' => $config['deferred_plugins'] ?? [],
             'fuertewp_deferred_themes' => $config['deferred_themes'] ?? [],
+            'fuertewp_blocked_plugins' => $config['blocked_plugins'] ?? [],
+            'fuertewp_blocked_themes' => $config['blocked_themes'] ?? [],
         ];
     }
 

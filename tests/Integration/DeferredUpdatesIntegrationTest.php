@@ -42,7 +42,7 @@ class DeferredUpdatesIntegrationTest extends TestCase
     /**
      * @test
      */
-    public function it_complete_flow_config_to_filter_execution()
+    public function test_complete_flow_config_to_filter_execution()
     {
         // Arrange: Set up complete configuration
         global $wp_tests_options;
@@ -101,7 +101,7 @@ class DeferredUpdatesIntegrationTest extends TestCase
     /**
      * @test
      */
-    public function it_handles_empty_deferred_lists_in_integration()
+    public function test_handles_empty_deferred_lists_in_integration()
     {
         // Arrange: Set up configuration with no deferred items
         global $wp_tests_options;
@@ -141,7 +141,7 @@ class DeferredUpdatesIntegrationTest extends TestCase
     /**
      * @test
      */
-    public function it_preserves_deferred_config_through_cache_invalidation()
+    public function test_preserves_deferred_config_through_cache_invalidation()
     {
         // Arrange: Set up initial configuration
         global $wp_tests_options;

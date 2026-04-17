@@ -56,6 +56,14 @@ class Fuerte_Wp_Auto_Update_Manager
         // Add filters for deferred updates (must run before global __return_true filters)
         add_filter('auto_update_plugin', [$this, 'exclude_deferred_plugins'], 10, 2);
         add_filter('auto_update_theme', [$this, 'exclude_deferred_themes'], 10, 2);
+
+        // Add filters to completely block updates for blocked plugins/themes
+        add_filter('pre_site_transient_update_plugins', [$this, 'block_plugin_updates']);
+        add_filter('pre_site_transient_update_themes', [$this, 'block_theme_updates']);
+
+        // Hide update notices in admin for blocked items
+        add_filter('plugin_row_meta', [$this, 'hide_plugin_update_notice'], 10, 2);
+        add_filter('theme_row_meta', [$this, 'hide_theme_update_notice'], 10, 2);
     }
 
     /**
@@ -231,5 +239,159 @@ class Fuerte_Wp_Auto_Update_Manager
         }
 
         return $update; // Let other filters decide
+    }
+
+    /**
+     * Block updates for blocked plugins.
+     * Removes blocked plugins from the update transient completely.
+     *
+     * @since 1.9.0
+     *
+     * @param object|bool $value The update transient value
+     *
+     * @return object|bool Modified transient with blocked plugins removed
+     */
+    public function block_plugin_updates($value)
+    {
+        $fuertewp = Fuerte_Wp_Config::get_config();
+        $blocked = $fuertewp['blocked_plugins'] ?? [];
+
+        if (empty($blocked)) {
+            return $value;
+        }
+
+        // If value is false or not an object, return as-is
+        if (false === $value || !is_object($value)) {
+            return $value;
+        }
+
+        // Remove blocked plugins from the update list
+        if (isset($value->response) && is_array($value->response)) {
+            foreach ($blocked as $plugin_file) {
+                unset($value->response[$plugin_file]);
+            }
+        }
+
+        // Also remove from no_update and checked arrays
+        if (isset($value->no_update) && is_array($value->no_update)) {
+            foreach ($blocked as $plugin_file) {
+                unset($value->no_update[$plugin_file]);
+            }
+        }
+
+        if (isset($value->checked) && is_array($value->checked)) {
+            foreach ($blocked as $plugin_file) {
+                unset($value->checked[$plugin_file]);
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * Block updates for blocked themes.
+     * Removes blocked themes from the update transient completely.
+     *
+     * @since 1.9.0
+     *
+     * @param object|bool $value The update transient value
+     *
+     * @return object|bool Modified transient with blocked themes removed
+     */
+    public function block_theme_updates($value)
+    {
+        $fuertewp = Fuerte_Wp_Config::get_config();
+        $blocked = $fuertewp['blocked_themes'] ?? [];
+
+        if (empty($blocked)) {
+            return $value;
+        }
+
+        // If value is false or not an object, return as-is
+        if (false === $value || !is_object($value)) {
+            return $value;
+        }
+
+        // Remove blocked themes from the update list
+        if (isset($value->response) && is_array($value->response)) {
+            foreach ($blocked as $theme_slug) {
+                unset($value->response[$theme_slug]);
+            }
+        }
+
+        // Also remove from no_update and checked arrays
+        if (isset($value->no_update) && is_array($value->no_update)) {
+            foreach ($blocked as $theme_slug) {
+                unset($value->no_update[$theme_slug]);
+            }
+        }
+
+        if (isset($value->checked) && is_array($value->checked)) {
+            foreach ($blocked as $theme_slug) {
+                unset($value->checked[$theme_slug]);
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * Hide update notice for blocked plugins in the plugins list.
+     *
+     * @since 1.9.0
+     *
+     * @param array $plugin_meta An array of the plugin's metadata
+     * @param string $plugin_file Path to the plugin file relative to the plugins directory
+     *
+     * @return array Modified metadata array with update notice removed
+     */
+    public function hide_plugin_update_notice($plugin_meta, $plugin_file)
+    {
+        $fuertewp = Fuerte_Wp_Config::get_config();
+        $blocked = $fuertewp['blocked_plugins'] ?? [];
+
+        if (empty($blocked)) {
+            return $plugin_meta;
+        }
+
+        // Check if this plugin is blocked
+        if (in_array($plugin_file, $blocked)) {
+            // Filter out any update-related metadata
+            return array_filter($plugin_meta, function ($meta) {
+                return !is_array($meta) || !isset($meta['update']);
+            });
+        }
+
+        return $plugin_meta;
+    }
+
+    /**
+     * Hide update notice for blocked themes in the themes list.
+     *
+     * @since 1.9.0
+     *
+     * @param array $theme_meta An array of the theme's metadata
+     * @param string $stylesheet Directory name of the theme
+     *
+     * @return array Modified metadata array with update notice removed
+     */
+    public function hide_theme_update_notice($theme_meta, $stylesheet)
+    {
+        $fuertewp = Fuerte_Wp_Config::get_config();
+        $blocked = $fuertewp['blocked_themes'] ?? [];
+
+        if (empty($blocked)) {
+            return $theme_meta;
+        }
+
+        // Check if this theme is blocked
+        if (in_array($stylesheet, $blocked)) {
+            // Filter out any update-related metadata
+            return array_filter($theme_meta, function ($meta) {
+                return !is_array($meta) || !isset($meta['update']);
+            });
+        }
+
+        return $theme_meta;
     }
 } // Class Fuerte_Wp_Auto_Update_Manager

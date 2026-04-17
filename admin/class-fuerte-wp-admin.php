@@ -693,7 +693,7 @@ class Fuerte_Wp_Admin
             ->addField(
                 Field::make('html', 'fuertewp_deferred_header', __('Deferred Updates Information', 'fuerte-wp'))
                     ->addArg('help_is_html', true)
-                    ->setHtml('<p>' . __('Prevent specific plugins or themes from auto-updating. When auto-updates are enabled, selected items will be deferred until manually updated.', 'fuerte-wp') . '</p>')
+                    ->setHtml('<p>' . __('Prevent specific plugins or themes from auto-updating. When auto-updates are enabled, deferred items will be excluded from automatic updates but can still be manually updated. Blocked items will be completely prevented from ALL updates (both automatic and manual).', 'fuerte-wp') . '</p>')
             )
             ->addField(
                 Field::make('heading', 'fuertewp_deferred_plugins_sep', __('Deferred Plugins', 'fuerte-wp'))
@@ -710,6 +710,22 @@ class Fuerte_Wp_Admin
                 Field::make('multiselect', 'fuertewp_deferred_themes', __('Themes to Defer', 'fuerte-wp'))
                     ->setOptions(function_exists('fuertewp_get_installed_themes') ? fuertewp_get_installed_themes() : [])
                     ->setHelp(__('Selected themes will NOT auto-update. Useful for themes with customizations that might be affected by updates.', 'fuerte-wp'))
+            )
+            ->addField(
+                Field::make('heading', 'fuertewp_blocked_plugins_sep', __('Blocked Plugins', 'fuerte-wp'))
+            )
+            ->addField(
+                Field::make('multiselect', 'fuertewp_blocked_plugins', __('Plugins to Block', 'fuerte-wp'))
+                    ->setOptions(function_exists('fuertewp_get_installed_plugins') ? fuertewp_get_installed_plugins() : [])
+                    ->setHelp(__('Selected plugins will be completely blocked from ALL updates (automatic and manual). Use with caution - updates will not be available for these plugins.', 'fuerte-wp'))
+            )
+            ->addField(
+                Field::make('heading', 'fuertewp_blocked_themes_sep', __('Blocked Themes', 'fuerte-wp'))
+            )
+            ->addField(
+                Field::make('multiselect', 'fuertewp_blocked_themes', __('Themes to Block', 'fuerte-wp'))
+                    ->setOptions(function_exists('fuertewp_get_installed_themes') ? fuertewp_get_installed_themes() : [])
+                    ->setHelp(__('Selected themes will be completely blocked from ALL updates (automatic and manual). Use with caution - updates will not be available for these themes.', 'fuerte-wp'))
             );
 
         $page->register();

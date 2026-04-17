@@ -1,5 +1,18 @@
 # Changelog
 
+# 1.9.0 / 2026-04-17
+- Added **Blocked Updates** feature to completely prevent updates for specific plugins and themes.
+- **Critical Security Feature**: Protect against supply chain attacks by locking plugins at safe versions when developer accounts are compromised
+- Prevents auto-installing malicious code during supply chain attacks or developer account breaches
+- Implemented full update blocking system that removes items from update transients.
+- Blocked items are prevented from both automatic and manual updates.
+- Added admin interface fields for selecting plugins/themes to block.
+- Implemented update notice hiding for blocked items in WordPress admin.
+- Added comprehensive configuration storage and migration support.
+- Added unit and integration tests for blocked updates functionality.
+- Enhanced documentation with supply chain attack scenarios and security guidance.
+- Maintained backward compatibility with existing deferred updates feature.
+
 # 1.8.1 / 2026-04-11
 - Migrated entire configuration system from Carbon Fields to the new HyperFields library.
 - Implemented `Fuerte_Wp_Config` as a centralized, thread-safe configuration manager.

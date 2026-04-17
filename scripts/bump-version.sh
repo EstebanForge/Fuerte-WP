@@ -95,7 +95,17 @@ if [ -f "$PLUGIN_DIR/SECURITY.md" ]; then
     ((COUNT++))
 fi
 
-# 7. Library composer.json (HyperFields)
+# 7. tests/bootstrap.php (Test version constant)
+if [ -f "$PLUGIN_DIR/tests/bootstrap.php" ]; then
+    if perl -i -pe "s/define\('FUERTEWP_VERSION', '[^']*'\)/define('FUERTEWP_VERSION', '${VERSION}')/" "$PLUGIN_DIR/tests/bootstrap.php"; then
+        echo -e "${GREEN}✓ Updated tests/bootstrap.php${NC}"
+        ((COUNT++))
+    else
+        echo -e "${RED}✗ Failed to update tests/bootstrap.php${NC}"
+    fi
+fi
+
+# 8. Library composer.json (HyperFields)
 LIB_COMPOSER="$PLUGIN_DIR/vendor/estebanforge/hyperfields/composer.json"
 if [ -f "$LIB_COMPOSER" ]; then
     if perl -i -pe "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "$LIB_COMPOSER"; then

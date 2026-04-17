@@ -4,6 +4,7 @@
 
 - [General](#general)
 - [Login Security](#login-security)
+- [Updates Management](#updates-management)
 - [Configuration](#configuration)
 - [Troubleshooting](#troubleshooting)
 - [Technical](#technical)
@@ -92,6 +93,146 @@ Go to **Settings → Fuerte-WP** and you'll see the **Login Security Dashboard**
 ### **Can I export login attempt data?**
 
 Yes! Use the **Export CSV** button in the Login Security Dashboard to download all security data for analysis or backup purposes.
+
+---
+
+## Updates Management
+
+### **What are Deferred Updates?**
+
+Deferred Updates allow you to exclude specific plugins or themes from automatic updates while still allowing manual updates. This is perfect for:
+
+- Plugins that may have compatibility issues with newer versions
+- Themes with customizations that might be affected by updates
+- Critical plugins that you want to test before updating
+- Plugins that require manual configuration after updates
+
+### **What are Blocked Updates?**
+
+Blocked Updates go a step further by completely preventing updates for specific plugins or themes. Blocked items:
+
+- Cannot be updated automatically OR manually
+- Are removed from WordPress update transients entirely
+- Don't show update notices in the WordPress admin
+- Should be used with caution for critical customizations
+
+### **When should I use Deferred vs. Blocked updates?**
+
+**Use Deferred Updates when:**
+- You want to test updates manually before applying them
+- You need to review changelogs before updating
+- You're cautious about specific plugins but want update flexibility
+- You're temporarily holding off on updates for compatibility reasons
+
+**Use Blocked Updates when:**
+- You learn of a supply chain attack against a plugin or theme
+- A developer's account has been compromised and malicious updates are being distributed
+- You need to maintain safe versions while waiting for verified clean updates
+
+### **How do I configure Deferred and Blocked updates?**
+
+1. Go to **Settings → Fuerte-WP → Deferred Updates**
+2. Select plugins/themes to **defer** from automatic updates
+3. Select plugins/themes to **block** completely
+4. Save your changes
+
+### **Can I mix Deferred and Blocked updates?**
+
+Yes! You can have:
+- Some plugins on automatic updates (default)
+- Some plugins deferred (manual updates only)
+- Some plugins blocked (no updates at all)
+
+This gives you granular control over your WordPress maintenance strategy.
+
+### **What happens to blocked plugins when I view the Plugins list?**
+
+Blocked plugins will:
+- Not show "Update available" notices
+- Not display update version numbers
+- Appear as if they're up to date
+- Still be completely functional on your site
+
+### **What about compromised plugins and supply chain attacks?**
+
+This is a critical security use case for Blocked Updates. **Supply chain attacks** occur when even reputable, trustworthy developers have their accounts or systems compromised by attackers.
+
+**The Reality:**
+- Even honest developers with good security practices can have their accounts hacked
+- Plugin repositories can be compromised
+- Attackers can push malicious updates that thousands of sites auto-install within hours
+- The developer is often a victim too - their credentials were stolen, systems breached
+- Auto-updating during a supply chain attack = installing malware on your site
+
+**How Supply Chain Attacks Work:**
+1. Attackers compromise developer's GitHub/WordPress.org account
+2. Malicious code is injected and pushed as a "legitimate update"
+3. Thousands of sites auto-update within hours
+4. Your site now runs malware with hidden backdoors, data theft, or visitor attacks
+5. The developer discovers the breach later, but the damage is done
+
+**The Problem:**
+- You trust the developer, but you can't trust that the developer's account hasn't been compromised
+- Auto-updates mean you lose control over what code runs on your site
+- Even well-intentioned developers can become unwilling malware distributors
+- Security announcements come AFTER thousands of sites are already compromised
+
+**The Solution:**
+When you learn of a supply chain attack:
+
+1. **Immediately block the affected plugin** at its last known safe version
+2. **Monitor official security channels** (WordPress.org security team, developer communications)
+3. **Check security community sources** for verification and technical details
+4. **Scan your site** for compromise indicators if you updated before blocking
+5. **Unblock and update** only when verified clean version is released
+
+**Real-World Example:**
+```
+Situation: Popular plugin with 100,000+ installations has developer's GitHub account compromised
+- Attacker pushes version 5.0 with hidden backdoor
+- Your site runs safe version 4.9 (last known clean version)
+
+WITHOUT Fuerte-WP Blocked Updates:
+❌ Your site auto-updates to malicious version 5.0 within hours
+❌ Hidden backdoor gives attackers full admin access
+❌ Your site is used to attack visitors, steal data, host malware
+❌ You don't discover until weeks later when your site is blacklisted
+
+WITH Fuerte-WP Blocked Updates:
+✅ Block plugin immediately when attack is disclosed (10 minutes)
+✅ Your site stays on clean version 4.9, protected from malware
+✅ Monitor security community for verified clean version
+✅ Developer secures their account, reviews all code, pushes clean version 5.1
+✅ You verify 5.1 is safe, then unblock and update when ready
+```
+
+**Blocked Updates gives you control** during supply chain attacks when auto-updates would otherwise compromise your site.
+
+**When to Unblock:**
+- Developer announces verified clean version is available
+- Security community confirms the new version is safe
+- You've tested the update in staging environment
+- **Monitor vulnerability databases** like WPScan Vulnerability Database
+- **Subscribe to security advisories** for plugins you use
+- **Test updates in staging** before applying to production
+- **Have migration plans** ready for critical plugins
+- **Document blocked items** with reasons (e.g., "Blocked due to CVE-2024-12345")
+
+**When to Unblock:**
+- Developer releases a verified security fix
+- You've tested the fix in staging environment
+- Alternative: You've migrated to a different plugin entirely
+- Alternative: You've removed the functionality entirely
+
+This feature gives you **controlled security response** rather than reactive panic when vulnerabilities are discovered.
+
+### **How do I know if a plugin is blocked vs. just not needing updates?**
+
+In the Deferred Updates section, you'll see:
+- **Deferred** list: Plugins excluded from auto-updates
+- **Blocked** list: Plugins completely blocked from updates
+
+If a plugin is in the Blocked list, it will never show update notices regardless of available updates.
 
 ---
 

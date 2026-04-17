@@ -23,6 +23,8 @@ Is your WordPress site suffering from plugin neglect? Every day, thousands of si
 
 Most maintenance plugins just alert you AFTER something breaks. Fuerte-WP PREVENTS issues before they happen, combining automated updates with access control that works together seamlessly.
 
+**🚨 CRITICAL SECURITY PROTECTION:** Supply chain attacks happen when even trustworthy developers have their accounts compromised. Attackers push malicious updates that thousands of sites auto-install within hours. Fuerte-WP's **Blocked Updates** lets you freeze plugins at safe versions when you learn of compromises, protecting your site when even developers can't protect their own update systems.
+
 Fuerte-WP auto-protects itself and cannot be disabled, unless your account is declared as super user, or you have access to the server (FTP, SFTP, SSH, cPanel/Plesk, etc.).
 
 ## Auto-Update Management System
@@ -36,6 +38,15 @@ Fuerte-WP's Auto-Update Management System provides comprehensive control over Wo
 - **Selective Updates**: Choose which plugins, themes, and core components to auto-update
 - **Compatibility Monitoring**: Track which updates are safe and tested
 - **Real-Time Update Dashboard**: Live dashboard showing current update status and scheduled maintenance
+
+### 🛡️ Update Control Modes
+- **Deferred Updates**: Exclude specific plugins/themes from auto-updates while allowing manual updates
+- **Blocked Updates**: Completely prevent updates for specific plugins/themes (both automatic and manual)
+  - Blocked items are removed from update transients entirely
+  - No update notices appear in the WordPress admin
+  - **Supply Chain Attack Protection**: Lock plugins at safe versions when developer accounts are compromised
+  - Use when even trustworthy developers can't protect their own update systems
+  - Perfect for responding to security incidents and compromised plugins
 
 ### 👑 Administrator Oversight
 - **Super User Access**: Designate who has full maintenance control (YOU) while restricting others
@@ -67,6 +78,8 @@ Fuerte-WP's Auto-Update Management System provides comprehensive control over Wo
 
 ### ⚙️ Advanced WordPress Optimization
 - **Automated Update Management**: Background updates for core, plugins, themes, and translations
+- **Deferred Updates**: Exclude specific plugins/themes from auto-updates while maintaining manual control
+- **Blocked Updates**: Completely prevent updates for critical plugins/themes (automatic and manual)
 - **API Optimization**: Disable unused XML-RPC endpoints and optimize REST API access
 - **Email Configuration**: Customize WordPress recovery and sender email addresses
 - **Performance Hardening**: Disable unused features, optimize database performance
@@ -110,6 +123,7 @@ Fuerte-WP's Auto-Update Management System provides comprehensive control over Wo
 - E-commerce stores with critical uptime requirements
 - Educational institutions with multiple WordPress installations
 - Enterprise WordPress deployments requiring strict maintenance policies
+- **Sites concerned about supply chain attacks** - protect yourself when developer accounts are compromised
 - Anyone serious about WordPress maintenance and reliability
 
 ## How to Install

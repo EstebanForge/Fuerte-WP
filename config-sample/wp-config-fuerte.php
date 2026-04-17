@@ -97,6 +97,17 @@ $fuertewp = [
         // 'twentytwentythree', // Add theme slugs here (one per line)
     ],
     /*
+    Blocked Updates - NEW in 1.9.0
+    Completely prevent specific plugins/themes from ALL updates (automatic and manual)
+    Use with caution - blocked items will not receive any updates
+    */
+    'blocked_plugins' => [
+        // 'plugin-folder/plugin.php', // Add plugin slugs here (one per line)
+    ],
+    'blocked_themes' => [
+        // 'twentytwentythree', // Add theme slugs here (one per line)
+    ],
+    /*
     Restrictions - Individual options for fine-grained control
     */
     'restrictions' => [

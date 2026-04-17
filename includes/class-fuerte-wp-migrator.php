@@ -83,6 +83,8 @@ class Fuerte_Wp_Migrator
             'removed_adminbar_menus',
             'deferred_plugins',
             'deferred_themes',
+            'blocked_plugins',
+            'blocked_themes',
         ];
 
         // Multiselect keys that used Carbon Fields pattern
@@ -96,6 +98,8 @@ class Fuerte_Wp_Migrator
             'removed_adminbar_menus',
             'deferred_plugins',
             'deferred_themes',
+            'blocked_plugins',
+            'blocked_themes',
         ];
 
         foreach ($keys as $key) {
