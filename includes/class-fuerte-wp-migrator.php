@@ -131,6 +131,13 @@ class Fuerte_Wp_Migrator
             Fuerte_Wp_Config::invalidate_cache();
         }
 
+        // Ensure status is always set, defaulting to 'enabled' if not found
+        if (!isset($settings['fuertewp_status']) || empty($settings['fuertewp_status'])) {
+            $settings['fuertewp_status'] = 'enabled';
+            update_option('fuertewp_settings', $settings);
+            Fuerte_Wp_Config::invalidate_cache();
+        }
+
         return [
             'migrated_keys' => $migrated_count,
             'settings_updated' => $legacy_found,

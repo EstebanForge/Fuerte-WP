@@ -1,7 +1,7 @@
 === Fuerte-WP ===
 Contributors: tcattd
 Tags: security, maintenance, auto-updates, admin control, updates management, login security
-Stable tag: 1.9.0
+Stable tag: 1.9.1
 Requires at least: 6.4
 Tested up to: 6.9
 Requires PHP: 8.1
@@ -120,7 +120,3 @@ Yes! Fuerte-WP is fully compatible with WordPress multisite installations and ca
 [See complete changelog on GitHub](https://github.com/EstebanForge/Fuerte-WP/blob/master/CHANGELOG.md)
 
 == Upgrade Notice ==
-
-= 1.9.0 =
-**NEW: Supply Chain Attack Protection** - Block compromised plugins instantly when developer accounts are hacked. Protect your site when even trustworthy developers can't protect their own update systems.
-

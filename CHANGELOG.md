@@ -1,5 +1,16 @@
 # Changelog
 
+# 1.9.1 / 2026-04-25
+- **Bug Fix**: Fixed multiselect fields not saving data on deferred updates and restriction settings pages.
+- Fixed `fuertewp_restrictions_disable_admin_bar_roles`, `fuertewp_deferred_plugins`, `fuertewp_deferred_themes`, `fuertewp_blocked_plugins`, and `fuertewp_blocked_themes` fields now properly persist selections.
+- Updated HyperFields enhanced multiselect template to include hidden select element for form submission.
+- Updated HyperFields JavaScript to properly find and update the hidden select element.
+- Added HyperFields initialization with version parameter for proper cache busting.
+- **Bug Fix**: Fixed plugin status not being enabled by default on fresh installations.
+- Added `setup_default_status()` method to activator to ensure `fuertewp_status` defaults to 'enabled' on new installs.
+- Enhanced migrator to default plugin status to 'enabled' if not present in legacy options during upgrades.
+- Ensured seamless upgrade path from Carbon Fields (1.7.x) to HyperFields (1.8+) with proper status migration.
+
 # 1.9.0 / 2026-04-17
 - Added **Blocked Updates** feature to completely prevent updates for specific plugins and themes.
 - **Critical Security Feature**: Protect against supply chain attacks by locking plugins at safe versions when developer accounts are compromised

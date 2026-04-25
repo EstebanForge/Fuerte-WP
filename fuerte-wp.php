@@ -5,7 +5,7 @@
  * Plugin Name:       Fuerte-WP
  * Plugin URI:        https://github.com/EstebanForge/Fuerte-WP
  * Description:       Stronger WP. Limit access to critical WordPress areas, even other for admins.
- * Version:           1.9.0
+ * Version:           1.9.1
  * Author:            Esteban Cuevas
  * Author URI:        https://actitud.xyz
  * License:           GPL-2.0+
@@ -85,6 +85,14 @@ function fuertewp_load_hyperfields()
     // Bootstrap HyperFields
     if (file_exists(FUERTEWP_PATH . 'vendor/estebanforge/hyperfields/bootstrap.php')) {
         require_once FUERTEWP_PATH . 'vendor/estebanforge/hyperfields/bootstrap.php';
+
+        // Initialize HyperFields with version for cache busting
+        if (function_exists('hyperfields_run_initialization_logic')) {
+            hyperfields_run_initialization_logic(
+                FUERTEWP_PATH . 'vendor/estebanforge/hyperfields/bootstrap.php',
+                defined('FUERTEWP_VERSION') ? FUERTEWP_VERSION : '1.9.0'
+            );
+        }
     }
 
     // Run migration if needed

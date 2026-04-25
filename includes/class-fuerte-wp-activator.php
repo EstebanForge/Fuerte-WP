@@ -47,6 +47,7 @@ class Fuerte_Wp_Activator
         self::create_login_security_tables();
         self::schedule_cron_jobs();
         self::setup_initial_super_user();
+        self::setup_default_status();
     }
 
     /**
@@ -74,6 +75,25 @@ class Fuerte_Wp_Activator
                 // Add current user as super user using our standardized method
                 Fuerte_Wp_Config::set_field('super_users', [$current_user->user_email], true);
             }
+        }
+    }
+
+    /**
+     * Ensure the plugin status is set to 'enabled' by default.
+     * This prevents the plugin from being disabled on fresh installations.
+     *
+     * @since 1.9.1
+     */
+    public static function setup_default_status()
+    {
+        if (!class_exists('Fuerte_Wp_Config')) {
+            return;
+        }
+
+        $current_status = Fuerte_Wp_Config::get_field('status');
+
+        if (empty($current_status)) {
+            Fuerte_Wp_Config::set_field('status', 'enabled');
         }
     }
 

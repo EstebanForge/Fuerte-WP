@@ -63,8 +63,8 @@ update_file() {
 
 COUNT=0
 
-# 1. fuerte-wp.php (Version header)
-update_file "s/Version: .*/Version: ${VERSION}/" "$PLUGIN_DIR/fuerte-wp.php" "fuerte-wp.php (header)" && ((COUNT++))
+# 1. fuerte-wp.php (Version header) - preserve alignment
+update_file "s/(Version:\s+)\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?/\${1}${VERSION}/" "$PLUGIN_DIR/fuerte-wp.php" "fuerte-wp.php (header)" && ((COUNT++))
 # 2. fuerte-wp.php (Constant)
 update_file "s/define\('FUERTEWP_VERSION', '[^']*'\)/define('FUERTEWP_VERSION', '${VERSION}')/" "$PLUGIN_DIR/fuerte-wp.php" "fuerte-wp.php (constant)"
 
