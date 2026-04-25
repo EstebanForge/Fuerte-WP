@@ -9,7 +9,7 @@
 define('FUERTEWP_TESTING', true);
 define('FUERTEWP_PATH', dirname(__DIR__) . '/');
 define('FUERTEWP_URL', 'https://example.com/wp-content/plugins/fuerte-wp/');
-define('FUERTEWP_VERSION', '1.9.0');
+define('FUERTEWP_VERSION', '1.9.2');
 define('FUERTEWP_LATE_PRIORITY', 9999);
 
 // Mock WordPress constants

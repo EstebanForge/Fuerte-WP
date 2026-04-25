@@ -44,75 +44,85 @@ fi
 echo -e "${GREEN}Bumping version to ${VERSION}${NC}"
 echo ""
 
-# Use perl for portable search and replace
+# Use perl for portable search and replace (returns 0 if file exists and updated/non-critical)
 update_file() {
     local pattern="$1"
     local file="$2"
     local label="$3"
-    
+    local critical="${4:-false}"  # Default: non-critical
+
     if [ -f "$file" ]; then
-        if perl -i -pe "$pattern" "$file"; then
+        if perl -i -pe "$pattern" "$file" 2>/dev/null; then
             echo -e "${GREEN}✓ Updated $label${NC}"
             return 0
         else
-            echo -e "${RED}✗ Failed to update $label${NC}"
-            return 1
+            if [ "$critical" = "true" ]; then
+                echo -e "${RED}✗ Failed to update $label${NC}"
+                return 1
+            else
+                echo -e "${YELLOW}⊘ No match found or optional update skipped: $label${NC}"
+                return 0  # Don't fail for non-critical updates
+            fi
         fi
     fi
+    return 0
 }
 
 COUNT=0
 
 # 1. fuerte-wp.php (Version header) - preserve alignment
-update_file "s/(Version:\s+)\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?/\${1}${VERSION}/" "$PLUGIN_DIR/fuerte-wp.php" "fuerte-wp.php (header)" && ((COUNT++))
-# 2. fuerte-wp.php (Constant)
-update_file "s/define\('FUERTEWP_VERSION', '[^']*'\)/define('FUERTEWP_VERSION', '${VERSION}')/" "$PLUGIN_DIR/fuerte-wp.php" "fuerte-wp.php (constant)"
+update_file "s/(Version:\s+)\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?/\${1}${VERSION}/" "$PLUGIN_DIR/fuerte-wp.php" "fuerte-wp.php (header)" "true" && ((COUNT++)) || true
 
-# 3. composer.json
-update_file "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "$PLUGIN_DIR/composer.json" "composer.json" && ((COUNT++))
+# 2. composer.json
+update_file "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "$PLUGIN_DIR/composer.json" "composer.json" "true" && ((COUNT++)) || true
 
 # 4. README.txt
 if [ -f "$PLUGIN_DIR/README.txt" ]; then
-    perl -i -pe "s/Stable tag: .*/Stable tag: ${VERSION}/" "$PLUGIN_DIR/README.txt"
-    perl -i -pe "s/^Version: .*/Version: ${VERSION}/" "$PLUGIN_DIR/README.txt"
-    echo -e "${GREEN}✓ Updated README.txt${NC}"
-    ((COUNT++))
+    if perl -i -pe "s/Stable tag: .*/Stable tag: ${VERSION}/" "$PLUGIN_DIR/README.txt" 2>/dev/null && \
+       perl -i -pe "s/^Version: .*/Version: ${VERSION}/" "$PLUGIN_DIR/README.txt" 2>/dev/null; then
+        echo -e "${GREEN}✓ Updated README.txt${NC}"
+        ((COUNT++))
+    else
+        echo -e "${YELLOW}⊘ No version tags found in README.txt${NC}"
+    fi
 fi
 
 # 5. README.md
 if [ -f "$PLUGIN_DIR/README.md" ]; then
-    perl -i -pe "s/Stable tag: .*/Stable tag: ${VERSION}/" "$PLUGIN_DIR/README.md"
-    echo -e "${GREEN}✓ Updated README.md${NC}"
-    ((COUNT++))
+    if grep -q "Stable tag:" "$PLUGIN_DIR/README.md" 2>/dev/null; then
+        perl -i -pe "s/Stable tag: .*/Stable tag: ${VERSION}/" "$PLUGIN_DIR/README.md" 2>/dev/null
+        echo -e "${GREEN}✓ Updated README.md${NC}"
+        ((COUNT++))
+    else
+        echo -e "${YELLOW}⊘ No 'Stable tag' found in README.md (GitHub format)${NC}"
+    fi
 fi
 
 # 6. SECURITY.md (Table update)
 if [ -f "$PLUGIN_DIR/SECURITY.md" ]; then
     # Update the supported version line and the comparison line
-    perl -i -pe "s/\| [0-9]+\.[0-9]+\.[0-9]+   \| :white_check_mark: \|/| ${VERSION}   | :white_check_mark: |/" "$PLUGIN_DIR/SECURITY.md"
-    perl -i -pe "s/\| <[0-9]+\.[0-9]+\.[0-9]+  \| :x:                \|/| <${VERSION}  | :x:                |/" "$PLUGIN_DIR/SECURITY.md"
-    echo -e "${GREEN}✓ Updated SECURITY.md${NC}"
-    ((COUNT++))
-fi
-
-# 7. tests/bootstrap.php (Test version constant)
-if [ -f "$PLUGIN_DIR/tests/bootstrap.php" ]; then
-    if perl -i -pe "s/define\('FUERTEWP_VERSION', '[^']*'\)/define('FUERTEWP_VERSION', '${VERSION}')/" "$PLUGIN_DIR/tests/bootstrap.php"; then
-        echo -e "${GREEN}✓ Updated tests/bootstrap.php${NC}"
+    if perl -i -pe "s/\| [0-9]+\.[0-9]+\.[0-9]+[ ]+\| :white_check_mark: \|/| ${VERSION}   | :white_check_mark: |/" "$PLUGIN_DIR/SECURITY.md" 2>/dev/null && \
+       perl -i -pe "s/\| <[0-9]+\.[0-9]+\.[0-9]+[ ]+\| :x:                \|/| <${VERSION}  | :x:                |/" "$PLUGIN_DIR/SECURITY.md" 2>/dev/null; then
+        echo -e "${GREEN}✓ Updated SECURITY.md${NC}"
         ((COUNT++))
     else
-        echo -e "${RED}✗ Failed to update tests/bootstrap.php${NC}"
+        echo -e "${YELLOW}⊘ No version table found in SECURITY.md${NC}"
     fi
+fi
+
+# 7. tests/bootstrap.php (FUERTEWP_VERSION is now dynamic - skip updating)
+if [ -f "$PLUGIN_DIR/tests/bootstrap.php" ]; then
+    echo -e "${YELLOW}⊘ FUERTEWP_VERSION is now defined dynamically - skipping tests/bootstrap.php${NC}"
 fi
 
 # 8. Library composer.json (HyperFields)
 LIB_COMPOSER="$PLUGIN_DIR/vendor/estebanforge/hyperfields/composer.json"
 if [ -f "$LIB_COMPOSER" ]; then
-    if perl -i -pe "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "$LIB_COMPOSER"; then
+    if perl -i -pe "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "$LIB_COMPOSER" 2>/dev/null; then
         echo -e "${GREEN}✓ Updated library composer.json (HyperFields)${NC}"
         ((COUNT++))
     else
-        echo -e "${RED}✗ Failed to update library composer.json${NC}"
+        echo -e "${YELLOW}⊘ No version field found in HyperFields composer.json${NC}"
     fi
 fi
 
