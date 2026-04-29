@@ -141,7 +141,6 @@ test('access control - handles special characters in page names', function () {
 test('access control - access denied message is stored correctly', function () {
     // Arrange: Custom access denied message
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_access_denied_message'] = 'You do not have permission to access this area.';
 
     // Act: Get config
@@ -154,7 +153,6 @@ test('access control - access denied message is stored correctly', function () {
 test('access control - recovery email is validated and stored', function () {
     // Arrange: Set recovery email
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_recovery_email'] = 'recovery@example.com';
 
     // Act: Get config

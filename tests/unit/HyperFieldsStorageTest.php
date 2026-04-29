@@ -22,7 +22,6 @@ test('config - handles hyperfields single array storage', function () {
     // Arrange: Create a mock fuertewp_settings option similar to what HyperFields saves
     global $wp_tests_options;
     $wp_tests_options['fuertewp_settings'] = [
-        'fuertewp_status' => 'enabled',
         'fuertewp_super_users' => ['admin@example.com', 'dev@example.com'],
         'fuertewp_removed_menus' => "plugins.php\nthemes.php\ntools.php",
         'fuertewp_login_max_attempts' => 10,
@@ -32,7 +31,6 @@ test('config - handles hyperfields single array storage', function () {
     $config = Fuerte_Wp_Config::get_config(true);
 
     // Assert: Check mapping
-    expect($config['status'])->toBe('enabled');
     expect($config['super_users'])->toContain('admin@example.com');
     expect($config['super_users'])->toContain('dev@example.com');
     
@@ -51,14 +49,10 @@ test('config - handles hyperfields single array storage', function () {
 test('config - hybrid storage (hyperfields + legacy)', function () {
     // Arrange: Some in hyperfields, some in legacy _fuertewp_ options
     global $wp_tests_options;
-    $wp_tests_options['fuertewp_settings'] = [
-        'fuertewp_status' => 'enabled',
-    ];
     // Legacy mapping
     $wp_tests_options['_fuertewp_login_max_attempts'] = 7;
-    
+
     // Act & Assert
     $config = Fuerte_Wp_Config::get_config(true);
-    expect($config['status'])->toBe('enabled');
     expect($config['login_security']['login_max_attempts'])->toBe(7);
 });

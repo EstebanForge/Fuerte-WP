@@ -26,14 +26,12 @@ afterEach(function () {
 test('config integrity - returns valid config structure', function () {
     // Arrange: Minimal valid config
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
 
     // Assert: Should have all required top-level keys
     expect($config)->toBeArray();
-    expect($config)->toHaveKey('status');
     expect($config)->toHaveKey('super_users');
     expect($config)->toHaveKey('general');
     expect($config)->toHaveKey('restrictions');
@@ -42,7 +40,6 @@ test('config integrity - returns valid config structure', function () {
 test('config integrity - general settings have defaults', function () {
     // Arrange: No general settings configured
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -55,22 +52,9 @@ test('config integrity - general settings have defaults', function () {
     expect($config['general'])->toHaveKey('autoupdate_plugins');
 });
 
-test('config integrity - handles invalid status gracefully', function () {
-    // Arrange: Invalid status value
-    global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'invalid_value';
-
-    // Act: Get config
-    $config = Fuerte_Wp_Config::get_config(true);
-
-    // Assert: Should still return config with the status
-    expect($config['status'])->toBe('invalid_value');
-});
-
 test('config integrity - cache invalidation works correctly', function () {
     // Arrange: Initial config
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_access_denied_message'] = 'Access denied.';
 
     // Act: Get config twice with invalidation
@@ -90,7 +74,6 @@ test('config integrity - cache invalidation works correctly', function () {
 test('config integrity - multiselect fields return arrays', function () {
     // Arrange: Multiselect field with values
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_super_users|||0|value'] = 'admin@example.com';
     $wp_tests_options['_fuertewp_super_users|||1|value'] = 'super@example.com';
 
@@ -107,7 +90,6 @@ test('config integrity - multiselect fields return arrays', function () {
 test('config integrity - empty multiselect returns empty array', function () {
     // Arrange: No multiselect values
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -127,14 +109,11 @@ test('config integrity - handles missing options gracefully', function () {
 
     // Assert: Should return valid config structure with defaults
     expect($config)->toBeArray();
-    expect($config)->toHaveKey('status');
-    expect($config['status'])->toBe('enabled'); // Default is 'enabled' when not set
 });
 
 test('config integrity - boolean settings are handled correctly', function () {
     // Arrange: Boolean settings stored as strings
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_autoupdate_core'] = '1';
     $wp_tests_options['_fuertewp_autoupdate_plugins'] = '';
     $wp_tests_options['_fuertewp_autoupdate_themes'] = '1';
@@ -151,7 +130,6 @@ test('config integrity - boolean settings are handled correctly', function () {
 test('config integrity - bypass cache parameter works', function () {
     // Arrange: Set up config
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_access_denied_message'] = 'Original message.';
 
     // Act: Get with cache bypass
@@ -172,7 +150,6 @@ test('config integrity - bypass cache parameter works', function () {
 test('config integrity - email validation in super users', function () {
     // Arrange: Super users with various email formats
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_super_users|||0|value'] = 'valid@example.com';
     $wp_tests_options['_fuertewp_super_users|||1|value'] = 'another.valid@sub.example.com';
     $wp_tests_options['_fuertewp_super_users|||2|value'] = 'user+tag@example.com';

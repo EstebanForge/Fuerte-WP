@@ -46,7 +46,6 @@ class BlockedUpdatesIntegrationTest extends TestCase
     {
         // Arrange: Set up complete configuration
         global $wp_tests_options;
-        $wp_tests_options['_fuertewp_status'] = 'enabled';
         $wp_tests_options['_fuertewp_blocked_plugins|||0|value'] = 'hello-dolly/hello.php';
         $wp_tests_options['_fuertewp_blocked_plugins|||1|value'] = 'akismet/akismet.php';
         $wp_tests_options['_fuertewp_blocked_themes|||0|value'] = 'twentytwentythree';
@@ -116,7 +115,6 @@ class BlockedUpdatesIntegrationTest extends TestCase
     {
         // Arrange: Set up configuration with no blocked items
         global $wp_tests_options;
-        $wp_tests_options['_fuertewp_status'] = 'enabled';
         // No blocked plugins or themes set
 
         // Act: Load configuration
@@ -182,7 +180,6 @@ class BlockedUpdatesIntegrationTest extends TestCase
     {
         // Arrange: Set up configuration with both blocked and deferred items
         global $wp_tests_options;
-        $wp_tests_options['_fuertewp_status'] = 'enabled';
         $wp_tests_options['_fuertewp_blocked_plugins|||0|value'] = 'hello-dolly/hello.php';
         $wp_tests_options['_fuertewp_deferred_plugins|||0|value'] = 'akismet/akismet.php';
 

@@ -26,7 +26,6 @@ class Fuerte_Wp_Migrator
 
         // List of all keys to migrate (without prefix)
         $keys = [
-            'status',
             'super_users',
             'access_denied_message',
             'recovery_email',
@@ -127,13 +126,6 @@ class Fuerte_Wp_Migrator
         }
 
         if ($legacy_found) {
-            update_option('fuertewp_settings', $settings);
-            Fuerte_Wp_Config::invalidate_cache();
-        }
-
-        // Ensure status is always set, defaulting to 'enabled' if not found
-        if (!isset($settings['fuertewp_status']) || empty($settings['fuertewp_status'])) {
-            $settings['fuertewp_status'] = 'enabled';
             update_option('fuertewp_settings', $settings);
             Fuerte_Wp_Config::invalidate_cache();
         }

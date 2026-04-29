@@ -30,7 +30,6 @@ afterEach(function () {
 test('core restrictions - file editing restrictions are stored correctly', function () {
     // Arrange: Enable file editing restrictions
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_disable_theme_editor'] = '1';
     $wp_tests_options['_fuertewp_disable_plugin_editor'] = '1';
 
@@ -45,7 +44,6 @@ test('core restrictions - file editing restrictions are stored correctly', funct
 test('core restrictions - file editing can be selectively enabled', function () {
     // Arrange: Enable only theme editor, not plugin editor
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_disable_theme_editor'] = '1';
     // Don't set plugin editor (defaults to true for security)
 
@@ -60,7 +58,6 @@ test('core restrictions - file editing can be selectively enabled', function () 
 test('core restrictions - theme and plugin install restrictions', function () {
     // Arrange: Enable theme/plugin install restrictions
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_disable_theme_install'] = '1';
     $wp_tests_options['_fuertewp_disable_plugin_install'] = '1';
 
@@ -75,7 +72,6 @@ test('core restrictions - theme and plugin install restrictions', function () {
 test('core restrictions - customizer CSS restriction is stored', function () {
     // Arrange: Enable customizer CSS restriction
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_disable_customizer_css'] = '1';
 
     // Act: Get config
@@ -88,7 +84,6 @@ test('core restrictions - customizer CSS restriction is stored', function () {
 test('core restrictions - admin create/edit restriction is stored', function () {
     // Arrange: Enable admin create/edit restriction
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_disable_admin_create_edit'] = '1';
 
     // Act: Get config
@@ -101,7 +96,6 @@ test('core restrictions - admin create/edit restriction is stored', function () 
 test('core restrictions - REST API restrictions are stored', function () {
     // Arrange: Enable REST API restrictions
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_restapi_loggedin_only'] = '1';
     $wp_tests_options['_fuertewp_restapi_disable_app_passwords'] = '1';
 
@@ -117,7 +111,6 @@ test('core restrictions - REST API restrictions are stored', function () {
 test('core restrictions - XML-RPC restriction is stored', function () {
     // Arrange: Enable XML-RPC restriction
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_disable_xmlrpc'] = '1';
 
     // Act: Get config
@@ -130,7 +123,6 @@ test('core restrictions - XML-RPC restriction is stored', function () {
 test('core restrictions - empty restrictions config returns defaults', function () {
     // Arrange: Minimal config
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -143,7 +135,6 @@ test('core restrictions - empty restrictions config returns defaults', function 
 test('core restrictions - handles boolean string conversions correctly', function () {
     // Arrange: Mix of boolean string representations
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_disable_theme_editor'] = '1'; // true as string
     // Plugin editor defaults to true when not set
     $wp_tests_options['_fuertewp_disable_xmlrpc'] = '1';
@@ -157,15 +148,4 @@ test('core restrictions - handles boolean string conversions correctly', functio
     expect($config['restrictions']['disable_xmlrpc'])->toBeTrue();
 });
 
-test('core restrictions - status check prevents restrictions when disabled', function () {
-    // Arrange: Plugin disabled
-    global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'disabled';
-    $wp_tests_options['_fuertewp_disable_theme_editor'] = '1';
 
-    // Act: Get config
-    $config = Fuerte_Wp_Config::get_config(true);
-
-    // Assert: Status should be disabled but restriction should still be stored
-    expect($config['status'])->toBe('disabled');
-});

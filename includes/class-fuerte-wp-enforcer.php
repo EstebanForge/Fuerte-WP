@@ -96,13 +96,6 @@ class Fuerte_Wp_Enforcer
         if ($current_user && $current_user->ID > 0 && current_user_can('manage_options')) {
             Fuerte_Wp_Config::set_field('super_users', [$current_user->user_email], true);
 
-            // Also set plugin status if not already set
-            $status = Fuerte_Wp_Config::get_field('status');
-
-            if (empty($status)) {
-                Fuerte_Wp_Config::set_field('status', 'enabled');
-            }
-
             Fuerte_Wp_Logger::info('Self-healing: Set super user to ' . $current_user->user_email);
         }
     }
@@ -954,11 +947,6 @@ class Fuerte_Wp_Enforcer
 
         // Ensure current user is properly loaded
         $current_user = wp_get_current_user();
-
-        // Early exit optimization #2: Plugin disabled
-        if (!isset($fuertewp['status']) || $fuertewp['status'] != 'enabled') {
-            return;
-        }
 
         // Early exit optimization #3: CLI requests
         if (defined('WP_CLI') && WP_CLI) {

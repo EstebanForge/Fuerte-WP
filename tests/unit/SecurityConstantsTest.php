@@ -94,7 +94,6 @@ test('security constants - plugin version format is valid semver', function () {
 test('security constants - config handles FUERTEWP_DISABLE constant', function () {
     // Arrange: Set up minimal config
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
 
     // Define FUERTEWP_DISABLE to test early exit logic
     if (!defined('FUERTEWP_DISABLE')) {
@@ -111,7 +110,6 @@ test('security constants - config handles FUERTEWP_DISABLE constant', function (
 test('security constants - config handles FUERTEWP_FORCE constant', function () {
     // Arrange: Set up config
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
     $wp_tests_options['_fuertewp_super_users|||0|value'] = 'admin@example.com';
 
     // Define FUERTEWP_FORCE to test force mode

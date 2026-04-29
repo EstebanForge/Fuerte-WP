@@ -164,11 +164,6 @@ class Fuerte_Wp_Admin
         $main_section = $page->addSectionToTab('main', 'main_section', __('Main Options', 'fuerte-wp'));
         $main_section
             ->addField(
-                Field::make('checkbox', 'fuertewp_status', __('Enable Fuerte-WP.', 'fuerte-wp'))
-                    ->setDefault(true)
-                    ->setHelp(__('Check the option to enable Fuerte-WP.', 'fuerte-wp'))
-            )
-            ->addField(
                 Field::make('multiselect', 'fuertewp_super_users', __('Super Administrators.', 'fuerte-wp'))
                     ->setOptions(fuertewp_get_admin_users())
                     ->setEnhanced(true)

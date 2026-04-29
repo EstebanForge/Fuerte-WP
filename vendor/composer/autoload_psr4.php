@@ -7,4 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'HyperFields\\' => array($vendorDir . '/estebanforge/hyperfields/src'),
+    'Automattic\\Jetpack\\Autoloader\\' => array($vendorDir . '/automattic/jetpack-autoloader/src'),
 );

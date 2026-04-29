@@ -250,7 +250,6 @@ class Fuerte_Wp_Config
     private static function normalize_settings($settings)
     {
         return [
-            'status' => $settings['fuertewp_status'] ?? 'enabled',
             'super_users' => $settings['fuertewp_super_users'] ?? [],
             'general' => [
                 'access_denied_message' => $settings['fuertewp_access_denied_message'] ?? 'Access denied.',
@@ -341,9 +340,6 @@ class Fuerte_Wp_Config
     private static function load_from_legacy_database()
     {
         $config = [];
-
-        // Load status from _fuertewp_status option
-        $config['status'] = get_option('_fuertewp_status', 'enabled');
 
         // Load super users with special handling for multiselect field
         $config['super_users'] = self::load_multiselect_field('fuertewp_super_users');
@@ -697,7 +693,6 @@ class Fuerte_Wp_Config
 
         // Map internal config to enforcer expected keys
         return [
-            'fuertewp_status' => $config['status'] ?? 'enabled',
             'fuertewp_super_users' => $config['super_users'] ?? [],
 
             'fuertewp_access_denied_message' => $config['general']['access_denied_message'] ?? 'Access denied.',

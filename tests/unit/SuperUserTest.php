@@ -27,7 +27,6 @@ test('super user - email matching is case insensitive', function () {
     // Arrange: Set up config with super user in lowercase
     global $wp_tests_options;
     $wp_tests_options['_fuertewp_super_users|||0|value'] = 'admin@example.com';
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
 
     // Act: Get config and check case insensitivity
     $config = Fuerte_Wp_Config::get_config(true);
@@ -45,7 +44,6 @@ test('super user - bypasses restrictions when not forced', function () {
     // Note: This test may fail if run after other tests that define FUERTEWP_FORCE
     global $wp_tests_options;
     $wp_tests_options['_fuertewp_super_users|||0|value'] = 'superadmin@example.com';
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -72,7 +70,6 @@ test('super user - restrictions apply when FUERTEWP_FORCE is true', function () 
 
     global $wp_tests_options;
     $wp_tests_options['_fuertewp_super_users|||0|value'] = 'superadmin@example.com';
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -92,7 +89,6 @@ test('super user - restrictions apply when FUERTEWP_FORCE is true', function () 
 test('super user - empty super users list affects all users', function () {
     // Arrange: No super users configured
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -116,7 +112,6 @@ test('super user - validates email format', function () {
     ];
 
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
 
     // Add all emails to config
     foreach ($validEmails as $index => $email) {
@@ -136,7 +131,6 @@ test('super user - validates email format', function () {
 test('config - handles missing super users gracefully', function () {
     // Arrange: No super users configured at all
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_status'] = 'enabled';
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);

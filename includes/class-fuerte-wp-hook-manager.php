@@ -86,7 +86,6 @@ class Fuerte_Wp_Hook_Manager
             } else {
                 // Fallback to basic defaults
                 self::$config = [
-                    'status' => 'enabled',
                     'restrictions' => [],
                     'emails' => [],
                     'tweaks' => [],
@@ -117,11 +116,6 @@ class Fuerte_Wp_Hook_Manager
      */
     private static function register_conditional_hooks()
     {
-        // Skip if plugin is disabled
-        if (isset(self::$config['status']) && self::$config['status'] !== 'enabled') {
-            return;
-        }
-
         // Login/Registration context hooks
         if (self::$context['is_login'] || self::$context['is_register']) {
             self::register_login_hooks();

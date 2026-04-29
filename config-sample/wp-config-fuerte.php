@@ -22,10 +22,6 @@ define('FUERTEWP_FORCE', false);
  */
 $fuertewp = [
     /*
-     Control Fuerte-WP status: enabled / disabled
-    */
-    'status' => 'enabled',
-    /*
     Super Users accounts, by email address.
     This users will not be affected by Fuerte-WP's restrictions.
     Add one email per item inside the array.
