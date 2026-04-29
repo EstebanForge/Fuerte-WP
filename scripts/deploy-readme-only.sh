@@ -1,9 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Simple script to update only README.txt in WordPress.org SVN repository
+
+set -euo pipefail
 
 # Configuration
 PLUGINSLUG="fuerte-wp"
-CURRENTDIR=`pwd`
+CURRENTDIR=$(pwd)
 SVNPATH="/tmp/$PLUGINSLUG-readme-update"
 SVNURL="http://plugins.svn.wordpress.org/$PLUGINSLUG/"
 
@@ -22,8 +24,6 @@ fi
 echo ""
 echo "SVN username set to: $SVNUSER"
 echo ""
-
-rm -rf $SVNPATH
 
 # Detect default branch (main or master)
 MAIN_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^.*/@@')
@@ -48,6 +48,9 @@ echo
 echo "..........................................."
 echo
 
+# Clean up any previous temp directory
+rm -rf "$SVNPATH"
+
 # Check if README.txt exists
 if [ ! -f "$CURRENTDIR/README.txt" ]; then
     echo "README.txt not found in current directory. Exiting..."
@@ -55,24 +58,24 @@ if [ ! -f "$CURRENTDIR/README.txt" ]; then
 fi
 
 echo "Creating local copy of SVN repo ..."
-svn co $SVNURL $SVNPATH || exit 1
+svn co "$SVNURL" "$SVNPATH" || exit 1
 
 echo "Updating README.txt in trunk..."
 cp "$CURRENTDIR/README.txt" "$SVNPATH/trunk/README.txt" || exit 1
 
 echo "Changing directory to SVN trunk and committing README.txt"
-cd $SVNPATH/trunk/
+cd "$SVNPATH/trunk/" || exit 1
 
 # Check if there are changes to commit
 if svn status README.txt | grep -q "README.txt"; then
     echo "Committing updated README.txt to trunk"
-    svn commit --username=$SVNUSER -m "Update README.txt - maintenance-focused messaging" || exit 1
+    svn commit --username="$SVNUSER" -m "Update README.txt - maintenance-focused messaging" || exit 1
     echo "README.txt updated successfully!"
 else
     echo "No changes detected in README.txt"
 fi
 
 echo "Removing temporary directory $SVNPATH"
-rm -fr $SVNPATH/
+rm -fr "${SVNPATH:?}/"
 
 echo "*** DONE ***"
