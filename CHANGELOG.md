@@ -1,5 +1,19 @@
 # Changelog
 
+# 1.9.3 / 2026-04-29
+- **Removed**: The "Enable Fuerte-WP" checkbox option has been removed. If the plugin is active, Fuerte-WP is active.
+- **Changed**: Auto-update settings now default to enabled: WordPress core, plugins, themes, and translations.
+- **Changed**: Fatal Error email notification now defaults to enabled.
+- **Changed**: Login Security and Registration Protection now default to enabled.
+- **Changed**: Disable App Passwords now defaults to enabled.
+- **Changed**: Disable XML-RPC API now defaults to enabled.
+- **Changed**: Disable Weak Passwords now defaults to enabled.
+- **Changed**: Restrict Permalinks, Restrict ACF, Disable Theme Editor, Disable Plugin Editor, Disable Theme Install, Disable Plugin Install, and Disable Customizer CSS Editor now default to enabled.
+- **Changed**: Block Common Admin Usernames now defaults to disabled.
+- **Changed**: Enable Registration Protection (IP Lists tab) now defaults to disabled.
+- Removed `fuertewp_status` from configuration normalization, legacy database loader, enforcer, hook manager, activator, migrator, and config file samples.
+- Updated test fixtures to remove all `_fuertewp_status` references.
+
 # 1.9.1 / 2026-04-25
 - **Bug Fix**: Fixed multiselect fields not saving data on deferred updates and restriction settings pages.
 - Fixed `fuertewp_restrictions_disable_admin_bar_roles`, `fuertewp_deferred_plugins`, `fuertewp_deferred_themes`, `fuertewp_blocked_plugins`, and `fuertewp_blocked_themes` fields now properly persist selections.

@@ -657,7 +657,7 @@ class Fuerte_Wp_Admin
             )
             ->addField(
                 Field::make('checkbox', 'fuertewp_block_default_users', __('Block Common Admin Usernames', 'fuerte-wp'))
-                    ->setDefault(true)
+                    ->setDefault(false)
                     ->setHelp(__('Automatically block common admin usernames like "admin", "administrator", "root".', 'fuerte-wp'))
             )
             ->addField(
@@ -670,7 +670,7 @@ class Fuerte_Wp_Admin
             )
             ->addField(
                 Field::make('checkbox', 'fuertewp_registration_protect', __('Enable Registration Protection', 'fuerte-wp'))
-                    ->setDefault(true)
+                    ->setDefault(false)
                     ->setHelp(__('Apply username blacklist to user registrations.', 'fuerte-wp'))
             );
 
