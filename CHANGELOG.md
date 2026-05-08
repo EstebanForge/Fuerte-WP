@@ -1,5 +1,12 @@
 # Changelog
 
+# 1.9.4 / 2026-05-08
+- **Bug Fix**: Fixed WooCommerce Action Scheduler async runner being blocked by Login URL Hider.
+- `early_wp_admin_check()` now bypasses for AJAX (`wp_doing_ajax()`) and cron (`wp_doing_cron()`) requests.
+- Previous code had no `DOING_AJAX` guard, causing unauthenticated `wp_ajax_nopriv_` requests to `/wp-admin/admin-ajax.php` (used by Action Scheduler's async queue runner) to be redirected to 404.
+- Also normalized `protect_wp_admin_access()` to use `wp_doing_ajax()` wrapper instead of bare `defined('DOING_AJAX')`.
+- Added 8 regression tests covering AJAX/cron bypass and Action Scheduler compatibility.
+
 # 1.9.3 / 2026-04-29
 - **Removed**: The "Enable Fuerte-WP" checkbox option has been removed. If the plugin is active, Fuerte-WP is active.
 - **Changed**: Auto-update settings now default to enabled: WordPress core, plugins, themes, and translations.

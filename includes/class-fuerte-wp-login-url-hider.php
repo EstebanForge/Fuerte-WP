@@ -594,7 +594,7 @@ class Fuerte_Wp_Login_URL_Hider
 
         $is_logged_in = is_user_logged_in();
         $is_wp_cli = defined('WP_CLI');
-        $is_doing_ajax = defined('DOING_AJAX');
+        $is_doing_ajax = wp_doing_ajax();
         $is_doing_cron = defined('DOING_CRON');
         $has_action = isset($_GET['action']);
         $is_admin_request = $this->is_wp_admin_request();
@@ -873,6 +873,16 @@ class Fuerte_Wp_Login_URL_Hider
      */
     public function early_wp_admin_check()
     {
+        // Don't block AJAX requests (e.g., WooCommerce Action Scheduler async runner)
+        if (wp_doing_ajax()) {
+            return;
+        }
+
+        // Don't block cron requests
+        if (wp_doing_cron()) {
+            return;
+        }
+
         // Check if this is a WP-Admin request
         if ($this->is_wp_admin_request()) {
             // Check if user is logged in
