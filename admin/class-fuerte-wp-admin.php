@@ -126,9 +126,7 @@ class Fuerte_Wp_Admin
             && !empty($fuertewp)
         ) {
             // Check if current user is a super user
-            $current_user = wp_get_current_user();
-            $is_super_user = isset($fuertewp['super_users']) &&
-                           in_array(strtolower($current_user->user_email), $fuertewp['super_users']);
+            $is_super_user = Fuerte_Wp_Helper::is_super_user();
 
             // Only hide options if not a super user
             if (!$is_super_user) {
@@ -877,13 +875,9 @@ class Fuerte_Wp_Admin
      */
     public function add_action_links($links)
     {
-        global $fuertewp, $current_user;
-
-        if (!isset($current_user)) {
-            $current_user = wp_get_current_user();
-        }
-
         // Check if fuertewp config exists and has super_users
+        global $fuertewp;
+
         if (
             !isset($fuertewp)
             || !is_array($fuertewp)
@@ -892,14 +886,8 @@ class Fuerte_Wp_Admin
             return $links;
         }
 
-        // Use simple string operations for email comparison
-        if (
-            !in_array(
-                strtolower($current_user->user_email),
-                $fuertewp['super_users'],
-            )
-            || (defined('FUERTEWP_FORCE') && true === FUERTEWP_FORCE)
-        ) {
+        // Only show settings link for super users (unless forced)
+        if (!Fuerte_Wp_Helper::bypasses_restrictions()) {
             return $links;
         }
 

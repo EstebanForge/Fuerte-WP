@@ -9,7 +9,7 @@
 define('FUERTEWP_TESTING', true);
 define('FUERTEWP_PATH', dirname(__DIR__) . '/');
 define('FUERTEWP_URL', 'https://example.com/wp-content/plugins/fuerte-wp/');
-define('FUERTEWP_VERSION', '1.9.2');
+define('FUERTEWP_VERSION', '1.9.5');
 define('FUERTEWP_LATE_PRIORITY', 9999);
 
 // Mock WordPress constants
@@ -46,6 +46,11 @@ if (file_exists(dirname(__DIR__) . '/includes/helpers.php')) {
 // Load configuration class
 if (file_exists(dirname(__DIR__) . '/includes/class-fuerte-wp-config.php')) {
     require_once dirname(__DIR__) . '/includes/class-fuerte-wp-config.php';
+}
+
+// Load helper class (is_super_user, bypasses_restrictions)
+if (file_exists(dirname(__DIR__) . '/includes/class-fuerte-wp-helper.php')) {
+    require_once dirname(__DIR__) . '/includes/class-fuerte-wp-helper.php';
 }
 
 // Load auto-update manager class

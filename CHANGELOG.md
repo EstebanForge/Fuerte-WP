@@ -1,5 +1,13 @@
 # Changelog
 
+# 1.9.5 / 2026-06-02
+- **Bug Fix**: Super-users were incorrectly affected by restrictions meant only for non-super-users (Permalinks, ACF, Theme/Plugin Editor, Theme/Plugin Install, Customizer CSS).
+- Root cause: `Fuerte_Wp_Hook_Manager` registered restriction hooks (menu removal, admin bar removal, `DISALLOW_FILE_EDIT`) before the enforcer's super-user check could run.
+- Added `Fuerte_Wp_Helper::is_super_user()` and `Fuerte_Wp_Helper::bypasses_restrictions()` as single source of truth, replacing 7 duplicated inline email-matching patterns.
+- Fixed latent case-sensitivity bug in admin class where super-user email comparison was not lowercasing the config values.
+- Fixed wrong config key `disable_file_edit` in Hook Manager (now checks `disable_theme_editor`/`disable_plugin_editor`).
+- Added 9 tests for super-user restriction bypass.
+
 # 1.9.4 / 2026-05-08
 - **Bug Fix**: Fixed WooCommerce Action Scheduler async runner being blocked by Login URL Hider.
 - `early_wp_admin_check()` now bypasses for AJAX (`wp_doing_ajax()`) and cron (`wp_doing_cron()`) requests.

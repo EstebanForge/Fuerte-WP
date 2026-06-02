@@ -23,6 +23,60 @@ defined('ABSPATH') || die();
 class Fuerte_Wp_Helper
 {
     /**
+     * Check if the current user (or a given user) is a super user.
+     *
+     * Case-insensitive email matching against the configured super_users list.
+     * Optionally respects the FUERTEWP_FORCE constant.
+     *
+     * @since 1.7.2
+     *
+     * @param WP_User|null $user User to check. Defaults to current user.
+     * @param bool $respect_force If true, returns false when FUERTEWP_FORCE is active.
+     *
+     * @return bool True if super user (and not forced when respect_force is true)
+     */
+    public static function is_super_user($user = null, $respect_force = false)
+    {
+        if ($respect_force && defined('FUERTEWP_FORCE') && true === FUERTEWP_FORCE) {
+            return false;
+        }
+
+        if (!$user && function_exists('wp_get_current_user')) {
+            $user = wp_get_current_user();
+        }
+
+        if (!$user || !isset($user->user_email) || empty($user->user_email)) {
+            return false;
+        }
+
+        $config = Fuerte_Wp_Config::get_config();
+        $super_users = $config['super_users'] ?? [];
+
+        return in_array(strtolower($user->user_email), array_map('strtolower', $super_users));
+    }
+
+    /**
+     * Check if the current user (or a given user) is a super user
+     * AND restrictions should be bypassed (not forced).
+     *
+     * Convenience shortcut for the most common check pattern.
+     *
+     * @since 1.7.2
+     *
+     * @param WP_User|null $user User to check. Defaults to current user.
+     *
+     * @return bool True if user should bypass restrictions
+     */
+    public static function bypasses_restrictions($user = null)
+    {
+        if (defined('FUERTEWP_FORCE') && true === FUERTEWP_FORCE) {
+            return false;
+        }
+
+        return self::is_super_user($user);
+    }
+
+    /**
      * Check if IP is within a CIDR range.
      *
      * Efficient IPv4 CIDR matching with IPv6 support.

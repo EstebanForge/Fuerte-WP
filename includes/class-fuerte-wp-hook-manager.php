@@ -191,12 +191,8 @@ class Fuerte_Wp_Hook_Manager
      */
     private static function register_admin_hooks()
     {
-        // Note: Admin hooks (enqueue_styles, enqueue_scripts, carbon_fields_register_fields)
-        // are handled by the main plugin class with proper instance management.
-        // The hook manager focuses on core security and restriction hooks.
-
-        // Menu and admin bar restrictions
-        if (self::should_register_restriction_hooks()) {
+        // Menu and admin bar restrictions - skip for super users
+        if (!Fuerte_Wp_Helper::bypasses_restrictions() && self::should_register_restriction_hooks()) {
             self::add_hook('admin_menu', 'Fuerte_Wp_Enforcer', 'remove_menus', 999, true);
             self::add_hook('admin_bar_menu', 'Fuerte_Wp_Enforcer', 'remove_adminbar_menus', 999, true);
         }
@@ -278,11 +274,17 @@ class Fuerte_Wp_Hook_Manager
      */
     private static function register_security_hooks()
     {
-        // File editing restrictions
-        if (isset(self::$config['restrictions']['disable_file_edit']) && self::$config['restrictions']['disable_file_edit']) {
-            if (!defined('DISALLOW_FILE_EDIT')) {
-                define('DISALLOW_FILE_EDIT', true);
-            }
+        // Super users bypass file editing and installation restrictions
+        if (Fuerte_Wp_Helper::bypasses_restrictions()) {
+            return;
+        }
+
+        // File editing restrictions (DISALLOW_FILE_EDIT)
+        $disable_theme_editor = isset(self::$config['restrictions']['disable_theme_editor']) && self::$config['restrictions']['disable_theme_editor'];
+        $disable_plugin_editor = isset(self::$config['restrictions']['disable_plugin_editor']) && self::$config['restrictions']['disable_plugin_editor'];
+
+        if (($disable_theme_editor || $disable_plugin_editor) && !defined('DISALLOW_FILE_EDIT')) {
+            define('DISALLOW_FILE_EDIT', true);
         }
 
         // Plugin/theme installation restrictions
