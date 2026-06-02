@@ -1,8 +1,8 @@
 <?php return array(
     'root' => array(
         'name' => 'estebanforge/fuerte-wp',
-        'pretty_version' => '1.9.4',
-        'version' => '1.9.4.0',
+        'pretty_version' => '1.9.5',
+        'version' => '1.9.5.0',
         'reference' => null,
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
@@ -20,8 +20,8 @@
             'dev_requirement' => false,
         ),
         'estebanforge/fuerte-wp' => array(
-            'pretty_version' => '1.9.4',
-            'version' => '1.9.4.0',
+            'pretty_version' => '1.9.5',
+            'version' => '1.9.5.0',
             'reference' => null,
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',

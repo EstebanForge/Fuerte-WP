@@ -301,7 +301,7 @@ class Fuerte_Wp_Admin
             )
             ->addField(
                 Field::make('checkbox', 'fuertewp_emails_new_user_created', __('New user created.', 'fuerte-wp'))
-                    ->setDefault(true)
+                    ->setDefault(false)
                     ->setHelp(__('Receipt: site admin.', 'fuerte-wp'))
             )
             ->addField(
