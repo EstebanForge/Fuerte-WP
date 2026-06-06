@@ -278,6 +278,7 @@ class Fuerte_Wp_Config
                 'disable_theme_install' => $settings['fuertewp_restrictions_disable_theme_install'] ?? true,
                 'disable_plugin_install' => $settings['fuertewp_restrictions_disable_plugin_install'] ?? true,
                 'disable_customizer_css' => $settings['fuertewp_restrictions_disable_customizer_css'] ?? true,
+                'disable_comments' => $settings['fuertewp_restrictions_disable_comments'] ?? true,
             ],
             'advanced_restrictions' => [
                 'restricted_scripts' => self::parse_textarea($settings['fuertewp_restricted_scripts'] ?? null),
@@ -403,6 +404,7 @@ class Fuerte_Wp_Config
             'disable_theme_install' => get_option('_fuertewp_restrictions_disable_theme_install', true),
             'disable_plugin_install' => get_option('_fuertewp_restrictions_disable_plugin_install', true),
             'disable_customizer_css' => get_option('_fuertewp_restrictions_disable_customizer_css', true),
+            'disable_comments' => get_option('_fuertewp_restrictions_disable_comments', true),
         ];
 
         // Load email settings
@@ -757,6 +759,7 @@ class Fuerte_Wp_Config
             'fuertewp_restrictions_disable_theme_install' => $config['restrictions']['disable_theme_install'] ?? true,
             'fuertewp_restrictions_disable_plugin_install' => $config['restrictions']['disable_plugin_install'] ?? true,
             'fuertewp_restrictions_disable_customizer_css' => $config['restrictions']['disable_customizer_css'] ?? true,
+            'fuertewp_restrictions_disable_comments' => $config['restrictions']['disable_comments'] ?? true,
 
             'fuertewp_tweaks_use_site_logo_login' => $config['tweaks']['use_site_logo_login'] ?? false,
 

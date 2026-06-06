@@ -204,6 +204,11 @@ class Fuerte_Wp_Hook_Manager
         if (isset(self::$config['tweaks']['use_site_logo_login']) && self::$config['tweaks']['use_site_logo_login']) {
             self::add_hook('admin_footer', 'Fuerte_Wp_Enforcer', 'custom_javascript', 10, true);
         }
+
+        // Disable comments admin hooks
+        if (isset(self::$config['restrictions']['disable_comments']) && self::$config['restrictions']['disable_comments']) {
+            self::register_disable_comments_admin_hooks();
+        }
     }
 
     /**
@@ -226,6 +231,11 @@ class Fuerte_Wp_Hook_Manager
         // Application passwords
         if (isset(self::$config['rest_api']['disable_app_passwords']) && self::$config['rest_api']['disable_app_passwords']) {
             self::add_hook('wp_is_application_passwords_available', '__return_false', 10, true);
+        }
+
+        // Disable comments frontend hooks
+        if (isset(self::$config['restrictions']['disable_comments']) && self::$config['restrictions']['disable_comments']) {
+            self::register_disable_comments_frontend_hooks();
         }
     }
 
@@ -264,6 +274,11 @@ class Fuerte_Wp_Hook_Manager
     {
         if (isset(self::$config['restrictions']['restapi_loggedin_only']) && self::$config['restrictions']['restapi_loggedin_only']) {
             self::add_hook('rest_authentication_errors', 'Fuerte_Wp_Enforcer', 'restrict_rest_api', 10, true);
+        }
+
+        // Block REST API comment endpoints
+        if (isset(self::$config['restrictions']['disable_comments']) && self::$config['restrictions']['disable_comments']) {
+            self::add_hook('rest_pre_dispatch', 'Fuerte_Wp_Enforcer', 'disable_rest_comments', 10, true, 3);
         }
     }
 
@@ -346,6 +361,67 @@ class Fuerte_Wp_Hook_Manager
     }
 
     /**
+     * Register admin hooks for disabling comments.
+     *
+     * @since 1.9.5
+     */
+    private static function register_disable_comments_admin_hooks()
+    {
+        // Remove comments column from post/page list tables
+        self::add_hook('manage_posts_columns', 'Fuerte_Wp_Enforcer', 'disable_comments_list_column', 999, true);
+        self::add_hook('manage_pages_columns', 'Fuerte_Wp_Enforcer', 'disable_comments_list_column', 999, true);
+
+        // Remove comments menu page
+        self::add_hook('admin_menu', 'Fuerte_Wp_Enforcer', 'disable_comments_remove_menu', 999, true);
+
+        // Remove comments admin bar node (admin context)
+        self::add_hook('admin_bar_menu', 'Fuerte_Wp_Enforcer', 'disable_comments_admin_bar', 999, true);
+
+        // Remove dashboard recent comments widget
+        self::add_hook('wp_dashboard_setup', 'Fuerte_Wp_Enforcer', 'disable_comments_remove_dashboard', 10, true);
+
+        // Remove post type support for comments and trackbacks
+        self::add_hook('admin_init', 'Fuerte_Wp_Enforcer', 'disable_comments_post_type_support', 999, true);
+    }
+
+    /**
+     * Register frontend hooks for disabling comments.
+     *
+     * @since 1.9.5
+     */
+    private static function register_disable_comments_frontend_hooks()
+    {
+        // Close comments and pings
+        self::add_hook('comments_open', 'Fuerte_Wp_Enforcer', 'disable_comments_status', 20, true, 2);
+        self::add_hook('pings_open', 'Fuerte_Wp_Enforcer', 'disable_pings_status', 20, true, 2);
+
+        // Empty existing comments and zero the count
+        self::add_hook('comments_array', 'Fuerte_Wp_Enforcer', 'disable_comments_array', 20, true, 2);
+        self::add_hook('get_comments_number', 'Fuerte_Wp_Enforcer', 'disable_comments_number', 20, true, 2);
+
+        // Remove X-Pingback header
+        self::add_hook('wp_headers', 'Fuerte_Wp_Enforcer', 'remove_pingback_header', 10, true);
+
+        // Block comment feeds
+        self::add_hook('template_redirect', 'Fuerte_Wp_Enforcer', 'disable_comment_feed', 9, true);
+
+        // Remove comment-reply script, comment feed links, blank template
+        self::add_hook('template_redirect', 'Fuerte_Wp_Enforcer', 'disable_comments_template_hooks', 10, true);
+
+        // Remove post type support on frontend too (themes check this)
+        self::add_hook('init', 'Fuerte_Wp_Enforcer', 'disable_comments_post_type_support', 999, true);
+
+        // Remove comments admin bar node (visible on frontend for logged-in users)
+        self::add_hook('admin_bar_menu', 'Fuerte_Wp_Enforcer', 'disable_comments_admin_bar', 999, true);
+
+        // Block REST API comment endpoints
+        self::add_hook('rest_pre_dispatch', 'Fuerte_Wp_Enforcer', 'disable_rest_comments', 10, true, 3);
+
+        // Block XML-RPC comments
+        self::add_hook('xmlrpc_methods', 'Fuerte_Wp_Enforcer', 'disable_xmlrpc_comments', 10, true);
+    }
+
+    /**
      * Add hook with tracking.
      *
      * @since 1.7.0
@@ -395,6 +471,9 @@ class Fuerte_Wp_Hook_Manager
             'rest_authentication_errors', 'xmlrpc_enabled', 'xmlrpc_methods',
             'wp_is_application_passwords_available', 'editable_roles',
             'recovery_mode_email', 'wp_mail_from', 'wp_mail_from_name',
+            'comments_open', 'pings_open', 'comments_array',
+            'get_comments_number', 'wp_headers', 'rest_pre_dispatch',
+            'manage_posts_columns', 'manage_pages_columns',
         ])) {
             add_filter($hook, $final_callback, $priority, $accepted_args);
         } else {

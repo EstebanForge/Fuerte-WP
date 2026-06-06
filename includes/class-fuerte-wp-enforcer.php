@@ -1237,6 +1237,187 @@ class Fuerte_Wp_Enforcer
         }
     }
 
+    /**
+     * Disable comments: close comments on all post types.
+     *
+     * @param bool $open    Whether comments are open.
+     * @param int  $post_id Post ID.
+     * @return bool
+     */
+    public static function disable_comments_status($open, $post_id)
+    {
+        return false;
+    }
+
+    /**
+     * Disable pings.
+     *
+     * @param bool $open    Whether pings are open.
+     * @param int  $post_id Post ID.
+     * @return bool
+     */
+    public static function disable_pings_status($open, $post_id)
+    {
+        return false;
+    }
+
+    /**
+     * Empty existing comments array.
+     *
+     * @param array $comments Comments array.
+     * @param int   $post_id  Post ID.
+     * @return array
+     */
+    public static function disable_comments_array($comments, $post_id)
+    {
+        return [];
+    }
+
+    /**
+     * Return zero for comment count.
+     *
+     * @param int $count   Comment count.
+     * @param int $post_id Post ID.
+     * @return int
+     */
+    public static function disable_comments_number($count, $post_id)
+    {
+        return 0;
+    }
+
+    /**
+     * Remove X-Pingback header.
+     *
+     * @param array $headers HTTP headers.
+     * @return array
+     */
+    public static function remove_pingback_header($headers)
+    {
+        unset($headers['X-Pingback']);
+        return $headers;
+    }
+
+    /**
+     * Block comment feed requests with 403.
+     */
+    public static function disable_comment_feed()
+    {
+        if (is_comment_feed()) {
+            wp_die(esc_html__('Comments are closed.', 'fuerte-wp'), '', ['response' => 403]);
+        }
+    }
+
+    /**
+     * Remove comment reply script and feed links on singular pages.
+     */
+    public static function disable_comments_template_hooks()
+    {
+        wp_deregister_script('comment-reply');
+        add_filter('feed_links_show_comments_feed', '__return_false');
+        add_filter('comments_template', [__CLASS__, 'disable_comments_blank_template'], 20);
+    }
+
+    /**
+     * Return blank comments template to prevent any theme comment output.
+     *
+     * @return string Path to blank template file.
+     */
+    public static function disable_comments_blank_template()
+    {
+        return FUERTEWP_PATH . 'includes/views/comments-blank.php';
+    }
+
+    /**
+     * Remove comments link from admin bar.
+     *
+     * @param WP_Admin_Bar $wp_admin_bar Admin bar instance.
+     */
+    public static function disable_comments_admin_bar($wp_admin_bar)
+    {
+        $wp_admin_bar->remove_node('comments');
+    }
+
+    /**
+     * Block REST API comment endpoints.
+     *
+     * @param mixed           $result  Response data.
+     * @param WP_REST_Server  $server  Server instance.
+     * @param WP_REST_Request $request Request instance.
+     * @return mixed
+     */
+    public static function disable_rest_comments($result, $server, $request)
+    {
+        $route = $request->get_route();
+        if (strpos($route, '/wp/v2/comments') !== false) {
+            return new WP_Error(
+                'rest_comment_disabled',
+                __('Comments are disabled.', 'fuerte-wp'),
+                ['status' => 403]
+            );
+        }
+        return $result;
+    }
+
+    /**
+     * Remove wp.newComment from XML-RPC methods.
+     *
+     * @param array $methods XML-RPC methods.
+     * @return array
+     */
+    public static function disable_xmlrpc_comments($methods)
+    {
+        unset($methods['wp.newComment']);
+        unset($methods['wp.getComment']);
+        unset($methods['wp.getComments']);
+        unset($methods['wp.deleteComment']);
+        unset($methods['wp.editComment']);
+        unset($methods['wp.getCommentCount']);
+        unset($methods['wp.getCommentStatusList']);
+        unset($methods['pingback.ping']);
+        return $methods;
+    }
+
+    /**
+     * Remove comments column from admin list tables.
+     *
+     * @param array $columns Table columns.
+     * @return array
+     */
+    public static function disable_comments_list_column($columns)
+    {
+        unset($columns['comments']);
+        return $columns;
+    }
+
+    /**
+     * Remove the Comments admin menu page.
+     */
+    public static function disable_comments_remove_menu()
+    {
+        remove_menu_page('edit-comments.php');
+    }
+
+    /**
+     * Remove the recent comments dashboard widget.
+     */
+    public static function disable_comments_remove_dashboard()
+    {
+        remove_meta_box('dashboard_recent_comments', 'dashboard', 'normal');
+    }
+
+    /**
+     * Remove post type support for comments and trackbacks on all post types.
+     */
+    public static function disable_comments_post_type_support()
+    {
+        foreach (get_post_types() as $post_type) {
+            if (post_type_supports($post_type, 'comments')) {
+                remove_post_type_support($post_type, 'comments');
+                remove_post_type_support($post_type, 'trackbacks');
+            }
+        }
+    }
+
     // Work in Progress...
     public static function recommended_plugins()
     {

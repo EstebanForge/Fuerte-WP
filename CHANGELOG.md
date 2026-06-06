@@ -1,5 +1,19 @@
 # Changelog
 
+# 1.9.6 / 2026-06-06
+- **New Feature**: Disable Comments site-wide with a single toggle (Restrictions tab).
+- Closes comments and pings on all post types via `comments_open`/`pings_open` filters.
+- Empties existing comments array and zeroes comment count.
+- Removes Comments admin menu, dashboard widget, admin bar node, and list table column.
+- Strips comments/trackbacks post type support on all registered post types.
+- Blocks comment feeds (403), removes comment feed links from `<head>`.
+- Blocks REST API comment endpoints (`/wp/v2/comments`) with 403 error.
+- Blocks all XML-RPC comment methods (newComment, getComment, getComments, deleteComment, editComment, getCommentCount, getCommentStatusList) and `pingback.ping`.
+- Removes X-Pingback HTTP header.
+- Deregisters `comment-reply` script.
+- Replaces theme comment template with blank file (defense-in-depth against themes that ignore `comments_open()`).
+- Enabled by default; super-user bypass intentionally not applied (site-wide means everyone).
+
 # 1.9.5 / 2026-06-02
 - **Bug Fix**: Super-users were incorrectly affected by restrictions meant only for non-super-users (Permalinks, ACF, Theme/Plugin Editor, Theme/Plugin Install, Customizer CSS).
 - Root cause: `Fuerte_Wp_Hook_Manager` registered restriction hooks (menu removal, admin bar removal, `DISALLOW_FILE_EDIT`) before the enforcer's super-user check could run.

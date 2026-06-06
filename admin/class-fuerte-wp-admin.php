@@ -588,6 +588,11 @@ class Fuerte_Wp_Admin
                     ->setHelp(__('Disables installation of new Plugins.', 'fuerte-wp'))
             )
             ->addField(
+                Field::make('checkbox', 'fuertewp_restrictions_disable_comments', __('Disable Comments.', 'fuerte-wp'))
+                    ->setDefault(true)
+                    ->setHelp(__('Disable comments site-wide. Closes comments on all post types, hides comment admin UI, removes comment feeds, and blocks REST API/XML-RPC comment endpoints.', 'fuerte-wp'))
+            )
+            ->addField(
                 Field::make('checkbox', 'fuertewp_restrictions_disable_customizer_css', __('Disable Customizer CSS Editor.', 'fuerte-wp'))
                     ->setDefault(true)
                     ->setHelp(__('Disables Customizer Additional CSS Editor.', 'fuerte-wp'))
