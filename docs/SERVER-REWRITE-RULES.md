@@ -56,13 +56,6 @@ location ~ ^/secure-login/?$ {
     try_files $uri $uri/ /index.php?$args;
 }
 
-# Block direct wp-login.php access at the server level.
-# ONLY enable when Login URL Hiding is enabled. Comment out or remove
-# when Login URL Hiding is disabled — WordPress needs direct access.
-# location = /wp-login.php {
-#     deny all;
-# }
-
 # END Fuerte-WP
 ```
 
@@ -71,7 +64,18 @@ location ~ ^/secure-login/?$ {
 - The custom login `location` block is only needed when using **Pretty URL** mode (`/your-slug/`). Query parameter mode (`?your-slug`) works without it.
 - Replace `secure-login` with the actual slug configured under **Settings → Fuerte-WP → Login Security**.
 - After adding rules, reload nginx: `nginx -t && systemctl reload nginx`.
-- The `wp-login.php` block is commented out by default. Enable it only when Login URL Hiding is active for server-level blocking before the request reaches PHP.
+
+### Why There Is No wp-login.php Deny Rule
+
+**Do not add a `location /wp-login.php { deny all; }` rule.** The plugin blocks `wp-login.php` at the PHP level via `handle_login_init()`, which:
+
+- Redirects to your configured URL (custom page or 404)
+- Logs the blocked attempt for the security dashboard
+- Respects super user bypasses and AJAX/cron exemptions
+
+An nginx deny rule short-circuits all of that. It returns a raw server 403/404, bypasses logging, and breaks the redirect flow Francisco reported: `/wp-admin/` → redirect to `wp-login.php` → nginx blocks it → user sees a raw error page instead of the configured behavior.
+
+The PHP-level approach is strictly better because it is intelligent. The server-level approach is a sledgehammer that fights the plugin.
 
 ## Rule Reference
 
@@ -80,4 +84,3 @@ location ~ ^/secure-login/?$ {
 | `install(-helper)?\.php` | WordPress install wizards | Prevents unauthorized reinstallation |
 | `uploads/.*\.(php\|...)` | Script execution in uploads | Stops malicious file uploads from executing |
 | Custom login slug | Custom login rewrite | Routes `/secure-login/` to WordPress for login handling |
-| `wp-login.php` (optional) | Direct login page access | Server-level short-circuit when login hiding is on |
