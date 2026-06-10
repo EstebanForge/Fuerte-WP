@@ -534,7 +534,7 @@ class Fuerte_Wp_Admin
                 Field::make('checkbox', 'fuertewp_restrictions_htaccess_security_rules', __('Enable htaccess security rules', 'fuerte-wp'))
                     ->setDefault(true)
                     ->addArg('help_is_html', true)
-                    ->setHelp(__('Disable the usage of /wp-admin/install.php wizard, and the execution of php files inside /wp-content/uploads/ folder, by adding restrictions on the htaccess file on the server. If you are using Nginx, please, <a href="https://github.com/EstebanForge/Fuerte-WP/blob/master/FAQ.md" target="_blank">Add them manually</a>.', 'fuerte-wp'))
+                    ->setHelp(__('Disable the usage of /wp-admin/install.php wizard, and the execution of php files inside /wp-content/uploads/ folder, by adding restrictions on the htaccess file on the server. If you are using Nginx, please, <a href="https://github.com/EstebanForge/Fuerte-WP/blob/master/docs/SERVER-REWRITE-RULES.md" target="_blank">Add them manually</a>.', 'fuerte-wp'))
             )
             ->addField(
                 Field::make('checkbox', 'fuertewp_restrictions_disable_admin_create_edit', __('Disable admin creation/edition.', 'fuerte-wp'))

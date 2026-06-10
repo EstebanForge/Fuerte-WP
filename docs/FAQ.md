@@ -427,28 +427,7 @@ Fuerte-WP doesn't have direct import functionality, but you can manually configu
 
 ## Nginx Configuration
 
-For Nginx servers, add these rules to your server block:
-
-```nginx
-# BEGIN Fuerte-WP
-location ~ wp-admin/install(-helper)?\.php {
-    deny all;
-}
-
-location ~* /(?:uploads|files)/.*.php$ {
-    deny all;
-    access_log off;
-    log_not_found off;
-}
-
-# Custom login URL support (replace 'secure-login' with your slug)
-location ~ ^/secure-login/?$ {
-    try_files $uri $uri/ /index.php?$args;
-}
-# END Fuerte-WP
-```
-
-Replace `secure-login` with your actual custom login slug if using pretty URLs.
+For Nginx servers, Fuerte-WP cannot auto-write config. See the full Apache and Nginx rewrite rules at [docs/SERVER-REWRITE-RULES.md](https://github.com/EstebanForge/Fuerte-WP/blob/master/docs/SERVER-REWRITE-RULES.md).
 
 ---
 
