@@ -59,6 +59,12 @@ class Two_Factor_Compat
      */
     public function jetpack_is_sso_active()
     {
-        return  class_exists('Jetpack') && method_exists('Jetpack', 'is_module_active') && Jetpack::is_module_active('sso');
+        if (!class_exists('Jetpack')) {
+            return false;
+        }
+
+        $jetpack_is_module_active = ['Jetpack', 'is_module_active'];
+
+        return is_callable($jetpack_is_module_active) && (bool) call_user_func($jetpack_is_module_active, 'sso');
     }
 }

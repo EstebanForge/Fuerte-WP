@@ -107,9 +107,8 @@ abstract class Two_Factor_Provider
      *
      * @return bool
      */
-    public function pre_process_authentication($user)
-    {
-        return false;
+    public function pre_process_authentication($user) // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Base implementation keeps the provider interface signature but does not use the user.
+    {return false;
     }
 
     /**
@@ -187,11 +186,11 @@ abstract class Two_Factor_Provider
      */
     public static function sanitize_code_from_request($field, $length = 0)
     {
-        if (empty($_REQUEST[$field])) {
+        if (empty($_REQUEST[$field])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Caller (core) verifies nonce before provider processing.
             return false;
         }
 
-        $code = wp_unslash($_REQUEST[$field]); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, handled by the core method already.
+        $code = wp_unslash($_REQUEST[$field]); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Caller (core) verifies nonce; value normalized below.
         $code = preg_replace('/\s+/', '', $code);
 
         // Maybe validate the length.
