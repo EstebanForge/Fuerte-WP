@@ -5,3 +5,4 @@ TODO.md
 .php-cs-fixer.cache
 /.phpunit.cache
 docs/TODO.md
+composer.lock
