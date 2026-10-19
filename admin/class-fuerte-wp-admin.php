@@ -541,6 +541,12 @@ class Fuerte_Wp_Admin
                     ->setHelp(__('Disable the old and insecure XML-RPC API in WordPress. <a href="https://blog.wpscan.com/is-wordpress-xmlrpc-a-security-problem/" target="_blank">Learn more</a>.', 'fuerte-wp'))
             )
             ->addField(
+                Field::make('checkbox', 'fuertewp_restrictions_block_updraftcentral', __('Disable UpdraftCentral remote control.', 'fuerte-wp'))
+                    ->setDefault(true)
+                    ->addArg('help_is_html', true)
+                    ->setHelp(__('Mitigation for the 2026-10-19 UpdraftCentral connection-key theft campaign: blocks the UpdraftCentral client inside UpdraftPlus, denies remote-control requests, and blinds stored connection keys. UpdraftPlus backups keep working, but site-to-site migration into this site and UpdraftPlus Vault disconnects stop too. Uncheck only if you manage this site with UpdraftCentral.', 'fuerte-wp'))
+            )
+            ->addField(
                 Field::make('checkbox', 'fuertewp_restrictions_htaccess_security_rules', __('Enable htaccess security rules', 'fuerte-wp'))
                     ->setDefault(true)
                     ->addArg('help_is_html', true)

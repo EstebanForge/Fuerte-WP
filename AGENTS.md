@@ -29,6 +29,7 @@ includes/
   class-fuerte-wp-hook-manager.php # Static hook registration + conditional gating
   class-fuerte-wp-helper.php       # is_super_user(), IP/CIDR utilities
   class-fuerte-wp-two-factor.php   # Wrapper: boots bundled Two-Factor lib
+  class-fuerte-wp-updraft-guard.php # UpdraftCentral kill switch (opt-out)
   class-fuerte-wp-auto-update-manager.php
   class-fuerte-wp-login-manager.php / -logger / -url-hider
   class-fuerte-wp-loader.php       # Hook queue (actions/filters)
@@ -103,6 +104,15 @@ Wrapper `includes/class-fuerte-wp-two-factor.php`, class `Fuerte_Wp_TwoFactor`. 
 - **Admin toggle:** `login_security.two_factor_enable` (default on) and `two_factor_enforce` (default on).
 - Never edit `includes/two-factor/` — regenerate via `composer sync-two-factor`.
 
+## UPDRAFTCENTRAL GUARD
+`Fuerte_Wp_Updraft_Guard` boots procedurally at fuerte-wp.php include time (after the `FUERTEWP_DISABLE` return) so its filters exist before UpdraftPlus attaches its Central host at `plugins_loaded` priority 10 (verified against UpdraftPlus free 1.26.11 and Pro 2.26.11.26: `UpdraftPlus::plugins_loaded()` → `central/factory.php` → `central/bootstrap.php`; identical code in both).
+Opt-out setting: `restrictions.block_updraftcentral` (HyperFields key `fuertewp_restrictions_block_updraftcentral`, default on). The guard reads the file-config global `$fuertewp` first, then the DB option, mirroring get_config() file-wins semantics.
+Three layers: udrpc-shaped request deny (403 exit), `updraftcentral_host_plugins` wiped at `FUERTEWP_LATE_PRIORITY`, and read+write blinding of the three connection-key options at that same late priority (`pre_option_*`, `pre_site_option_*`, `pre_update_option_*`, `pre_update_site_option_*`, plus `updraftplus_get_option` for the UpdraftPlus_Options/multisite bucket).
+Backups keep working; remote control, migration receiving, and UpdraftPlus Vault disconnects die.
+Already-stored keys stay in the database: blinded while protected, they revive if the protection is removed (opt-out, `FUERTEWP_DISABLE`, `.fuertewp-disable`, plugin removal). Purge by revoking in the UpdraftCentral dashboard and deleting the three options.
+`FUERTEWP_DISABLE` or a `.fuertewp-disable` marker also removes this protection.
+Safe alongside the standalone mu-plugin kill switch: duplicate filters are idempotent and no symbols are shared.
+
 ## EMAIL MANAGEMENT
 Hooked in `Fuerte_Wp_Hook_Manager::register_email_hooks()`:
 - `wp_mail_from` / `wp_mail_from_name` — sender rewrite (gated on `general.sender_email_enable`).
@@ -135,6 +145,7 @@ Hooked in `Fuerte_Wp_Hook_Manager::register_email_hooks()`:
 - **Config logic:** `includes/class-fuerte-wp-config.php`
 - **Hook wiring:** `includes/class-fuerte-wp-hook-manager.php`
 - **2FA wrapper:** `includes/class-fuerte-wp-two-factor.php`
+- **UpdraftCentral guard:** `includes/class-fuerte-wp-updraft-guard.php`
 - **Admin UI:** `admin/class-fuerte-wp-admin.php`
 - **Tests:** `tests/unit/` (Pest)
 

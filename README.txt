@@ -1,7 +1,7 @@
 === Fuerte-WP | WordPress Security, Auto-Updates and Admin Control ===
 Contributors: tcattd
 Tags: security, auto-updates, two-factor, login-security, maintenance
-Stable tag: 1.13.0
+Stable tag: 1.14.0
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 8.2
@@ -84,6 +84,7 @@ Modern WordPress exposes several attack surfaces beyond the login form:
 
 * **Disable Application Passwords** site-wide (on by default)
 * **Disable the XML-RPC API** (on by default), removing the pingback vector and brute force amplification
+* **Disable UpdraftCentral remote control** (on by default): shuts down the UpdraftCentral client inside UpdraftPlus, denies udrpc remote-control requests, and blinds stored connection keys (2026-10-19 key-theft campaign mitigation). UpdraftPlus backups keep working
 * **Disable weak passwords** during user creation and password reset
 * REST API and authentication filters centralized so you can lock down application access without editing code
 
@@ -131,6 +132,7 @@ $fuertewp = array(
         'disable_plugin_editor' => true,
         'restapi_disable_app_passwords' => true,
         'disable_xmlrpc'        => true,
+        'block_updraftcentral'  => true,
     ),
     'login_security' => array( 'login_security_enable' => true, 'two_factor_enable' => true ),
 );
@@ -147,6 +149,7 @@ Fuerte-WP ships with safe defaults so a fresh install is already hardened. The f
 * Disable the Customizer CSS Editor
 * Restrict access to Permalinks and Advanced Custom Fields
 * Disable Application Passwords and the XML-RPC API
+* Disable UpdraftCentral remote control inside UpdraftPlus
 * Disable weak passwords
 * Enable login security, brute force protection, and registration protection
 * Enforce two-factor authentication for administrators
@@ -209,6 +212,10 @@ You set a secret login slug. Fuerte-WP redirects the default `wp-login.php` and 
 = Can I disable XML-RPC and Application Passwords? =
 
 Yes, both are one-click toggles and both are on by default. Disabling XML-RPC removes the pingback vector and brute force amplification. Disabling Application Passwords prevents leaked credentials from being used against the REST API.
+
+= Does the UpdraftCentral protection break UpdraftPlus backups? =
+
+No. Only scheduled and manual backups keep working. The protection also stops site-to-site migration into this site, the UpdraftPlus Vault disconnect call, and of course UpdraftCentral remote control. To manage the site from an UpdraftCentral dashboard, untick "Disable UpdraftCentral remote control" on the Restrictions tab. Connection keys created or updated while the protection was on were never stored, so opting out cannot revive them. Keys stored before the protection was installed stay in the database: revoke them in the UpdraftCentral dashboard, or delete the `updraft_central_localkeys`, `updraft_migrator_localkeys` and `updraft_central_keys` options.
 
 = Will this slow down my website? =
 

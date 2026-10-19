@@ -5,7 +5,7 @@
  * Plugin Name:       Fuerte-WP
  * Plugin URI:        https://github.com/EstebanForge/Fuerte-WP
  * Description:       Stronger WP. Limit access to critical WordPress areas, even other for admins.
- * Version:           1.13.0
+ * Version:           1.14.0
  * Author:            Esteban Cuevas
  * Author URI:        https://actitud.xyz
  * License:           GPL-2.0+
@@ -55,6 +55,13 @@ if (file_exists(ABSPATH . 'wp-config-fuerte.php')) {
 if (defined('FUERTEWP_DISABLE') && true === FUERTEWP_DISABLE) {
     return false;
 }
+
+/*
+ * UpdraftCentral kill switch (opt-out). Armed here so its filters exist
+ * before UpdraftPlus boots the UpdraftCentral client on plugins_loaded.
+ */
+require_once plugin_dir_path(__FILE__) . 'includes/class-fuerte-wp-updraft-guard.php';
+Fuerte_Wp_Updraft_Guard::boot();
 
 /**
  * Includes & Autoload.

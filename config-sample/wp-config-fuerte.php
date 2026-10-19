@@ -138,6 +138,7 @@ $fuertewp = [
         'restapi_loggedin_only' => false, // Force REST API to logged in users only
         'restapi_disable_app_passwords' => true, // Disable WP application passwords for REST API
         'disable_xmlrpc' => true, // Disable old XML-RPC API
+        'block_updraftcentral' => true, // Disable UpdraftCentral remote control inside UpdraftPlus. Backups keep working. Set false only if you use UpdraftCentral.
         'htaccess_security_rules' => true, // Add .htaccess security rules to uploads directory
         'disable_admin_create_edit' => true, // Disable creation of new admin accounts by non super admins
         'disable_weak_passwords' => true, // Disable ability to use weak passwords
