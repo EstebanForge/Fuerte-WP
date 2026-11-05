@@ -137,31 +137,60 @@ class Fuerte_Wp_Migrator
     }
 
     /**
-     * Load multiselect values from Carbon Fields pattern.
+     * Load multiselect values from legacy storage.
+     *
+     * Two shapes existed:
+     * - The plugin's own Carbon-compatible rows: _{field}|||{index}|value
+     * - Raw Carbon Fields 3.x complex keys:
+     *   _carbon_fields_theme_options_fuerte-wp|{field}|{group}|value
+     *
+     * cleanup_duplicate_patterns() deletes the raw Carbon keys, so this must
+     * keep parsing them or CF-era settings are lost on upgrade.
      */
     private static function load_legacy_multiselect($field_name)
     {
         global $wpdb;
 
-        $option_name_prefix = "_{$field_name}|||";
         $values = [];
 
-        $results = $wpdb->get_results($wpdb->prepare(
+        // Shape 1: plugin's Carbon-compatible rows.
+        $rows = $wpdb->get_results($wpdb->prepare(
             "SELECT option_name, option_value
              FROM {$wpdb->options}
              WHERE option_name LIKE %s
              ORDER BY option_name ASC",
-            $option_name_prefix . '%'
+            '_' . $field_name . '|||%'
         ));
 
-        if (empty($results)) {
-            return null;
+        foreach ((array) $rows as $row) {
+            if (preg_match('/\|\|\|(\d+)\|value$/', $row->option_name, $matches)) {
+                $values[intval($matches[1])] = $row->option_value;
+            }
         }
 
-        foreach ($results as $result) {
-            if (preg_match('/\|\|\|(\d+)\|value$/', $result->option_name, $matches)) {
-                $values[intval($matches[1])] = $result->option_value;
+        if (!empty($values)) {
+            ksort($values);
+
+            return array_values($values);
+        }
+
+        // Shape 2: raw Carbon Fields 3.x complex keys.
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT option_name, option_value
+             FROM {$wpdb->options}
+             WHERE option_name LIKE %s
+             ORDER BY option_name ASC",
+            '_carbon_fields_theme_options_fuerte-wp|' . $field_name . '|%'
+        ));
+
+        foreach ((array) $rows as $row) {
+            if (preg_match('/\|(\d+)\|value$/', $row->option_name, $matches)) {
+                $values[intval($matches[1])] = $row->option_value;
             }
+        }
+
+        if (empty($values)) {
+            return null;
         }
 
         ksort($values);

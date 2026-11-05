@@ -26,6 +26,9 @@ if (file_exists(dirname(__DIR__) . '/vendor/autoload.php')) {
 // Load WordPress function mocks BEFORE loading plugin files
 require_once __DIR__ . '/wordpress-mocks.php';
 
+// Stream connector base-class stub — must load before the fuerte-wp connector class
+require_once __DIR__ . '/stream-connector-stub.php';
+
 // Initialize Brain Monkey
 // Load Brain Monkey API (functions, not class methods in v2)
 require_once dirname(__DIR__) . '/vendor/brain/monkey/inc/api.php';
@@ -56,6 +59,14 @@ if (file_exists(dirname(__DIR__) . '/includes/class-fuerte-wp-helper.php')) {
 // Load auto-update manager class
 if (file_exists(dirname(__DIR__) . '/includes/class-fuerte-wp-auto-update-manager.php')) {
     require_once dirname(__DIR__) . '/includes/class-fuerte-wp-auto-update-manager.php';
+}
+
+// Load Stream integration classes (connector parent stub loaded above)
+if (file_exists(dirname(__DIR__) . '/includes/class-fuerte-wp-stream-connector.php')) {
+    require_once dirname(__DIR__) . '/includes/class-fuerte-wp-stream-connector.php';
+}
+if (file_exists(dirname(__DIR__) . '/includes/class-fuerte-wp-stream-activity.php')) {
+    require_once dirname(__DIR__) . '/includes/class-fuerte-wp-stream-activity.php';
 }
 
 // Register shutdown function to tear down Brain Monkey

@@ -213,29 +213,19 @@ class Fuerte_Wp_Config
     /**
      * Load configuration from database.
      *
+     * Sole source is the HyperFields storage option. Legacy Carbon Fields
+     * values are folded into that option by Fuerte_Wp_Migrator::migrate()
+     * at boot, so no legacy reads happen here.
+     *
      * @since 1.7.0
      *
      * @return array Configuration from database
      */
     private static function load_from_database()
     {
-        // Get settings from HyperFields storage
         $fuertewp_settings = get_option('fuertewp_settings', []);
 
-        // Load legacy settings
-        $legacy_settings = self::load_from_legacy_database();
-
-        if (!empty($fuertewp_settings) && is_array($fuertewp_settings)) {
-            $normalized_hf = self::normalize_settings($fuertewp_settings);
-
-            // Remove null values recursively to avoid overwriting defaults
-            $normalized_hf = self::array_filter_recursive($normalized_hf);
-
-            // Merge: HyperFields takes precedence
-            return array_replace_recursive($legacy_settings, $normalized_hf);
-        }
-
-        return $legacy_settings;
+        return self::normalize_settings(is_array($fuertewp_settings) ? $fuertewp_settings : []);
     }
 
     /**
@@ -324,8 +314,19 @@ class Fuerte_Wp_Config
                 'redirect_invalid_logins_url' => $settings['fuertewp_redirect_invalid_logins_url'] ?? null,
             ],
             'deferred_updates' => [
-                'plugins' => $settings['fuertewp_deferred_plugins'] ?? null,
-                'themes' => $settings['fuertewp_deferred_themes'] ?? null,
+                'plugins' => $settings['fuertewp_deferred_plugins'] ?? [],
+                'themes' => $settings['fuertewp_deferred_themes'] ?? [],
+            ],
+            // Flat aliases kept: consumers read the top-level lists, not only
+            // the deferred_updates group above.
+            'deferred_plugins' => $settings['fuertewp_deferred_plugins'] ?? [],
+            'deferred_themes' => $settings['fuertewp_deferred_themes'] ?? [],
+            'blocked_plugins' => $settings['fuertewp_blocked_plugins'] ?? [],
+            'blocked_themes' => $settings['fuertewp_blocked_themes'] ?? [],
+            'activity' => [
+                'stream_enable' => $settings['fuertewp_stream_enable'] ?? false,
+                'stream_digest_frequency' => $settings['fuertewp_stream_digest_frequency'] ?? 'weekly',
+                'stream_digest_email' => $settings['fuertewp_stream_digest_email'] ?? '',
             ],
             'emails' => [
                 'fatal_error' => $settings['fuertewp_emails_fatal_error'] ?? true,
@@ -389,110 +390,6 @@ class Fuerte_Wp_Config
     }
 
     /**
-     * Load configuration from legacy database structure.
-     *
-     * @since 1.7.0
-     *
-     * @return array Configuration from database
-     */
-    private static function load_from_legacy_database()
-    {
-        $config = [];
-
-        // Load super users with special handling for multiselect field
-        $config['super_users'] = self::load_multiselect_field('fuertewp_super_users');
-
-        // Load general settings
-        $config['general'] = [
-            'access_denied_message' => get_option('_fuertewp_access_denied_message', 'Access denied.'),
-            'recovery_email' => get_option('_fuertewp_recovery_email', ''),
-            'sender_email_enable' => get_option('_fuertewp_sender_email_enable', true),
-            'sender_email' => get_option('_fuertewp_sender_email', ''),
-            'autoupdate_core' => get_option('_fuertewp_autoupdate_core', true),
-            'autoupdate_plugins' => get_option('_fuertewp_autoupdate_plugins', true),
-            'autoupdate_themes' => get_option('_fuertewp_autoupdate_themes', true),
-            'autoupdate_translations' => get_option('_fuertewp_autoupdate_translations', true),
-            'autoupdate_frequency' => get_option('_fuertewp_autoupdate_frequency', 'daily'),
-        ];
-
-        // Load login security settings
-        $config['login_security'] = [
-            'login_enable' => get_option('_fuertewp_login_enable', 'enabled'),
-            'registration_enable' => get_option('_fuertewp_registration_enable', 'enabled'),
-            'two_factor_enable' => get_option('_fuertewp_two_factor_enable', true),
-            'two_factor_enforce' => get_option('_fuertewp_two_factor_enforce', true),
-            'login_max_attempts' => intval(get_option('_fuertewp_login_max_attempts', 5)),
-            'login_lockout_duration' => intval(get_option('_fuertewp_login_lockout_duration', 60)),
-            'login_increasing_lockout' => get_option('_fuertewp_login_increasing_lockout', false),
-            'login_ip_headers' => get_option('_fuertewp_login_ip_headers', ''),
-            'login_gdpr_message' => get_option('_fuertewp_login_gdpr_message', ''),
-            'login_data_retention' => intval(get_option('_fuertewp_login_data_retention', 30)),
-            'login_url_hiding_enabled' => get_option('_fuertewp_login_url_hiding_enabled', false) ? '1' : '',
-            'custom_login_slug' => get_option('_fuertewp_custom_login_slug', 'secure-login'),
-            'login_url_type' => get_option('_fuertewp_login_url_type', 'query_param'),
-            'redirect_invalid_logins' => get_option('_fuertewp_redirect_invalid_logins', 'home_404'),
-            'redirect_invalid_logins_url' => get_option('_fuertewp_redirect_invalid_logins_url', ''),
-        ];
-
-        // Load restrictions
-        $config['restrictions'] = [
-            'restapi_loggedin_only' => get_option('_fuertewp_restrictions_restapi_loggedin_only', false),
-            'restapi_disable_app_passwords' => get_option('_fuertewp_restrictions_restapi_disable_app_passwords', true),
-            'disable_xmlrpc' => get_option('_fuertewp_restrictions_disable_xmlrpc', true),
-            'htaccess_security_rules' => get_option('_fuertewp_restrictions_htaccess_security_rules', true),
-            'disable_admin_create_edit' => get_option('_fuertewp_restrictions_disable_admin_create_edit', true),
-            'disable_weak_passwords' => get_option('_fuertewp_restrictions_disable_weak_passwords', true),
-            'force_strong_passwords' => get_option('_fuertewp_restrictions_force_strong_passwords', false),
-            'disable_admin_bar_roles' => get_option('_fuertewp_restrictions_disable_admin_bar_roles', ['subscriber', 'customer']),
-            'restrict_permalinks' => get_option('_fuertewp_restrictions_restrict_permalinks', true),
-            'restrict_acf' => get_option('_fuertewp_restrictions_restrict_acf', true),
-            'disable_theme_editor' => get_option('_fuertewp_restrictions_disable_theme_editor', true),
-            'disable_plugin_editor' => get_option('_fuertewp_restrictions_disable_plugin_editor', true),
-            'disable_theme_install' => get_option('_fuertewp_restrictions_disable_theme_install', true),
-            'disable_plugin_install' => get_option('_fuertewp_restrictions_disable_plugin_install', true),
-            'disable_customizer_css' => get_option('_fuertewp_restrictions_disable_customizer_css', true),
-            'disable_comments' => get_option('_fuertewp_restrictions_disable_comments', true),
-        ];
-
-        // Load email settings
-        $config['emails'] = [
-            'fatal_error' => get_option('_fuertewp_emails_fatal_error', true),
-            'application_password_created' => get_option('_fuertewp_emails_application_password_created', true),
-            'automatic_updates' => get_option('_fuertewp_emails_automatic_updates', false),
-            'comment_awaiting_moderation' => get_option('_fuertewp_emails_comment_awaiting_moderation', false),
-            'comment_has_been_published' => get_option('_fuertewp_emails_comment_has_been_published', false),
-            'user_reset_their_password' => get_option('_fuertewp_emails_user_reset_their_password', false),
-            'user_confirm_personal_data_export_request' => get_option('_fuertewp_emails_user_confirm_personal_data_export_request', false),
-            'new_user_created' => get_option('_fuertewp_emails_new_user_created', false),
-            'network_new_site_created' => get_option('_fuertewp_emails_network_new_site_created', false),
-            'network_new_user_site_registered' => get_option('_fuertewp_emails_network_new_user_site_registered', false),
-            'network_new_site_activated' => get_option('_fuertewp_emails_network_new_site_activated', false),
-        ];
-
-        // Load tweaks
-        $config['tweaks'] = [
-            'use_site_logo_login' => get_option('_fuertewp_tweaks_use_site_logo_login', false),
-        ];
-
-        // Load deferred updates
-        $config['deferred_plugins'] = self::load_multiselect_field('fuertewp_deferred_plugins');
-        $config['deferred_themes'] = self::load_multiselect_field('fuertewp_deferred_themes');
-
-        // Load blocked updates
-        $config['blocked_plugins'] = self::load_multiselect_field('fuertewp_blocked_plugins');
-        $config['blocked_themes'] = self::load_multiselect_field('fuertewp_blocked_themes');
-
-        // Load restricted lists
-        $config['restricted_scripts'] = self::load_multiselect_field('fuertewp_restricted_scripts');
-        $config['restricted_pages'] = self::load_multiselect_field('fuertewp_restricted_pages');
-        $config['removed_menus'] = self::load_multiselect_field('fuertewp_removed_menus');
-        $config['removed_submenus'] = self::load_multiselect_field('fuertewp_removed_submenus');
-        $config['removed_adminbar_menus'] = self::load_multiselect_field('fuertewp_removed_adminbar_menus');
-
-        return $config;
-    }
-
-    /**
      * Check if cache should be bypassed for the current request.
      * Bypasses cache for admin users on settings pages to ensure fresh data.
      *
@@ -535,19 +432,23 @@ class Fuerte_Wp_Config
 
     /**
      * Standardized method to get any configuration value with proper fallback logic.
-     * Handles both direct options and Carbon Fields multiselect patterns automatically.
+     * Read a configuration value from HyperFields storage.
+     *
+     * The $is_multiselect parameter is kept for caller compatibility but is
+     * inert: Carbon Fields multiselect storage is no longer read. Legacy
+     * values are folded into fuertewp_settings by Fuerte_Wp_Migrator::migrate()
+     * at boot.
      *
      * @since 1.7.2
      *
      * @param string $key Configuration key (without _fuertewp prefix)
      * @param mixed $default Default value if option doesn't exist
-     * @param bool $is_multiselect Whether this field uses Carbon Fields multiselect pattern
+     * @param bool $is_multiselect Deprecated, ignored.
      *
      * @return mixed Configuration value
      */
     public static function get_field($key, $default = null, $is_multiselect = false)
     {
-        // Try HyperFields storage first
         $settings = get_option('fuertewp_settings', []);
         $hf_key = "fuertewp_{$key}";
 
@@ -573,14 +474,7 @@ class Fuerte_Wp_Config
             return $value;
         }
 
-        // Fallback to legacy structure
-        $option_name = "_fuertewp_{$key}";
-
-        if ($is_multiselect) {
-            return self::load_multiselect_field("fuertewp_{$key}");
-        }
-
-        return get_option($option_name, $default);
+        return $default;
     }
 
     /**
@@ -596,58 +490,13 @@ class Fuerte_Wp_Config
      */
     public static function set_field($key, $value, $is_multiselect = false)
     {
-        // Save to HyperFields storage
+        // HyperFields storage only. The Carbon Fields dual-write went away
+        // with the legacy storage layer; the boot migrator owns any old data.
         $settings = get_option('fuertewp_settings', []);
         $hf_key = "fuertewp_{$key}";
         $settings[$hf_key] = $value;
-        $result = update_option('fuertewp_settings', $settings);
 
-        // Also update legacy if needed for backwards compatibility during migration
-        $option_name = "_fuertewp_{$key}";
-
-        if ($is_multiselect && is_array($value)) {
-            self::save_multiselect_field("fuertewp_{$key}", $value);
-        } else {
-            update_option($option_name, $value);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Save multiselect field values using Carbon Fields compatible pattern.
-     *
-     * @since 1.7.2
-     *
-     * @param string $field_name Base field name without prefix
-     * @param array $values Array of values to save
-     *
-     * @return bool Success status
-     */
-    public static function save_multiselect_field($field_name, $values)
-    {
-        global $wpdb;
-
-        // First, delete all existing entries for this field
-        $option_name_prefix = "_{$field_name}|||";
-        $wpdb->query($wpdb->prepare(
-            "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-            $option_name_prefix . '%'
-        ));
-
-        // Now insert the new values
-        $success = true;
-
-        foreach ($values as $index => $value) {
-            $option_name = "_{$field_name}|||{$index}|value";
-            $result = update_option($option_name, $value);
-
-            if (!$result) {
-                $success = false;
-            }
-        }
-
-        return $success;
+        return update_option('fuertewp_settings', $settings);
     }
 
     /**
@@ -825,66 +674,4 @@ class Fuerte_Wp_Config
         ];
     }
 
-    /**
-     * Load multiselect field values from database.
-     * Handles the Carbon Fields _field_name|||index|value pattern.
-     *
-     * @since 1.7.2
-     *
-     * @param string $field_name Base field name without prefix
-     *
-     * @return array Array of field values
-     */
-    private static function load_multiselect_field($field_name)
-    {
-        global $wpdb;
-
-        $option_name_prefix = "_{$field_name}|||";
-        $values = [];
-
-        // Get all options matching the multiselect pattern
-        $results = $wpdb->get_results($wpdb->prepare(
-            "SELECT option_name, option_value
-             FROM {$wpdb->options}
-             WHERE option_name LIKE %s
-             ORDER BY option_name ASC",
-            $option_name_prefix . '%'
-        ));
-
-        foreach ($results as $result) {
-            // Parse the option name to get the index
-            // Pattern: _fuertewp_super_users|||0|value
-            if (preg_match('/\|\|\|(\d+)\|value$/', $result->option_name, $matches)) {
-                $values[intval($matches[1])] = $result->option_value;
-            }
-        }
-
-        // Sort by index and re-index array
-        ksort($values);
-
-        return array_values($values);
-    }
-    /**
-     * Remove null values from array recursively.
-     *
-     * @param array $array Array to filter
-     *
-     * @return array Filtered array
-     */
-    private static function array_filter_recursive($array)
-    {
-        foreach ($array as $key => &$value) {
-            if (is_array($value)) {
-                $value = self::array_filter_recursive($value);
-
-                if (empty($value)) {
-                    unset($array[$key]);
-                }
-            } elseif ($value === null) {
-                unset($array[$key]);
-            }
-        }
-
-        return $array;
-    }
 }

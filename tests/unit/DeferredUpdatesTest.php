@@ -25,8 +25,7 @@ afterEach(function () {
 test('deferred updates - excludes deferred plugins from auto updates', function () {
     // Arrange: Set up WordPress options with deferred plugins (multiselect format)
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_deferred_plugins|||0|value'] = 'hello-dolly/hello.php';
-    $wp_tests_options['_fuertewp_deferred_plugins|||1|value'] = 'akismet/akismet.php';
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_plugins'] = ['hello-dolly/hello.php', 'akismet/akismet.php'];
 
     // Invalidate cache to force reload
     Fuerte_Wp_Config::invalidate_cache();
@@ -46,8 +45,8 @@ test('deferred updates - excludes deferred plugins from auto updates', function 
 test('deferred updates - allows non deferred plugins to auto update', function () {
     // Arrange: Set up WordPress options with deferred plugins (multiselect format)
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_deferred_plugins|||0|value'] = 'akismet/akismet.php';
-    $wp_tests_options['_fuertewp_deferred_themes|||0|value'] = '';
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_plugins'] = ['akismet/akismet.php'];
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_themes'] = [''];
 
     // Invalidate cache to force reload
     Fuerte_Wp_Config::invalidate_cache();
@@ -67,9 +66,8 @@ test('deferred updates - allows non deferred plugins to auto update', function (
 test('deferred updates - excludes deferred themes from auto updates', function () {
     // Arrange: Set up WordPress options with deferred themes (multiselect format)
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_deferred_plugins|||0|value'] = '';
-    $wp_tests_options['_fuertewp_deferred_themes|||0|value'] = 'twentytwentythree';
-    $wp_tests_options['_fuertewp_deferred_themes|||1|value'] = 'twentytwentyfour';
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_plugins'] = [''];
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_themes'] = ['twentytwentythree', 'twentytwentyfour'];
 
     // Invalidate cache to force reload
     Fuerte_Wp_Config::invalidate_cache();
@@ -89,8 +87,8 @@ test('deferred updates - excludes deferred themes from auto updates', function (
 test('deferred updates - allows non deferred themes to auto update', function () {
     // Arrange: Set up WordPress options with deferred themes (multiselect format)
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_deferred_plugins|||0|value'] = '';
-    $wp_tests_options['_fuertewp_deferred_themes|||0|value'] = 'twentytwentythree';
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_plugins'] = [''];
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_themes'] = ['twentytwentythree'];
 
     // Invalidate cache to force reload
     Fuerte_Wp_Config::invalidate_cache();
@@ -110,8 +108,8 @@ test('deferred updates - allows non deferred themes to auto update', function ()
 test('deferred updates - handles empty deferred lists gracefully', function () {
     // Arrange: Set up WordPress options with empty deferred lists
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_deferred_plugins|||0|value'] = '';
-    $wp_tests_options['_fuertewp_deferred_themes|||0|value'] = '';
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_plugins'] = [''];
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_themes'] = [''];
 
     // Invalidate cache to force reload
     Fuerte_Wp_Config::invalidate_cache();

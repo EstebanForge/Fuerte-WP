@@ -32,7 +32,7 @@ afterEach(function () {
 test('super user - remove_menus skips execution for super user', function () {
     // Arrange: Set up config with super user
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_super_users|||0|value'] = 'test@example.com';
+$wp_tests_options['fuertewp_settings']['fuertewp_super_users'] = ['test@example.com'];
 
     Fuerte_Wp_Config::invalidate_cache();
 
@@ -47,7 +47,7 @@ test('super user - remove_menus skips execution for super user', function () {
 test('super user - remove_adminbar_menus skips execution for super user', function () {
     // Arrange: Set up config with super user
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_super_users|||0|value'] = 'test@example.com';
+$wp_tests_options['fuertewp_settings']['fuertewp_super_users'] = ['test@example.com'];
 
     Fuerte_Wp_Config::invalidate_cache();
 
@@ -58,7 +58,7 @@ test('super user - remove_adminbar_menus skips execution for super user', functi
 test('super user - non-super user is NOT in super_users list', function () {
     // Arrange: Super user email doesn't match current user
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_super_users|||0|value'] = 'other@example.com';
+$wp_tests_options['fuertewp_settings']['fuertewp_super_users'] = ['other@example.com'];
 
     Fuerte_Wp_Config::invalidate_cache();
 
@@ -70,7 +70,7 @@ test('super user - non-super user is NOT in super_users list', function () {
 test('super user - restrictions apply when forced even for super user', function () {
     // Arrange: Super user configured but FUERTEWP_FORCE is true
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_super_users|||0|value'] = 'test@example.com';
+$wp_tests_options['fuertewp_settings']['fuertewp_super_users'] = ['test@example.com'];
 
     Fuerte_Wp_Config::invalidate_cache();
 
@@ -85,7 +85,7 @@ test('super user - restrictions apply when forced even for super user', function
 test('super user - case insensitive matching works in helper', function () {
     // Arrange: Super user stored in uppercase
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_super_users|||0|value'] = 'TEST@EXAMPLE.COM';
+$wp_tests_options['fuertewp_settings']['fuertewp_super_users'] = ['TEST@EXAMPLE.COM'];
 
     Fuerte_Wp_Config::invalidate_cache();
 
@@ -96,14 +96,14 @@ test('super user - case insensitive matching works in helper', function () {
 test('super user - all restriction flags are loaded correctly for non-super user', function () {
     // Arrange: Configure all the restriction flags the user reported
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_super_users|||0|value'] = 'other@example.com'; // Not current user
-    $wp_tests_options['_fuertewp_restrictions_restrict_permalinks'] = true;
-    $wp_tests_options['_fuertewp_restrictions_restrict_acf'] = true;
-    $wp_tests_options['_fuertewp_restrictions_disable_theme_editor'] = true;
-    $wp_tests_options['_fuertewp_restrictions_disable_plugin_editor'] = true;
-    $wp_tests_options['_fuertewp_restrictions_disable_theme_install'] = true;
-    $wp_tests_options['_fuertewp_restrictions_disable_plugin_install'] = true;
-    $wp_tests_options['_fuertewp_restrictions_disable_customizer_css'] = true;
+$wp_tests_options['fuertewp_settings']['fuertewp_super_users'] = ['other@example.com'];
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_restrict_permalinks'] = true;
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_restrict_acf'] = true;
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_theme_editor'] = true;
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_plugin_editor'] = true;
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_theme_install'] = true;
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_plugin_install'] = true;
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_customizer_css'] = true;
 
     $config = Fuerte_Wp_Config::get_config(true);
 
@@ -121,7 +121,7 @@ test('super user - all restriction flags are loaded correctly for non-super user
 test('super user - enforcer early exit check logic is correct', function () {
     // Arrange: Set up config with super user
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_super_users|||0|value'] = 'test@example.com';
+$wp_tests_options['fuertewp_settings']['fuertewp_super_users'] = ['test@example.com'];
 
     Fuerte_Wp_Config::invalidate_cache();
 
@@ -135,9 +135,7 @@ test('super user - enforcer early exit check logic is correct', function () {
 test('super user - multiple super users all bypass restrictions', function () {
     // Arrange: Multiple super users configured
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_super_users|||0|value'] = 'admin@site.com';
-    $wp_tests_options['_fuertewp_super_users|||1|value'] = 'test@example.com';
-    $wp_tests_options['_fuertewp_super_users|||2|value'] = 'dev@company.com';
+$wp_tests_options['fuertewp_settings']['fuertewp_super_users'] = ['admin@site.com', 'test@example.com', 'dev@company.com'];
 
     Fuerte_Wp_Config::invalidate_cache();
 
@@ -148,7 +146,7 @@ test('super user - multiple super users all bypass restrictions', function () {
 test('super user - is_super_user accepts explicit user parameter', function () {
     // Arrange: Config has specific super user
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_super_users|||0|value'] = 'target@example.com';
+$wp_tests_options['fuertewp_settings']['fuertewp_super_users'] = ['target@example.com'];
 
     Fuerte_Wp_Config::invalidate_cache();
 

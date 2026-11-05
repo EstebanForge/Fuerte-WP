@@ -30,13 +30,13 @@ $enhanced_enabled = isset($field_data['enhanced']) ? (bool) $field_data['enhance
 $value = is_array($value) ? $value : [$value];
 ?>
 
-<div class="hyperpress-field-wrapper"<?php echo $conditional_attr; ?>>
-    <label for="<?php echo esc_attr($name); ?>" class="hyperpress-field-label <?php echo esc_attr($label_class); ?>">
+<div class="hf-field-wrapper hyperpress-field-wrapper"<?php echo $conditional_attr; ?>>
+    <label for="<?php echo esc_attr($name); ?>" class="hf-field-label hyperpress-field-label <?php echo esc_attr($label_class); ?>">
         <?php echo esc_html($label); ?>
         <?php if ($required): ?><span class="required">*</span><?php endif; ?>
     </label>
 
-    <div class="hyperpress-field-input">
+    <div class="hf-field-input hyperpress-field-input">
         <!-- Hidden input to ensure the field is always sent in POST data even when none selected -->
         <input type="hidden" name="<?php echo esc_attr($name_attr); ?>[]" value="__hm_empty__">
         <?php if ($enhanced_enabled): ?>
@@ -47,6 +47,13 @@ $value = is_array($value) ? $value : [$value];
                 style="position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; overflow: hidden;"
                 class="hf-multiselect-hidden">
             <?php foreach ($options as $option_value => $option_label): ?>
+                <?php
+                // Field::toArray() normalizes assoc options to ['value','label'] lists; support both shapes.
+                if (is_array($option_label)) {
+                    $option_value = $option_label['value'] ?? $option_value;
+                    $option_label = $option_label['label'] ?? '';
+                }
+                ?>
                 <option value="<?php echo esc_attr($option_value); ?>" <?php selected(in_array($option_value, $value)); ?>>
                     <?php echo esc_html($option_label); ?>
                 </option>
@@ -64,6 +71,11 @@ $value = is_array($value) ? $value : [$value];
                 <?php
                 $selected_count = 0;
             foreach ($options as $option_value => $option_label):
+                // Field::toArray() normalizes assoc options to ['value','label'] lists; support both shapes.
+                if (is_array($option_label)) {
+                    $option_value = $option_label['value'] ?? $option_value;
+                    $option_label = $option_label['label'] ?? '';
+                }
                 if (in_array($option_value, $value)):
                     $selected_count++;
                     ?>
@@ -82,6 +94,13 @@ $value = is_array($value) ? $value : [$value];
 
             <div class="hf-multiselect-options" style="display: none;">
                 <?php foreach ($options as $option_value => $option_label): ?>
+                    <?php
+                    // Field::toArray() normalizes assoc options to ['value','label'] lists; support both shapes.
+                    if (is_array($option_label)) {
+                        $option_value = $option_label['value'] ?? $option_value;
+                        $option_label = $option_label['label'] ?? '';
+                    }
+                    ?>
                     <div class="hf-multiselect-option <?php echo in_array($option_value, $value) ? 'selected' : ''; ?>"
                          data-value="<?php echo esc_attr($option_value); ?>">
                         <?php echo esc_html($option_label); ?>
@@ -95,9 +114,16 @@ $value = is_array($value) ? $value : [$value];
                 name="<?php echo esc_attr($name_attr); ?>[]"
                 multiple
                 <?php echo $required ? 'required' : ''; ?>
-                class="regular-text hyperpress-multiselect <?php echo esc_attr($input_class); ?>"
+                class="regular-text hf-multiselect hyperpress-multiselect <?php echo esc_attr($input_class); ?>"
                 size="5">
             <?php foreach ($options as $option_value => $option_label): ?>
+                <?php
+                // Field::toArray() normalizes assoc options to ['value','label'] lists; support both shapes.
+                if (is_array($option_label)) {
+                    $option_value = $option_label['value'] ?? $option_value;
+                    $option_label = $option_label['label'] ?? '';
+                }
+                ?>
                 <option value="<?php echo esc_attr($option_value); ?>" <?php selected(in_array($option_value, $value)); ?>>
                     <?php echo esc_html($option_label); ?>
                 </option>

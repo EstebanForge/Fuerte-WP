@@ -144,6 +144,10 @@ $finder = PhpCsFixer\Finder::create()
 		"node_modules",
 		"assets/js/libs",
 		"languages",
+		// Symfony Finder matches excludes relative to the ->in() roots, so the
+		// vendored Two-Factor lib (under includes/) must be listed as "two-factor".
+		// "includes/two-factor" matched nothing and let the fixer rewrite the lib.
+		"two-factor",
 	])
 	->name("*.php")
 	->notName(["composer.lock", "*.js", "*.css"])

@@ -41,5 +41,7 @@ class Fuerte_Wp_Deactivator
     public static function clear_cron_jobs()
     {
         wp_clear_scheduled_hook('fuertewp_cleanup_login_logs');
+        wp_clear_scheduled_hook(Fuerte_Wp_Stream_Activity::SCHEDULE_DAILY);
+        wp_clear_scheduled_hook(Fuerte_Wp_Stream_Activity::SCHEDULE_WEEKLY);
     }
 }

@@ -22,8 +22,7 @@ afterEach(function () {
 test('config - loads deferred plugins from database', function () {
     // Arrange: Set up deferred plugins in database
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_deferred_plugins|||0|value'] = 'hello-dolly/hello.php';
-    $wp_tests_options['_fuertewp_deferred_plugins|||1|value'] = 'akismet/akismet.php';
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_plugins'] = ['hello-dolly/hello.php', 'akismet/akismet.php'];
 
     // Act: Get config (force bypass cache to load from database)
     $config = Fuerte_Wp_Config::get_config(true);
@@ -38,8 +37,7 @@ test('config - loads deferred plugins from database', function () {
 test('config - loads deferred themes from database', function () {
     // Arrange: Set up deferred themes in database
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_deferred_themes|||0|value'] = 'twentytwentythree';
-    $wp_tests_options['_fuertewp_deferred_themes|||1|value'] = 'twentytwentyfour';
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_themes'] = ['twentytwentythree', 'twentytwentyfour'];
 
     // Act: Get config (force bypass cache to load from database)
     $config = Fuerte_Wp_Config::get_config(true);
@@ -69,8 +67,8 @@ test('config - returns empty arrays when no deferred items exist', function () {
 test('config - includes deferred updates in enforcer config', function () {
     // Arrange: Set up deferred plugins and themes in database
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_deferred_plugins|||0|value'] = 'hello-dolly/hello.php';
-    $wp_tests_options['_fuertewp_deferred_themes|||0|value'] = 'twentytwentythree';
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_plugins'] = ['hello-dolly/hello.php'];
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_themes'] = ['twentytwentythree'];
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -85,7 +83,7 @@ test('config - includes deferred updates in enforcer config', function () {
 test('config - caches deferred updates config', function () {
     // Arrange: Set up deferred plugins in database
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_deferred_plugins|||0|value'] = 'hello-dolly/hello.php';
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_plugins'] = ['hello-dolly/hello.php'];
 
     // Act: Get config twice
     $config1 = Fuerte_Wp_Config::get_config(true);
@@ -99,12 +97,12 @@ test('config - caches deferred updates config', function () {
 test('config - invalidates cache when requested', function () {
     // Arrange: Set up one deferred plugin and get config
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_deferred_plugins|||0|value'] = 'hello-dolly/hello.php';
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_plugins'] = ['hello-dolly/hello.php'];
 
     $config1 = Fuerte_Wp_Config::get_config(true);
 
     // Act: Add another plugin and invalidate cache
-    $wp_tests_options['_fuertewp_deferred_plugins|||1|value'] = 'akismet/akismet.php';
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_plugins'] = ['hello-dolly/hello.php', 'akismet/akismet.php'];
     Fuerte_Wp_Config::invalidate_cache();
     $config2 = Fuerte_Wp_Config::get_config();
 

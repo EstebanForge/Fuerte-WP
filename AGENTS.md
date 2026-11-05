@@ -72,6 +72,20 @@ Run from `src/app/plugins/fuerte-wp/` (NOT the docker repo root — that `compos
 
 In the Docker dev env (from repo root): `./wp <command>` proxies WP-CLI into the container.
 
+## RELEASE CYCLE
+Target: wordpress.org (SVN deploy) plus a git tag. **No GitHub release** — the tag only; do not run `build-release.sh`/`gh release create` as part of the cycle.
+
+1. `composer test` green; `php -l` on touched files.
+2. Commit all feature work first — `deploy.sh` reads `Version:` from the default branch and refuses a dirty tree.
+3. `composer production` BEFORE the bump: the prod `vendor/` build must land in the version-bump commit, not after it.
+4. `composer version-bump` → `scripts/bump-version.sh` rewrites the `Version:` header in `fuerte-wp.php` plus `Stable tag:` in `README.txt` and `README.md` in one pass.
+5. Add the `CHANGELOG.md` entry for X.Y.Z: a `# X.Y.Z / YYYY-MM-DD` section above the last one, house style `**New Feature** / **Changed** / **Bug Fix** / **Security** / **Note**` bullets, most important first. WP.org reads the changelog for its Users tab.
+6. Commit `chore(release): X.Y.Z` (version bump + changelog + prod vendor).
+7. `composer deploy` → prompts for the WP.org SVN username, checks readme version == plugin header, commits `trunk/`, then creates `tags/X.Y.Z` in the plugin SVN. Readme-only changes: `scripts/deploy-readme-only.sh` instead.
+8. `git tag X.Y.Z && git push origin X.Y.Z`.
+
+The vendored HyperFields upstream release is handled separately by the maintainer; it is not part of this cycle.
+
 ## CONFIGURATION SYSTEM (critical to understand)
 Two sources, one normalization, transient-cached. **File wins over database.**
 
@@ -103,6 +117,23 @@ Wrapper `includes/class-fuerte-wp-two-factor.php`, class `Fuerte_Wp_TwoFactor`. 
 - **Super-user bypass:** `is_enforced_user()` checks `is_super_user()` first. Super users never get auto-enforced.
 - **Admin toggle:** `login_security.two_factor_enable` (default on) and `two_factor_enforce` (default on).
 - Never edit `includes/two-factor/` — regenerate via `composer sync-two-factor`.
+
+## STREAM INTEGRATION (activity digest)
+`Fuerte_Wp_Stream_Activity` + `Fuerte_Wp_Stream_Connector`, booted procedurally at fuerte-wp.php include (same pattern as Updraft Guard). Gated on `class_exists('WP_Stream\Plugin')`.
+- **Hook timing is load-bearing:** Stream loads classes at plugins_loaded 20; its Connectors instantiation applies the `wp_stream_connectors` filter at init 9. Our filter is added at plugins_loaded 30; the connector file itself is require'd inside the filter callback (at apply time), because `WP_Stream\Connector` does not exist earlier. Never "simplify" these guards.
+- Digest cron runners CANNOT go through Fuerte_Wp_Hook_Manager: it only initializes inside Fuerte_Wp_Enforcer::run(), which exits early on foreign cron events. Runners attach in boot().
+- Master toggle `fuertewp_stream_enable` (default OFF) gates everything: tab data viewer, digest crons, connector registration. Weekly default frequency; daily/weekly/monthly (custom `monthly` cron schedule registered via cron_schedules).
+- schedule_digest() is init-time on every request: it must NOT clear+reschedule blindly (WP-Cron option churn + Sunday skip: on Sundays strtotime('next sunday 00:00') points at NEXT week, so clearing a due-but-unfired event silently skips the digest). Current contract: clear all three only when master is off; otherwise compute the desired hook/recurrence/target, leave a due-or-past event untouched, and only clear+reschedule when wp_next_scheduled differs from the target. `daily` MUST stay an explicit case — folding it into `default:` under a weekly default broke daily scheduling once already.
+- Tab queries Stream tables `{base_prefix}stream`(+`_meta`): updates=installer/updated, lifecycle=installer/installed|activated|deactivated|deleted, new_admins=users/created + stream_meta roles LIKE %Administrator% (user_role holds the ACTOR's role there), admin_passwords=users/password-reset + user_role=administrator. Logins/failed logins come from fuertewp_login_attempts, not Stream. Core updates are context "WordPress" (capital W).
+- Digest email: previous-day/week/month window (UTC bounds, converted with wp_date at query time; Stream stores site-local datetimes). Tab viewer uses a rolling trailing 24h instead.
+- HyperFields saves the whole page as one `update_option('fuertewp_settings', ...)`; the connector hooks `update_option_fuertewp_settings` (change-only) and logs changed keys. Stream's own settings connector ALSO logs per-key records for this option in some contexts — expect both shapes in the log. Connector sets register_frontend=true on purpose: CLI (`wp option update`), cron and REST writes must be logged too; Stream skips register_frontend=false connectors outside is_admin().
+- Legacy `|||`/`_fuertewp_*` options and `_carbon_fields_theme_options_fuerte-wp|...` CF3 keys are folded into fuertewp_settings by Fuerte_Wp_Migrator::migrate() at boot (kept as the settings-preservation mechanism after the Carbon shim retirement, 1.14.0). migrate() is NOT gated on is_admin() (fuerte-wp.php): frontend/REST/cron read fuertewp_settings too, and with the legacy fallback gone an unmigrated read would serve defaults and sit in the config transient for 24h.
+
+## CARBON FIELDS SHIM (retired 1.14.0)
+Removed from Fuerte_Wp_Config: `load_from_legacy_database()`, `load_multiselect_field()`, `save_multiselect_field()`, `array_filter_recursive()`, and the legacy fallbacks/dual-writes in get_field()/set_field(). The $is_multiselect params survive as inert caller-compat. Fuerte_Wp_Migrator + `cleanup_duplicate_patterns()` stay (fold-in + Data Tools safety net).
+- normalize_settings() emits flat aliases `deferred_plugins`/`deferred_themes`/`blocked_plugins`/`blocked_themes` — consumers and tests read the flat top-level lists, not only the deferred_updates group.
+- load_from_database() returns normalize_settings() UNCONDITIONALLY (empty storage = full defaults). Do not reintroduce an empty-storage early return; it nulls every key.
+- `.php-cs-fixer.dist.php` now excludes `includes/two-factor/` — cs:fix reformatting that synced lib caused regression twice; keep the exclusion.
 
 ## UPDRAFTCENTRAL GUARD
 `Fuerte_Wp_Updraft_Guard` boots procedurally at fuerte-wp.php include time (after the `FUERTEWP_DISABLE` return) so its filters exist before UpdraftPlus attaches its Central host at `plugins_loaded` priority 10 (verified against UpdraftPlus free 1.26.11 and Pro 2.26.11.26: `UpdraftPlus::plugins_loaded()` → `central/factory.php` → `central/bootstrap.php`; identical code in both).

@@ -46,6 +46,11 @@ if (is_array($fuertewp_options) && !empty($fuertewp_options)) {
 // Clears Fuerte-WP transient
 delete_transient('fuertewp_cache_config');
 
+// Clear activity digest cron schedules.
+wp_clear_scheduled_hook('fuertewp_stream_digest_daily');
+wp_clear_scheduled_hook('fuertewp_stream_digest_weekly');
+wp_clear_scheduled_hook('fuertewp_stream_digest_monthly');
+
 /**
  * Remove Fuerte-WP's .htaccess security block (everything between the
  * # BEGIN Fuerte-WP and # END Fuerte-WP markers, inclusive). Apache only.

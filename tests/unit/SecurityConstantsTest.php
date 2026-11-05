@@ -110,7 +110,7 @@ test('security constants - config handles FUERTEWP_DISABLE constant', function (
 test('security constants - config handles FUERTEWP_FORCE constant', function () {
     // Arrange: Set up config
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_super_users|||0|value'] = 'admin@example.com';
+$wp_tests_options['fuertewp_settings']['fuertewp_super_users'] = ['admin@example.com'];
 
     // Define FUERTEWP_FORCE to test force mode
     if (!defined('FUERTEWP_FORCE')) {

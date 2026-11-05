@@ -65,6 +65,13 @@ $page->addField(
 $page->register();
 ```
 
+Fields added directly to the page fold into an implicit default section, so the example above renders without any explicit `addSection()` call. Once a page has explicit sections, page-level fields are no longer rendered: `addSection()` / `addSectionToTab()` them instead (HyperFields triggers `_doing_it_wrong()` for each orphan field).
+
+$page->register();
+```
+
+Fields also carry editor schema: `->setTab('Content')` and `->setSection('Copy')` group controls in editor sidebars, `->setLive()` badges fields whose changes re-render a live preview, and `->setConditionalLogic([...])` drives visibility (input is canonicalized to the `{relation, conditions, groups}` shape). These keys and the normalized `[{value, label}]` options list all ride `toArray()` for JSON consumers. HyperBlocks renders them as Gutenberg inspector controls — see its editor sidebar documentation.
+
 ## Helper functions
 
 Procedural helpers are available with `hf_` prefix (for example: `hf_field`, `hf_get_field`, `hf_update_field`, `hf_option_page`).

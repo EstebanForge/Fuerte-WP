@@ -50,7 +50,7 @@ test('config - hybrid storage (hyperfields + legacy)', function () {
     // Arrange: Some in hyperfields, some in legacy _fuertewp_ options
     global $wp_tests_options;
     // Legacy mapping
-    $wp_tests_options['_fuertewp_login_max_attempts'] = 7;
+$wp_tests_options['fuertewp_settings']['fuertewp_login_max_attempts'] = 7;
 
     // Act & Assert
     $config = Fuerte_Wp_Config::get_config(true);

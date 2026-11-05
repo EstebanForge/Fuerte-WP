@@ -228,6 +228,7 @@ function wp_get_themes() {
 // WordPress database mock
 class wpdb {
     public $prefix = 'wp_';
+    public $base_prefix = 'wp_';
     public $options = 'wp_options';
 
     public function prepare($query, ...$args) {
@@ -313,3 +314,17 @@ class wpdb {
 
 global $wpdb;
 $wpdb = new wpdb();
+
+
+// Site-local date formatting (mirrors wp_date, TZ-insensitive in tests)
+function wp_date($format, $timestamp = null, $timezone = null) {
+    return date($format, $timestamp ?? time());
+}
+
+// wpdb result-format constants (WP core defines these)
+if (!defined('ARRAY_A')) {
+    define('ARRAY_A', 'ARRAY_A');
+}
+if (!defined('OBJECT')) {
+    define('OBJECT', 'OBJECT');
+}

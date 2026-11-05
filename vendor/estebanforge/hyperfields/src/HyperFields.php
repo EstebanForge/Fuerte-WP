@@ -98,6 +98,7 @@ class HyperFields
     public static function registerWPSettingsCompatibilityPage(array $config): OptionsPage
     {
         LibraryBootstrap::ensureInitialized();
+
         return WPSettingsCompatibility::register($config);
     }
 
@@ -125,6 +126,7 @@ class HyperFields
     public static function makeOptionPage(string $page_title, string $menu_slug, string $prefix = ''): OptionsPage
     {
         LibraryBootstrap::ensureInitialized();
+
         return OptionsPage::make($page_title, $menu_slug, $prefix);
     }
 
@@ -139,6 +141,7 @@ class HyperFields
     public static function makeAdminPage(string $page_title, string $menu_slug): AdminPage
     {
         LibraryBootstrap::ensureInitialized();
+
         return AdminPage::make($page_title, $menu_slug);
     }
 
@@ -223,7 +226,10 @@ class HyperFields
      */
     public static function getOptions(string $option_name, array $default = []): array
     {
-        $value = get_option($option_name, $default);
+        $value = get_option($option_name, null);
+        if ($value === null && $option_name === 'hyperfields_options') {
+            $value = get_option('hyperpress_options', $default);
+        }
 
         return is_array($value) ? $value : $default;
     }
@@ -238,7 +244,7 @@ class HyperFields
      */
     public static function getFieldValue(string $option_name, string $field_name, mixed $default = null): mixed
     {
-        $options = get_option($option_name, []);
+        $options = self::getOptions($option_name, []);
 
         return $options[$field_name] ?? $default;
     }
@@ -292,6 +298,7 @@ class HyperFields
     public static function createPostMetaContainer(string $id, string $title): Container\PostMetaContainer
     {
         LibraryBootstrap::ensureInitialized();
+
         return ContainerFactory::createPostMetaContainer($id, $title);
     }
 
@@ -317,6 +324,7 @@ class HyperFields
     public static function makeTermMeta(string $id, string $title): Container\TermMetaContainer
     {
         LibraryBootstrap::ensureInitialized();
+
         return ContainerFactory::makeTermMeta($id, $title);
     }
 
@@ -330,6 +338,7 @@ class HyperFields
     public static function makeUserMeta(string $id, string $title): Container\UserMetaContainer
     {
         LibraryBootstrap::ensureInitialized();
+
         return ContainerFactory::makeUserMeta($id, $title);
     }
 

@@ -13,6 +13,10 @@ $finder = PhpCsFixer\Finder::create()
     ->exclude('vendor')
     ->exclude('node_modules')
     ->exclude('tests')
+    // NEVER EDIT the bundled Two-Factor lib; the fixer must not reformat it.
+    // Relative path from __DIR__ (this file shadows .php-cs-fixer.dist.php,
+    // which the fixer ignores when this one exists).
+    ->exclude('includes/two-factor')
     ->name('*.php')
     ->notName('*.min.php')
     ->ignoreDotFiles(true)

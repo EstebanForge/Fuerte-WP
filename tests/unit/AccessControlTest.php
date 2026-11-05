@@ -26,9 +26,7 @@ afterEach(function () {
 test('access control - removed menus field storage works', function () {
     // Arrange: Configure removed menus using multiselect format
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_removed_menus|||0|value'] = 'plugins.php';
-    $wp_tests_options['_fuertewp_removed_menus|||1|value'] = 'themes.php';
-    $wp_tests_options['_fuertewp_removed_menus|||2|value'] = 'tools.php';
+$wp_tests_options['fuertewp_settings']['fuertewp_removed_menus'] = ['plugins.php', 'themes.php', 'tools.php'];
 
     // Act: Load using get_field method
     $removedMenus = Fuerte_Wp_Config::get_field('removed_menus', [], true);
@@ -44,8 +42,7 @@ test('access control - removed menus field storage works', function () {
 test('access control - removed submenus field storage works', function () {
     // Arrange: Configure removed submenus
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_removed_submenus|||0|value'] = 'themes.php';
-    $wp_tests_options['_fuertewp_removed_submenus|||1|value'] = 'plugins.php';
+$wp_tests_options['fuertewp_settings']['fuertewp_removed_submenus'] = ['themes.php', 'plugins.php'];
 
     // Act: Load using get_field method
     $removedSubmenus = Fuerte_Wp_Config::get_field('removed_submenus', [], true);
@@ -60,8 +57,7 @@ test('access control - removed submenus field storage works', function () {
 test('access control - restricted pages field storage works', function () {
     // Arrange: Configure restricted pages
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_restricted_pages|||0|value'] = 'update-core.php';
-    $wp_tests_options['_fuertewp_restricted_pages|||1|value'] = 'plugin-install.php';
+$wp_tests_options['fuertewp_settings']['fuertewp_restricted_pages'] = ['update-core.php', 'plugin-install.php'];
 
     // Act: Load using get_field method
     $restrictedPages = Fuerte_Wp_Config::get_field('restricted_pages', [], true);
@@ -76,8 +72,7 @@ test('access control - restricted pages field storage works', function () {
 test('access control - restricted scripts field storage works', function () {
     // Arrange: Configure restricted scripts
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_restricted_scripts|||0|value'] = 'plugin-editor.php';
-    $wp_tests_options['_fuertewp_restricted_scripts|||1|value'] = 'theme-editor.php';
+$wp_tests_options['fuertewp_settings']['fuertewp_restricted_scripts'] = ['plugin-editor.php', 'theme-editor.php'];
 
     // Act: Load using get_field method
     $restrictedScripts = Fuerte_Wp_Config::get_field('restricted_scripts', [], true);
@@ -92,9 +87,7 @@ test('access control - restricted scripts field storage works', function () {
 test('access control - admin bar menu removals field storage works', function () {
     // Arrange: Configure admin bar menu removals
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_removed_adminbar_menus|||0|value'] = 'wp-logo';
-    $wp_tests_options['_fuertewp_removed_adminbar_menus|||1|value'] = 'updates';
-    $wp_tests_options['_fuertewp_removed_adminbar_menus|||2|value'] = 'comments';
+$wp_tests_options['fuertewp_settings']['fuertewp_removed_adminbar_menus'] = ['wp-logo', 'updates', 'comments'];
 
     // Act: Load using get_field method
     $removedMenus = Fuerte_Wp_Config::get_field('removed_adminbar_menus', [], true);
@@ -127,8 +120,7 @@ test('access control - empty access restrictions return empty arrays', function 
 test('access control - handles special characters in page names', function () {
     // Arrange: Page names with special characters
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_restricted_pages|||0|value'] = 'page.php?action=edit';
-    $wp_tests_options['_fuertewp_restricted_pages|||1|value'] = 'admin.php?page=some-settings';
+$wp_tests_options['fuertewp_settings']['fuertewp_restricted_pages'] = ['page.php?action=edit', 'admin.php?page=some-settings'];
 
     // Act: Load field
     $restrictedPages = Fuerte_Wp_Config::get_field('restricted_pages', [], true);
@@ -141,7 +133,7 @@ test('access control - handles special characters in page names', function () {
 test('access control - access denied message is stored correctly', function () {
     // Arrange: Custom access denied message
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_access_denied_message'] = 'You do not have permission to access this area.';
+$wp_tests_options['fuertewp_settings']['fuertewp_access_denied_message'] = 'You do not have permission to access this area.';
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -153,7 +145,7 @@ test('access control - access denied message is stored correctly', function () {
 test('access control - recovery email is validated and stored', function () {
     // Arrange: Set recovery email
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_recovery_email'] = 'recovery@example.com';
+$wp_tests_options['fuertewp_settings']['fuertewp_recovery_email'] = 'recovery@example.com';
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);

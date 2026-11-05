@@ -46,9 +46,8 @@ class DeferredUpdatesIntegrationTest extends TestCase
     {
         // Arrange: Set up complete configuration
         global $wp_tests_options;
-        $wp_tests_options['_fuertewp_deferred_plugins|||0|value'] = 'hello-dolly/hello.php';
-        $wp_tests_options['_fuertewp_deferred_plugins|||1|value'] = 'akismet/akismet.php';
-        $wp_tests_options['_fuertewp_deferred_themes|||0|value'] = 'twentytwentythree';
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_plugins'] = ['hello-dolly/hello.php', 'akismet/akismet.php'];
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_themes'] = ['twentytwentythree'];
 
         // Act: Load configuration
         $config = Fuerte_Wp_Config::get_config(true);
@@ -143,8 +142,8 @@ class DeferredUpdatesIntegrationTest extends TestCase
     {
         // Arrange: Set up initial configuration
         global $wp_tests_options;
-        $wp_tests_options['_fuertewp_deferred_plugins|||0|value'] = 'hello-dolly/hello.php';
-        $wp_tests_options['_fuertewp_deferred_themes|||0|value'] = 'twentytwentythree';
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_plugins'] = ['hello-dolly/hello.php'];
+$wp_tests_options['fuertewp_settings']['fuertewp_deferred_themes'] = ['twentytwentythree'];
 
         // Act: Load config, invalidate, and reload
         $config1 = Fuerte_Wp_Config::get_config();

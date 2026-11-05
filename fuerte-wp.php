@@ -63,6 +63,17 @@ if (defined('FUERTEWP_DISABLE') && true === FUERTEWP_DISABLE) {
 require_once plugin_dir_path(__FILE__) . 'includes/class-fuerte-wp-updraft-guard.php';
 Fuerte_Wp_Updraft_Guard::boot();
 
+/*
+ * Stream (xwp/stream) integration. Armed here because the connector filter
+ * must be registered at plugins_loaded 30 (Stream applies wp_stream_connectors
+ * at init 9) and digest cron runners cannot ride Fuerte_Wp_Hook_Manager, which
+ * only initializes inside Fuerte_Wp_Enforcer::run() and exits early on foreign
+ * cron events. Fuerte_Wp_Stream_Activity self-gates: every callback checks
+ * that Stream is actually active.
+ */
+require_once plugin_dir_path(__FILE__) . 'includes/class-fuerte-wp-stream-activity.php';
+Fuerte_Wp_Stream_Activity::boot();
+
 /**
  * Includes & Autoload.
  */
@@ -108,11 +119,13 @@ function fuertewp_load_hyperfields()
         }
     }
 
-    // Run migration if needed
-    if (is_admin()) {
-        require_once FUERTEWP_PATH . 'includes/class-fuerte-wp-migrator.php';
-        Fuerte_Wp_Migrator::migrate();
-    }
+    // Run migration if needed. NOT gated on is_admin(): frontend/REST/cron/CLI
+    // requests read fuertewp_settings too, and since 1.14.0 there is no legacy
+    // fallback in Fuerte_Wp_Config — an unmigrated read would serve defaults and
+    // get cached in the config transient for 24h. The migrator no-ops once the
+    // legacy shapes are folded in.
+    require_once FUERTEWP_PATH . 'includes/class-fuerte-wp-migrator.php';
+    Fuerte_Wp_Migrator::migrate();
 }
 add_action('plugins_loaded', 'fuertewp_load_hyperfields', 0);
 

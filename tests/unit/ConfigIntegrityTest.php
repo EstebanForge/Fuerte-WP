@@ -65,13 +65,13 @@ test('config integrity - application password email is enabled by default', func
 test('config integrity - cache invalidation works correctly', function () {
     // Arrange: Initial config
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_access_denied_message'] = 'Access denied.';
+$wp_tests_options['fuertewp_settings']['fuertewp_access_denied_message'] = 'Access denied.';
 
     // Act: Get config twice with invalidation
     $config1 = Fuerte_Wp_Config::get_config(true);
 
     // Change a value
-    $wp_tests_options['_fuertewp_access_denied_message'] = 'New message.';
+$wp_tests_options['fuertewp_settings']['fuertewp_access_denied_message'] = 'New message.';
     Fuerte_Wp_Config::invalidate_cache();
 
     $config2 = Fuerte_Wp_Config::get_config();
@@ -84,8 +84,7 @@ test('config integrity - cache invalidation works correctly', function () {
 test('config integrity - multiselect fields return arrays', function () {
     // Arrange: Multiselect field with values
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_super_users|||0|value'] = 'admin@example.com';
-    $wp_tests_options['_fuertewp_super_users|||1|value'] = 'super@example.com';
+$wp_tests_options['fuertewp_settings']['fuertewp_super_users'] = ['admin@example.com', 'super@example.com'];
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -124,9 +123,9 @@ test('config integrity - handles missing options gracefully', function () {
 test('config integrity - boolean settings are handled correctly', function () {
     // Arrange: Boolean settings stored as strings
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_autoupdate_core'] = '1';
-    $wp_tests_options['_fuertewp_autoupdate_plugins'] = '';
-    $wp_tests_options['_fuertewp_autoupdate_themes'] = '1';
+$wp_tests_options['fuertewp_settings']['fuertewp_autoupdate_core'] = '1';
+$wp_tests_options['fuertewp_settings']['fuertewp_autoupdate_plugins'] = '';
+$wp_tests_options['fuertewp_settings']['fuertewp_autoupdate_themes'] = '1';
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -140,7 +139,7 @@ test('config integrity - boolean settings are handled correctly', function () {
 test('config integrity - bypass cache parameter works', function () {
     // Arrange: Set up config
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_access_denied_message'] = 'Original message.';
+$wp_tests_options['fuertewp_settings']['fuertewp_access_denied_message'] = 'Original message.';
 
     // Act: Get with cache bypass
     $config1 = Fuerte_Wp_Config::get_config(true);
@@ -149,7 +148,7 @@ test('config integrity - bypass cache parameter works', function () {
     Fuerte_Wp_Config::invalidate_cache();
 
     // Modify and get without bypass (should load fresh since cache was invalidated)
-    $wp_tests_options['_fuertewp_access_denied_message'] = 'Modified message.';
+$wp_tests_options['fuertewp_settings']['fuertewp_access_denied_message'] = 'Modified message.';
     $config2 = Fuerte_Wp_Config::get_config();
 
     // Assert: Both should reflect current state after invalidation
@@ -160,9 +159,7 @@ test('config integrity - bypass cache parameter works', function () {
 test('config integrity - email validation in super users', function () {
     // Arrange: Super users with various email formats
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_super_users|||0|value'] = 'valid@example.com';
-    $wp_tests_options['_fuertewp_super_users|||1|value'] = 'another.valid@sub.example.com';
-    $wp_tests_options['_fuertewp_super_users|||2|value'] = 'user+tag@example.com';
+$wp_tests_options['fuertewp_settings']['fuertewp_super_users'] = ['valid@example.com', 'another.valid@sub.example.com', 'user+tag@example.com'];
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);

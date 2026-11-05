@@ -30,8 +30,8 @@ afterEach(function () {
 test('core restrictions - file editing restrictions are stored correctly', function () {
     // Arrange: Enable file editing restrictions
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_disable_theme_editor'] = '1';
-    $wp_tests_options['_fuertewp_disable_plugin_editor'] = '1';
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_theme_editor'] = true;
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_plugin_editor'] = true;
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -44,7 +44,7 @@ test('core restrictions - file editing restrictions are stored correctly', funct
 test('core restrictions - file editing can be selectively enabled', function () {
     // Arrange: Enable only theme editor, not plugin editor
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_disable_theme_editor'] = '1';
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_theme_editor'] = true;
     // Don't set plugin editor (defaults to true for security)
 
     // Act: Get config
@@ -58,8 +58,8 @@ test('core restrictions - file editing can be selectively enabled', function () 
 test('core restrictions - theme and plugin install restrictions', function () {
     // Arrange: Enable theme/plugin install restrictions
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_disable_theme_install'] = '1';
-    $wp_tests_options['_fuertewp_disable_plugin_install'] = '1';
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_theme_install'] = true;
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_plugin_install'] = true;
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -72,7 +72,7 @@ test('core restrictions - theme and plugin install restrictions', function () {
 test('core restrictions - customizer CSS restriction is stored', function () {
     // Arrange: Enable customizer CSS restriction
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_disable_customizer_css'] = '1';
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_customizer_css'] = true;
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -84,7 +84,7 @@ test('core restrictions - customizer CSS restriction is stored', function () {
 test('core restrictions - admin create/edit restriction is stored', function () {
     // Arrange: Enable admin create/edit restriction
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_disable_admin_create_edit'] = '1';
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_admin_create_edit'] = true;
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -96,8 +96,8 @@ test('core restrictions - admin create/edit restriction is stored', function () 
 test('core restrictions - REST API restrictions are stored', function () {
     // Arrange: Enable REST API restrictions
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_restapi_loggedin_only'] = '1';
-    $wp_tests_options['_fuertewp_restapi_disable_app_passwords'] = '1';
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_restapi_loggedin_only'] = true;
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_restapi_disable_app_passwords'] = true;
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -111,7 +111,7 @@ test('core restrictions - REST API restrictions are stored', function () {
 test('core restrictions - XML-RPC restriction is stored', function () {
     // Arrange: Enable XML-RPC restriction
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_disable_xmlrpc'] = '1';
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_xmlrpc'] = true;
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);
@@ -135,9 +135,9 @@ test('core restrictions - empty restrictions config returns defaults', function 
 test('core restrictions - handles boolean string conversions correctly', function () {
     // Arrange: Mix of boolean string representations
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_disable_theme_editor'] = '1'; // true as string
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_theme_editor'] = true;
     // Plugin editor defaults to true when not set
-    $wp_tests_options['_fuertewp_disable_xmlrpc'] = '1';
+$wp_tests_options['fuertewp_settings']['fuertewp_restrictions_disable_xmlrpc'] = true;
 
     // Act: Get config
     $config = Fuerte_Wp_Config::get_config(true);

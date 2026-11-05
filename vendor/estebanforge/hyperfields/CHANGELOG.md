@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.7.3] - 2026-10-29
+
+### Fixed
+- **Single-section options pages no longer render a one-item tab nav.** `OptionsPage::renderTabs()` skipped the nav only when zero tabs were registered, so a page with one section got a nav tab linking to the page it is already on. The nav now renders only when two or more titled tabs exist; the section heading below already names a lone section. Matches WordPress core, where settings pages with a single group show no nav.
+
+## [1.7.2] - 2026-10-28
+
+### Fixed
+- **Page-level fields on section-less options pages now render.** `OptionsPage::addField()` without any `addSection()` call stored the field but the render, Settings-API registration, and sanitize loops only iterated sections, so the form printed hidden inputs and a submit button and nothing else. Fields added directly to a page now fold into an implicit default section at `register()` time (same pattern as the WordPress core General/Writing/Reading pages: no section heading, no tab nav), and their defaults seed `option_values` like section fields do.
+- **Mixed usage warns instead of silently dropping.** When a page has both explicit sections and page-level fields, those page-level fields stay unrendered (historical behavior) and each one now triggers `_doing_it_wrong()` pointing at `addSection()` / `addSectionToTab()`.
+
+## [1.7.1] - 2026-10-28
+
+### Added
+- **Shorthand `hf-*` CSS classes and variables.** Renamed internal classes and CSS custom properties to `hf-*` while retaining full backward compatibility for `hyperpress-*`.
+- **Aliased nonces and form fields.** Admin form actions and security nonces now support canonical `hyperfields_*` alongside `hyperpress_*` legacy fallbacks.
+
+## [1.7.0] - 2026-10-26
+
+### Added
+- **Field schema options for editor sidebars: `tab`, `section`, `live`.** `Field::setTab()` / `setSection()` group fields inside editor sidebars (tab -> section -> control), and `setLive()` marks fields whose changes re-render the block preview. Values ride the existing `toArray()` output, so REST consumers (such as the HyperBlocks `/block-fields` endpoint) receive them without a new endpoint. Defaults (`null` / `null` / `false`) keep existing serialized output shape-compatible.
+- **Conditional logic is canonicalized on write.** `Field::setConditionalLogic()` now runs its input through `ConditionalLogic::factory()->toArray()`, so every shape the factory accepts (a single condition, a flat condition list, a `{relation, conditions}` map, or a group list) is stored as the same `{relation, conditions, groups}` structure. Raw input was stored verbatim before; consumers reading the raw shape must read the canonical one.
+- **Option maps serialize as `[{value, label}]`.** `toArray()` converts keyed option maps (string or non-sequential integer keys) to a value/label list, so JSON transports cannot lose stored values. Scalar lists are unchanged and keep value=label semantics; a 0-based sequential integer map is indistinguishable from a scalar list in PHP and also stays value=label — use string or non-sequential keys when stored values matter.
+
+### Fixed
+- **Multiselect block attributes are now typed `array`.** The block attribute type map fell through to `string` for `multiselect` fields, so every array value a block editor saved failed attribute validation and silently reverted to the field default. Upgrade note: stored scalar values on existing multiselect fields revert to the field default once this ships, because the attribute type changed from `string` to `array`.
+
 ## [1.6.1] - 2026-09-10
 
 ### Added

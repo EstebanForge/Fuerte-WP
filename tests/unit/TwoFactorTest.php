@@ -103,7 +103,7 @@ test('config - two_factor_enable read from HyperFields fuertewp_settings', funct
 
 test('config - two_factor_enable read from legacy _fuertewp_ option', function () {
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_two_factor_enable'] = false;
+$wp_tests_options['fuertewp_settings']['fuertewp_two_factor_enable'] = false;
 
     $config = Fuerte_Wp_Config::get_config(true);
 
@@ -131,7 +131,7 @@ test('two-factor - config_enabled returns true for default and truthy values', f
 
     foreach ([true, '1', 'yes', 'on', null] as $value) {
         $wp_tests_options = [];
-        $wp_tests_options['_fuertewp_two_factor_enable'] = $value;
+$wp_tests_options['fuertewp_settings']['fuertewp_two_factor_enable'] = $value;
         Fuerte_Wp_Config::invalidate_cache();
 
         expect(Fuerte_Wp_TwoFactor::config_enabled())->toBeTrue(
@@ -145,7 +145,7 @@ test('two-factor - config_enabled returns false only for explicit off values', f
 
     foreach ([false, 0, '0', 'no', 'off', ''] as $value) {
         $wp_tests_options = [];
-        $wp_tests_options['_fuertewp_two_factor_enable'] = $value;
+$wp_tests_options['fuertewp_settings']['fuertewp_two_factor_enable'] = $value;
         Fuerte_Wp_Config::invalidate_cache();
 
         expect(Fuerte_Wp_TwoFactor::config_enabled())->toBeFalse(
@@ -242,7 +242,7 @@ test('two-factor - enforcement_is_enabled true on fresh install', function () {
 
 test('two-factor - enforcement disabled when two_factor_enable off', function () {
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_two_factor_enable'] = false;
+$wp_tests_options['fuertewp_settings']['fuertewp_two_factor_enable'] = false;
     Fuerte_Wp_Config::invalidate_cache();
 
     // Lib not loaded → enforcement can't run. Guards the boot-gate precedence.
@@ -251,7 +251,7 @@ test('two-factor - enforcement disabled when two_factor_enable off', function ()
 
 test('two-factor - enforcement disabled when admin unchecks enforce', function () {
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_two_factor_enforce'] = false;
+$wp_tests_options['fuertewp_settings']['fuertewp_two_factor_enforce'] = false;
     Fuerte_Wp_Config::invalidate_cache();
 
     expect(Fuerte_Wp_TwoFactor::enforcement_is_enabled())->toBeFalse();
@@ -330,7 +330,7 @@ test('two-factor - disabling enforcement releases the admin (no lingering inject
     });
 
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_two_factor_enforce'] = false;
+$wp_tests_options['fuertewp_settings']['fuertewp_two_factor_enforce'] = false;
     Fuerte_Wp_Config::invalidate_cache();
 
     $result = Fuerte_Wp_TwoFactor::get_instance()->enforce_email_for_admins(['Two_Factor_Email'], 42);

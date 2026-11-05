@@ -25,8 +25,7 @@ afterEach(function () {
 test('blocked updates - removes blocked plugins from update transient', function () {
     // Arrange: Set up WordPress options with blocked plugins
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_blocked_plugins|||0|value'] = 'hello-dolly/hello.php';
-    $wp_tests_options['_fuertewp_blocked_plugins|||1|value'] = 'akismet/akismet.php';
+$wp_tests_options['fuertewp_settings']['fuertewp_blocked_plugins'] = ['hello-dolly/hello.php', 'akismet/akismet.php'];
 
     // Invalidate cache to force reload
     Fuerte_Wp_Config::invalidate_cache();
@@ -55,9 +54,8 @@ test('blocked updates - removes blocked plugins from update transient', function
 test('blocked updates - removes blocked themes from update transient', function () {
     // Arrange: Set up WordPress options with blocked themes
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_blocked_plugins|||0|value'] = '';
-    $wp_tests_options['_fuertewp_blocked_themes|||0|value'] = 'twentytwentythree';
-    $wp_tests_options['_fuertewp_blocked_themes|||1|value'] = 'twentytwentyfour';
+$wp_tests_options['fuertewp_settings']['fuertewp_blocked_plugins'] = [''];
+$wp_tests_options['fuertewp_settings']['fuertewp_blocked_themes'] = ['twentytwentythree', 'twentytwentyfour'];
 
     // Invalidate cache to force reload
     Fuerte_Wp_Config::invalidate_cache();
@@ -86,7 +84,7 @@ test('blocked updates - removes blocked themes from update transient', function 
 test('blocked updates - returns false when transient is false', function () {
     // Arrange: Set up WordPress options with blocked plugins
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_blocked_plugins|||0|value'] = 'hello-dolly/hello.php';
+$wp_tests_options['fuertewp_settings']['fuertewp_blocked_plugins'] = ['hello-dolly/hello.php'];
 
     // Invalidate cache to force reload
     Fuerte_Wp_Config::invalidate_cache();
@@ -102,8 +100,8 @@ test('blocked updates - returns false when transient is false', function () {
 test('blocked updates - handles empty blocked lists gracefully', function () {
     // Arrange: Set up WordPress options with empty blocked lists
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_blocked_plugins|||0|value'] = '';
-    $wp_tests_options['_fuertewp_blocked_themes|||0|value'] = '';
+$wp_tests_options['fuertewp_settings']['fuertewp_blocked_plugins'] = [''];
+$wp_tests_options['fuertewp_settings']['fuertewp_blocked_themes'] = [''];
 
     // Invalidate cache to force reload
     Fuerte_Wp_Config::invalidate_cache();
@@ -165,7 +163,7 @@ test('blocked updates - handles missing config keys gracefully', function () {
 test('blocked updates - removes from no_update and checked arrays', function () {
     // Arrange: Set up WordPress options with blocked plugins
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_blocked_plugins|||0|value'] = 'hello-dolly/hello.php';
+$wp_tests_options['fuertewp_settings']['fuertewp_blocked_plugins'] = ['hello-dolly/hello.php'];
 
     // Invalidate cache to force reload
     Fuerte_Wp_Config::invalidate_cache();
@@ -196,7 +194,7 @@ test('blocked updates - removes from no_update and checked arrays', function () 
 test('blocked updates - also prevents auto-updates for blocked items', function () {
     // Arrange: Set up WordPress options with blocked plugins
     global $wp_tests_options;
-    $wp_tests_options['_fuertewp_blocked_plugins|||0|value'] = 'hello-dolly/hello.php';
+$wp_tests_options['fuertewp_settings']['fuertewp_blocked_plugins'] = ['hello-dolly/hello.php'];
 
     // Invalidate cache to force reload
     Fuerte_Wp_Config::invalidate_cache();

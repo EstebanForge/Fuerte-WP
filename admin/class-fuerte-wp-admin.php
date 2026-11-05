@@ -812,12 +812,133 @@ class Fuerte_Wp_Admin
                     ->setHelp(__('Selected themes will be completely blocked from ALL updates (automatic and manual). Use with caution - updates will not be available for these themes.', 'fuerte-wp'))
             );
 
+        // Activity tab: visible whenever Stream is active so users can find
+        // the enable toggle. Everything behind it (data viewer, digest cron,
+        // option-change logging) stays inert until the master switch is on.
+        if (class_exists('Fuerte_Wp_Stream_Activity') && Fuerte_Wp_Stream_Activity::is_active()) {
+            $activity_settings = Fuerte_Wp_Stream_Activity::digest_settings();
+
+            $page->addTab('activity_log', __('Activity', 'fuerte-wp'));
+
+            $digest_settings_section = $page->addSectionToTab('activity_log', 'activity_digest_section', __('Activity Monitoring', 'fuerte-wp'));
+            $digest_settings_section
+                ->addField(
+                    Field::make('checkbox', 'fuertewp_stream_enable', __('Enable activity digest.', 'fuerte-wp'))
+                        ->setDefault(false)
+                        ->setHelp(__('Off by default. When enabled, this tab shows security-relevant highlights from the Stream log and the digest email below is scheduled. Until then nothing is collected or sent.', 'fuerte-wp'))
+                )
+                ->addField(
+                    Field::make('select', 'fuertewp_stream_digest_frequency', __('Digest frequency', 'fuerte-wp'))
+                        ->setOptions([
+                            'daily' => __('Daily (sent after midnight)', 'fuerte-wp'),
+                            'weekly' => __('Weekly (sent Sunday night)', 'fuerte-wp'),
+                            'monthly' => __('Monthly (sent on the 1st)', 'fuerte-wp'),
+                        ])
+                        ->setDefault('weekly')
+                        ->setHelp(__('How often the activity digest email is sent. Changing the frequency takes effect on the next schedule run.', 'fuerte-wp'))
+                )
+                ->addField(
+                    Field::make('text', 'fuertewp_stream_digest_email', __('Digest recipient', 'fuerte-wp'))
+                        ->setDefault('')
+                        ->setHelp(__('Email address for the digest. Leave empty to use the site admin email.', 'fuerte-wp'))
+                );
+
+            if ($activity_settings['enable']) {
+                $activity_section = $page->addSectionToTab('activity_log', 'activity_overview_section', __('Activity Log Highlights', 'fuerte-wp'));
+                $activity_section
+                    ->addField(
+                        Field::make('html', 'fuertewp_activity_digest_viewer', __('Last 24 Hours', 'fuerte-wp'))
+                            ->setHtml($this->render_activity_digest())
+                    );
+            }
+        }
+
         $page->register();
 
         // Register Data Tools page for migrations and maintenance
         if (function_exists('hf_register_data_tools_page')) {
             hf_register_data_tools_page('Fuerte-WP', 'fuertewp_settings');
         }
+    }
+
+    /**
+     * Render the Stream-powered activity highlights for the last 24 hours.
+     *
+     * Event data comes from Stream's log tables (plugin/theme lifecycle,
+     * updates, new admins, admin password resets); logins and failed logins
+     * come from Fuerte-WP's own login attempts table.
+     *
+     * @since 1.14.0
+     *
+     * @return string HTML.
+     */
+    private function render_activity_digest()
+    {
+        $activity = new Fuerte_Wp_Stream_Activity();
+        // Rolling window: the tab mirrors the live trailing day, not the
+        // previous-day window the scheduled digest email covers.
+        $end = time();
+        $start = $end - DAY_IN_SECONDS;
+        $sections = $activity->collect_sections($start, $end);
+        $labels = Fuerte_Wp_Stream_Activity::SECTION_LABELS;
+
+        ob_start();
+        ?>
+        <div id="fuertewp-activity-digest">
+            <!-- Stats Overview -->
+            <div class="fuertewp-stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+                <?php foreach ($labels as $section => $label) : ?>
+                    <div class="stat-box" style="padding: 18px; background: #fff; border: 1px solid #ccd0d4; border-radius: 4px;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 13px;"><?php echo esc_html($label); ?></h4>
+                        <p style="font-size: 28px; font-weight: bold; margin: 0;<?php echo 'failed_logins' === $section && !empty($sections[$section]) ? ' color: #d63638;' : ''; ?>">
+                            <?php echo count($sections[$section] ?? []); ?>
+                        </p>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <?php $has_any = array_sum(array_map('count', $sections)) > 0; ?>
+            <?php if (!$has_any) : ?>
+                <p style="padding: 15px; background: #f6f7f7; border-radius: 4px;">
+                    <?php esc_html_e('No activity recorded in the last 24 hours. The digest email will stay quiet until there is something to report.', 'fuerte-wp'); ?>
+                </p>
+            <?php endif; ?>
+
+            <?php foreach ($labels as $section => $label) : ?>
+                <?php $rows = $sections[$section] ?? []; ?>
+                <?php if (empty($rows)) {
+                    continue;
+                } ?>
+                <h3 style="margin: 20px 0 8px 0;"><?php echo esc_html(sprintf('%s (%d)', $label, count($rows))); ?></h3>
+                <table class="widefat striped" style="margin-bottom: 10px;">
+                    <thead>
+                        <tr>
+                            <th><?php esc_html_e('Event', 'fuerte-wp'); ?></th>
+                            <th style="width: 140px;"><?php esc_html_e('User', 'fuerte-wp'); ?></th>
+                            <th style="width: 170px;"><?php esc_html_e('Time', 'fuerte-wp'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach (array_slice($rows, 0, 25) as $row) : ?>
+                            <tr>
+                                <td><?php echo esc_html((string) ($row['summary'] ?? '')); ?></td>
+                                <td><?php echo esc_html((string) ($row['user'] ?? '')); ?></td>
+                                <td><?php echo esc_html((string) ($row['created'] ?? '')); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <?php if (count($rows) > 25) : ?>
+                            <tr>
+                                <td colspan="3">
+                                    <?php echo esc_html(sprintf('Showing 25 of %d events. Older events are in the Stream log.', count($rows))); ?>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            <?php endforeach; ?>
+        </div>
+        <?php
+        return (string) ob_get_clean();
     }
 
     /**
