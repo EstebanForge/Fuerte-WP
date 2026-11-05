@@ -76,13 +76,13 @@ In the Docker dev env (from repo root): `./wp <command>` proxies WP-CLI into the
 Target: wordpress.org (SVN deploy) plus a git tag. **No GitHub release** — the tag only; do not run `build-release.sh`/`gh release create` as part of the cycle.
 
 1. `composer test` green; `php -l` on touched files.
-2. Commit all feature work first — `deploy.sh` reads `Version:` from the default branch and refuses a dirty tree.
+2. Commit all feature work first. `deploy.sh` reads `Version:` from the default branch; it does NOT refuse a dirty tree — it sweeps dirty tracked files into its own prompted commit mid-deploy (`git commit -am`, e.g. the prod-vendor manifest churn landed as a `1.15.0`-titled commit in the 1.15.0 release), so keep the tree clean before deploying.
 3. `composer production` BEFORE the bump: the prod `vendor/` build must land in the version-bump commit, not after it.
 4. `composer version-bump` → `scripts/bump-version.sh` rewrites the `Version:` header in `fuerte-wp.php` plus `Stable tag:` in `README.txt` and `README.md` in one pass.
 5. Add the `CHANGELOG.md` entry for X.Y.Z: a `# X.Y.Z / YYYY-MM-DD` section above the last one, house style `**New Feature** / **Changed** / **Bug Fix** / **Security** / **Note**` bullets, most important first. WP.org reads the changelog for its Users tab.
 6. Commit `chore(release): X.Y.Z` (version bump + changelog + prod vendor).
 7. `composer deploy` → prompts for the WP.org SVN username, checks readme version == plugin header, commits `trunk/`, then creates `tags/X.Y.Z` in the plugin SVN. Readme-only changes: `scripts/deploy-readme-only.sh` instead.
-8. `git tag X.Y.Z && git push origin X.Y.Z`.
+8. Tagging is automatic: `deploy.sh` creates the annotated tag `X.Y.Z` and pushes the branch and tag itself. Do not run a manual `git tag X.Y.Z` after a successful deploy (it fails on the existing tag); tag by hand only if you released without `composer deploy`.
 
 The vendored HyperFields upstream release is handled separately by the maintainer; it is not part of this cycle.
 
