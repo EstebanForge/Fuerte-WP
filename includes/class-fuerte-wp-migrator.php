@@ -14,12 +14,44 @@ defined('ABSPATH') || die();
 class Fuerte_Wp_Migrator
 {
     /**
+     * Bump when a new legacy storage shape needs a one-time pass.
+     */
+    public const MIGRATION_VERSION = '1';
+
+    /**
+     * Autoloaded marker: one in-memory get_option gates the whole pass.
+     */
+    public const MIGRATED_OPTION = 'fuertewp_legacy_migrated';
+
+    /**
+     * get_option() returns false both for missing options and for stored
+     * false values; this default disambiguates them so a legacy "off" toggle
+     * is preserved instead of dropped.
+     */
+    private const OPTION_MISSING = '__fuertewp_option_missing__';
+
+    /**
      * Run the migration from legacy options to HyperFields.
+     *
+     * One-time per site: the sentinel option gates the pass, and scanned
+     * legacy rows are deleted afterwards, so steady-state requests pay one
+     * in-memory get_option. Idempotent across crash windows: the fold skips
+     * keys HyperFields already holds, and nothing is deleted unless the
+     * settings write succeeded, so any interrupted or failed pass recovers
+     * on the next request without overwriting newer saved values.
      *
      * @return array Migration results
      */
     public static function migrate()
     {
+        if (get_option(self::MIGRATED_OPTION) === self::MIGRATION_VERSION) {
+            return [
+                'migrated_keys' => 0,
+                'settings_updated' => false,
+                'skipped' => true,
+            ];
+        }
+
         $settings = get_option('fuertewp_settings', []);
         $migrated_count = 0;
         $legacy_found = false;
@@ -101,38 +133,74 @@ class Fuerte_Wp_Migrator
             'blocked_themes',
         ];
 
+        $seen_legacy = [];
+
         foreach ($keys as $key) {
             $hf_key = "fuertewp_{$key}";
+            $already_present = isset($settings[$hf_key]);
+            $is_multiselect = in_array($key, $multiselect_keys, true);
+
+            $value = get_option("_fuertewp_{$key}", self::OPTION_MISSING);
+
+            if ($value !== self::OPTION_MISSING) {
+                $seen_legacy[] = "_fuertewp_{$key}";
+            }
+
+            if ($is_multiselect) {
+                $row_names = [];
+                $row_values = self::load_legacy_multiselect("fuertewp_{$key}", $row_names);
+
+                foreach ($row_names as $row_name) {
+                    $seen_legacy[] = $row_name;
+                }
+
+                if ($row_values !== null) {
+                    // Rows are the source of truth; the single option is only
+                    // a dual-write artifact and is never folded.
+                    $value = $row_values;
+                } else {
+                    // Singles for multiselect keys were never a read path.
+                    $value = self::OPTION_MISSING;
+                }
+            }
 
             // Only migrate if not already in HyperFields
-            if (isset($settings[$hf_key])) {
+            if ($already_present) {
                 continue;
             }
 
-            $value = null;
-            $is_multiselect = in_array($key, $multiselect_keys);
-
-            if ($is_multiselect) {
-                $value = self::load_legacy_multiselect("fuertewp_{$key}");
-            } else {
-                $value = get_option("_fuertewp_{$key}");
-            }
-
-            if ($value !== false && $value !== null) {
+            if ($value !== self::OPTION_MISSING && $value !== null) {
                 $settings[$hf_key] = $value;
                 $migrated_count++;
                 $legacy_found = true;
             }
         }
 
+        $saved = true;
+
         if ($legacy_found) {
-            update_option('fuertewp_settings', $settings);
-            Fuerte_Wp_Config::invalidate_cache();
+            $saved = update_option('fuertewp_settings', $settings);
+
+            if ($saved) {
+                Fuerte_Wp_Config::invalidate_cache();
+            }
+        }
+
+        // Nothing is deleted unless the fold actually persisted: a failed
+        // settings write must leave every legacy row in place for the retry
+        // on the next request.
+        if ($saved) {
+            foreach ($seen_legacy as $option_name) {
+                delete_option($option_name);
+            }
+
+            update_option(self::MIGRATED_OPTION, self::MIGRATION_VERSION, true);
         }
 
         return [
-            'migrated_keys' => $migrated_count,
-            'settings_updated' => $legacy_found,
+            'migrated_keys' => $saved ? $migrated_count : 0,
+            'settings_updated' => $saved && $legacy_found,
+            'skipped' => false,
         ];
     }
 
@@ -144,14 +212,17 @@ class Fuerte_Wp_Migrator
      * - Raw Carbon Fields 3.x complex keys:
      *   _carbon_fields_theme_options_fuerte-wp|{field}|{group}|value
      *
-     * cleanup_duplicate_patterns() deletes the raw Carbon keys, so this must
-     * keep parsing them or CF-era settings are lost on upgrade.
+     * Both shapes are always queried: sites that moved shim-era rows into CF3
+     * storage can hold both, shape 1 wins for values, and every fetched row
+     * name (including CF companion rows like |_type) lands in $row_names so
+     * migrate() deletes the whole legacy set.
      */
-    private static function load_legacy_multiselect($field_name)
+    private static function load_legacy_multiselect($field_name, array &$row_names = [])
     {
         global $wpdb;
 
         $values = [];
+        $cf3_values = [];
 
         // Shape 1: plugin's Carbon-compatible rows.
         $rows = $wpdb->get_results($wpdb->prepare(
@@ -163,15 +234,11 @@ class Fuerte_Wp_Migrator
         ));
 
         foreach ((array) $rows as $row) {
+            $row_names[] = $row->option_name;
+
             if (preg_match('/\|\|\|(\d+)\|value$/', $row->option_name, $matches)) {
                 $values[intval($matches[1])] = $row->option_value;
             }
-        }
-
-        if (!empty($values)) {
-            ksort($values);
-
-            return array_values($values);
         }
 
         // Shape 2: raw Carbon Fields 3.x complex keys.
@@ -184,9 +251,15 @@ class Fuerte_Wp_Migrator
         ));
 
         foreach ((array) $rows as $row) {
+            $row_names[] = $row->option_name;
+
             if (preg_match('/\|(\d+)\|value$/', $row->option_name, $matches)) {
-                $values[intval($matches[1])] = $row->option_value;
+                $cf3_values[intval($matches[1])] = $row->option_value;
             }
+        }
+
+        if (empty($values)) {
+            $values = $cf3_values;
         }
 
         if (empty($values)) {

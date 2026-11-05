@@ -27,6 +27,12 @@ function get_option($option, $default = false) {
 }
 
 function update_option($option, $value) {
+    global $wp_tests_options, $wp_tests_force_save_failure;
+    // Test hook: simulate a DB-level update_option failure.
+    if (!empty($wp_tests_force_save_failure)) {
+        return false;
+    }
+
     global $wp_tests_options;
     $wp_tests_options[$option] = $value;
     return true;
@@ -264,36 +270,29 @@ class wpdb {
     public function get_results($query) {
         global $wp_tests_options;
 
-        // Handle multiselect field queries for Carbon Fields
-        // Pattern: SELECT option_name, option_value FROM wp_options WHERE option_name LIKE '_fieldname|||%'
-        if (strpos($query, "LIKE '") !== false && strpos($query, "|||%") !== false) {
-            // Extract the field name prefix from the query
-            if (preg_match("/LIKE '_([^|]+)\|\|\|%'/", $query, $matches)) {
-                $field_prefix = $matches[1];
-                $results = [];
+        // Simulate LIKE-prefix option-row queries (legacy multiselect storage:
+        // _{field}|||{n}|value and _carbon_fields_theme_options_fuerte-wp|{field}|{n}|value).
+        if (preg_match("/LIKE '([^']+)'/", $query, $matches)) {
+            $prefix = rtrim($matches[1], '%');
+            $results = [];
 
-                // Find all matching options in the test options array
-                $prefix = "_{$field_prefix}|||";
-                foreach ($wp_tests_options as $option_name => $option_value) {
-                    if (strpos($option_name, $prefix) === 0 && strpos($option_name, '|value') !== false) {
-                        // Skip empty values
-                        if ($option_value === '' || $option_value === null) {
-                            continue;
-                        }
-                        $result = new stdClass();
-                        $result->option_name = $option_name;
-                        $result->option_value = $option_value;
-                        $results[] = $result;
-                    }
+            foreach ($wp_tests_options as $option_name => $option_value) {
+                // Faithful to SQL LIKE: return every prefix match, including
+                // CF companion rows (|_type) and empty values.
+                if (strpos($option_name, $prefix) === 0) {
+                    $result = new stdClass();
+                    $result->option_name = $option_name;
+                    $result->option_value = $option_value;
+                    $results[] = $result;
                 }
-
-                // Sort results by option name (for consistent ordering)
-                usort($results, function ($a, $b) {
-                    return strcmp($a->option_name, $b->option_name);
-                });
-
-                return $results;
             }
+
+            // Sort results by option name (for consistent ordering)
+            usort($results, function ($a, $b) {
+                return strcmp($a->option_name, $b->option_name);
+            });
+
+            return $results;
         }
 
         return [];

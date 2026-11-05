@@ -119,11 +119,11 @@ function fuertewp_load_hyperfields()
         }
     }
 
-    // Run migration if needed. NOT gated on is_admin(): frontend/REST/cron/CLI
-    // requests read fuertewp_settings too, and since 1.14.0 there is no legacy
-    // fallback in Fuerte_Wp_Config — an unmigrated read would serve defaults and
-    // get cached in the config transient for 24h. The migrator no-ops once the
-    // legacy shapes are folded in.
+    // One-time legacy-settings migration, gated by an autoloaded sentinel
+    // (fuertewp_legacy_migrated): steady-state cost is one in-memory
+    // get_option. NOT gated on is_admin(): frontend/REST/cron read
+    // fuertewp_settings too, and with the legacy fallback gone an unmigrated
+    // read would serve defaults and sit in the config transient for 24h.
     require_once FUERTEWP_PATH . 'includes/class-fuerte-wp-migrator.php';
     Fuerte_Wp_Migrator::migrate();
 }

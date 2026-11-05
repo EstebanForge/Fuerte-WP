@@ -61,6 +61,11 @@ if (file_exists(dirname(__DIR__) . '/includes/class-fuerte-wp-auto-update-manage
     require_once dirname(__DIR__) . '/includes/class-fuerte-wp-auto-update-manager.php';
 }
 
+// Load migrator class (legacy settings fold-in)
+if (file_exists(dirname(__DIR__) . '/includes/class-fuerte-wp-migrator.php')) {
+    require_once dirname(__DIR__) . '/includes/class-fuerte-wp-migrator.php';
+}
+
 // Load Stream integration classes (connector parent stub loaded above)
 if (file_exists(dirname(__DIR__) . '/includes/class-fuerte-wp-stream-connector.php')) {
     require_once dirname(__DIR__) . '/includes/class-fuerte-wp-stream-connector.php';
