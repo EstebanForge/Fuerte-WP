@@ -140,6 +140,6 @@ echo -e "2. Run tests: ${GREEN}composer test${NC}"
 echo -e "3. Commit and tag:${NC}"
 echo -e "   ${BLUE}git add .${NC}"
 echo -e "   ${BLUE}git commit -m \"chore: bump version to ${VERSION}\"${NC}"
-echo -e "   ${BLUE}git tag v${VERSION}${NC}"
+echo -e "   ${BLUE}git tag ${VERSION}${NC}"
 
 exit 0
